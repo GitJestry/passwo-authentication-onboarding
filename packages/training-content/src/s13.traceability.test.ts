@@ -49,7 +49,7 @@ describe('S13 integrated password-manager practice traceability', () => {
   });
 
   it('keeps the rebuilt My Shop landing-page copy in versioned content', () => {
-    expect(s13PasswordManagerPracticeContent.version).toBe('2.5.0');
+    expect(s13PasswordManagerPracticeContent.version).toBe('3.1.0');
     expect(s13PasswordManagerPracticeContent.website.shop.hero).toMatchObject({
       eyebrow: 'Sommer-Sale',
       title: 'Bis zu 40% sparen!',
@@ -136,5 +136,44 @@ describe('S13 integrated password-manager practice traceability', () => {
         .slice(0, 5)
         .map(({ label }) => label),
     ).toEqual(['My Shop', 'Campusgram', 'Master Campus', 'Campus E-Mail', 'Muster Bank']);
+  });
+
+  it('keeps the Campusgram manual password-manager fallback together', () => {
+    expect(s13PasswordManagerPracticeContent.network.guide.campusgramTransition).toEqual([
+      'Muster Bank hat jetzt ein eigenes Passwort. Der bisherige Verbindungsweg ist weg.',
+      'Versuch dich zum Abschluss noch einmal bei Campusgram anzumelden. Deine Passphrase ist bereits im Passwortmanager gespeichert.',
+    ]);
+    expect(s13PasswordManagerPracticeContent.campusgram.guide).toMatchObject({
+      fillUnavailable: 'Bei Campusgram klappt das Ausfüllen hier nicht.',
+      copyInstruction:
+        'Öffne über die Browser-Einstellungen den Passwortmanager und kopiere dort das Campusgram-Passwort zum Anmelden.',
+      complete:
+        'Wenn Autofill einmal nicht klappt, kannst du das gespeicherte Passwort also auch selbst kopieren und einsetzen. Merken musst du es dir trotzdem nicht.',
+    });
+    expect(s13PasswordManagerPracticeContent.campusgram.browser.menu).toMatchObject({
+      newTabAction: 'Neuer Tab',
+      historyAction: 'Verlauf',
+      downloadsAction: 'Downloads',
+      passwordManagerAction: 'Passwortmanager',
+      settingsAction: 'Einstellungen',
+      helpAction: 'Hilfe',
+    });
+    expect(
+      s13PasswordManagerPracticeContent.campusgram.settings.navigation
+        .filter(({ id }) => id === 'general' || id === 'passwords')
+        .map(({ label }) => label),
+    ).toEqual(['Allgemein', 'Passwörter']);
+    expect(
+      s13PasswordManagerPracticeContent.campusgram.passwordManager.additionalAccounts,
+    ).toHaveLength(75);
+    expect(
+      s13PasswordManagerPracticeContent.campusgram.passwordManager.knownAccounts.map(
+        ({ label }) => label,
+      ),
+    ).toEqual(['Campusgram', 'Master Campus', 'Campus E-Mail', 'Muster Bank', 'My Shop']);
+    expect(
+      s13PasswordManagerPracticeContent.campusgram.passwordManager.knownAccounts.length +
+        s13PasswordManagerPracticeContent.campusgram.passwordManager.additionalAccounts.length,
+    ).toBe(80);
   });
 });

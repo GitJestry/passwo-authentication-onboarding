@@ -26,7 +26,15 @@ import styles from './S13PasswordManagerPractice.module.css';
 
 export function PasswordManagerKeyIcon() {
   return (
-    <svg aria-hidden="true" viewBox="0 0 24 24" fill="none">
+    <svg
+      aria-hidden="true"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.7"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
       <circle cx="8.2" cy="10.2" r="4.2" />
       <path d="m11.4 13.1 8 8M15.2 16.9l2.2-2.2M17.8 19.5l2.2-2.2" />
     </svg>

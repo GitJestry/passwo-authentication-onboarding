@@ -142,6 +142,15 @@ function SymbolPaths({ symbolId }: Pick<NetworkSymbolProps, 'symbolId'>) {
           <circle cx="12" cy="12.5" r="3.15" stroke="currentColor" strokeWidth="1.55" />
         </>
       );
+    case 'browser-menu':
+      return (
+        <>
+          <circle cx="12" cy="12" r="9" fill="currentColor" fillOpacity="0.1" />
+          <circle cx="12" cy="6.8" r="1.45" fill="currentColor" stroke="none" />
+          <circle cx="12" cy="12" r="1.45" fill="currentColor" stroke="none" />
+          <circle cx="12" cy="17.2" r="1.45" fill="currentColor" stroke="none" />
+        </>
+      );
     case 'campus-workspace':
       return (
         <>

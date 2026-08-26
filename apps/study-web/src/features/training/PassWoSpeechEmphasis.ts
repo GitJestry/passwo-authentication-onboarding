@@ -267,7 +267,33 @@ const emphasisBySpeechId: Readonly<Record<string, readonly PassWoSpeechEmphasis[
     },
   ],
   's13-network-bank-password-changed': [
-    { phrase: 'eigenes Passwort', tone: 'positive' },
+    {
+      phrase: 'Passphrase ist bereits im Passwortmanager gespeichert',
+      tone: 'accent',
+    },
+  ],
+  's13-campusgram-autofill-unavailable': [
+    {
+      phrase: 'Bei Campusgram klappt das Ausfüllen hier nicht.',
+      tone: 'accent',
+    },
+  ],
+  's13-campusgram-copy-instruction': [
+    {
+      phrase: 'Browser-Einstellungen',
+      tone: 'action',
+      symbolId: 'browser-menu',
+      symbolSize: 'large',
+      contrastId: 's13-campusgram-manual-copy',
+    },
+    {
+      phrase: 'kopiere',
+      tone: 'action',
+      contrastId: 's13-campusgram-manual-copy',
+    },
+  ],
+  's13-campusgram-complete': [
+    { phrase: 'selbst kopieren und einsetzen', tone: 'action' },
   ],
   's13-bank-autofill-explanation': [
     { phrase: 'direkt ausgefüllt', tone: 'positive' },

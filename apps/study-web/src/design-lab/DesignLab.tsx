@@ -55,7 +55,10 @@ import {
   type S07AccountFeedback,
   type S07RemainingAccountId,
 } from '../features/training/segments/S07/S07PassphraseSearchMachine.js';
-import { S08NetworkRewindStage } from '../features/training/segments/S08/S08NetworkRewindStage.js';
+import {
+  S08NetworkRewindStage,
+  type S08NetworkRewindInitialStage,
+} from '../features/training/segments/S08/S08NetworkRewindStage.js';
 import styles from './DesignLab.module.css';
 import { S05DesignLabTraining } from './S05DesignLabTraining.js';
 
@@ -90,6 +93,8 @@ const s05S06TransitionInitialStructurePreset = {
   ],
 } as const;
 
+type S07ToS13QaInitialStage = 's07' | S08NetworkRewindInitialStage;
+
 function ArtifactPreview({ children }: { readonly children: ReactNode }) {
   return (
     <div className={styles.artifactPreview}>
@@ -109,20 +114,11 @@ function S07ToS09QaPreview({
 }: {
   readonly accountFeedback: readonly S07AccountFeedback[];
   readonly campusgramPassword: string;
-  readonly initialStage?:
-    | 's07'
-    | 's08'
-    | 's09'
-    | 'manager'
-    | 's13'
-    | 's13-network'
-    | 's13-bank';
+  readonly initialStage?: S07ToS13QaInitialStage;
   readonly network: NetworkSceneSnapshot | null;
   readonly plan: ReturnType<typeof createS06ConsequenceScenePlan>;
 }) {
-  const [stage, setStage] = useState<
-    's07' | 's08' | 's09' | 'manager' | 's13' | 's13-network' | 's13-bank'
-  >(initialStage);
+  const [stage, setStage] = useState<S07ToS13QaInitialStage>(initialStage);
   const [completedRecommendedAccountIds, setCompletedRecommendedAccountIds] = useState<
     readonly S07RemainingAccountId[] | null
   >(null);
@@ -203,14 +199,7 @@ function S07DirectQaPreview({
   initialStage = 's07',
   passwordOverrides,
 }: {
-  readonly initialStage?:
-    | 's07'
-    | 's08'
-    | 's09'
-    | 'manager'
-    | 's13'
-    | 's13-network'
-    | 's13-bank';
+  readonly initialStage?: S07ToS13QaInitialStage;
   readonly passwordOverrides: TrainingQaPasswordOverrides;
 }) {
   const accounts = useMemo<S06ConsequenceAccountInputs>(() => {
@@ -630,6 +619,13 @@ const scenarios: Record<DesignLabScenarioId, DesignLabScenario> = {
     dimmed: false,
     showPassWoOverlay: false,
   },
+  's2-5-campusgram-manual-login': {
+    label: 's2.5 · Campusgram ohne Autofill',
+    description:
+      'Direkter lokaler QA- und Resume-Einstieg in S13 bei der Campusgram-Anmeldung über Browser-Einstellungen und Passwortmanager.',
+    dimmed: false,
+    showPassWoOverlay: false,
+  },
 };
 
 const scenarioGroups = [
@@ -690,6 +686,7 @@ const scenarioGroups = [
       's2-2-my-shop-registration',
       's2-3-password-manager-network',
       's2-4-muster-bank-login',
+      's2-5-campusgram-manual-login',
     ],
   },
 ] as const satisfies readonly DesignLabScenarioGroup[];
@@ -1430,6 +1427,20 @@ export function DesignLab({ scenarioId }: { readonly scenarioId: DesignLabScenar
         <ArtifactPreview>
           <S07DirectQaPreview
             initialStage="s13-bank"
+            passwordOverrides={passwordOverrides}
+          />
+        </ArtifactPreview>
+      </main>
+    );
+  }
+
+  if (scenarioId === 's2-5-campusgram-manual-login') {
+    return (
+      <main className={styles.labPage}>
+        <DesignLabIntroduction scenarioId={scenarioId} scenario={scenario} />
+        <ArtifactPreview>
+          <S07DirectQaPreview
+            initialStage="s13-campusgram"
             passwordOverrides={passwordOverrides}
           />
         </ArtifactPreview>

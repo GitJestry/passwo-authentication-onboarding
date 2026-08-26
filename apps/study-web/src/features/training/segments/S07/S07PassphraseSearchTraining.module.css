@@ -1078,53 +1078,6 @@
   content: '';
 }
 
-.copyToast {
-  position: fixed;
-  z-index: 3;
-  display: flex;
-  align-items: center;
-  gap: 0.55rem;
-  padding: 0.7rem 0.95rem;
-  border: 1px solid rgb(255 255 255 / 40%);
-  border-radius: 0.72rem;
-  color: #fff;
-  background: #256f4b;
-  box-shadow: 0 0.8rem 2rem rgb(18 55 70 / 24%);
-  font-size: 0.78rem;
-  font-weight: 800;
-  pointer-events: none;
-  transform: translate(-50%, calc(-100% - 0.75rem));
-  animation: copy-toast-rise 1.8s ease-out forwards;
-}
-
-.copyToast span {
-  display: grid;
-  width: 1.15rem;
-  height: 1.15rem;
-  place-items: center;
-  border-radius: 50%;
-  color: #256f4b;
-  background: #fff;
-  font-size: 0.72rem;
-}
-
-@keyframes copy-toast-rise {
-  0% {
-    opacity: 0;
-    transform: translate(-50%, calc(-100% - 0.25rem));
-  }
-
-  14%,
-  70% {
-    opacity: 1;
-  }
-
-  100% {
-    opacity: 0;
-    transform: translate(-50%, calc(-100% - 2.25rem));
-  }
-}
-
 @keyframes generator-loading-spin {
   to {
     transform: rotate(1turn);
@@ -1170,21 +1123,6 @@
   .resultCollectionSummary,
   .searchFooter {
     animation: none;
-  }
-
-  .copyToast {
-    animation-name: copy-toast-fade;
-  }
-}
-
-@keyframes copy-toast-fade {
-  0%,
-  70% {
-    opacity: 1;
-  }
-
-  100% {
-    opacity: 0;
   }
 }
 

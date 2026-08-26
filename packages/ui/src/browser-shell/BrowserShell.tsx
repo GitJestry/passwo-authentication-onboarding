@@ -23,6 +23,16 @@ export interface BrowserTabModel {
   readonly disabledReason?: string;
 }
 
+export interface BrowserMenuItemModel {
+  readonly id: string;
+  readonly label: string;
+  readonly icon?: ReactNode;
+  readonly interactionEnabled?: boolean;
+  readonly separatorAfter?: boolean;
+  readonly shortcut?: string;
+  readonly trailingIndicator?: 'arrow';
+}
+
 export function BugStatusIcon() {
   return (
     <svg
@@ -65,9 +75,9 @@ function BrowserChromeIcon({ kind }: { readonly kind: 'add-tab' | 'bookmark' | '
   if (kind === 'menu') {
     return (
       <svg aria-hidden="true" viewBox="0 0 24 24" fill="currentColor">
-        <circle cx="12" cy="5" r="1.85" />
-        <circle cx="12" cy="12" r="1.85" />
-        <circle cx="12" cy="19" r="1.85" />
+        <circle cx="12" cy="5" r="2.1" />
+        <circle cx="12" cy="12" r="2.1" />
+        <circle cx="12" cy="19" r="2.1" />
       </svg>
     );
   }
@@ -135,6 +145,13 @@ export interface BrowserShellSnapshot {
     readonly icon?: 'key' | 'saved';
     readonly statusLabel?: string;
   };
+  readonly menu?: {
+    readonly label: string;
+    readonly items: readonly BrowserMenuItemModel[];
+    readonly open?: boolean;
+    readonly highlighted?: boolean;
+    readonly interactionEnabled?: boolean;
+  };
   readonly locked?: boolean;
 }
 
@@ -160,6 +177,8 @@ export interface BrowserShellProps {
   readonly onWindowTransitionEnd?: (state: 'open' | 'closed') => void;
   readonly windowCloseEnabled?: boolean;
   readonly onPasswordManagerSelect?: () => void;
+  readonly onMenuOpenChange?: (open: boolean) => void;
+  readonly onMenuItemSelect?: (itemId: string) => void;
 }
 
 type BrowserWindowState = 'open' | 'opening' | 'closing' | 'closed';
@@ -179,6 +198,8 @@ export function BrowserShell({
   onWindowTransitionEnd,
   windowCloseEnabled = true,
   onPasswordManagerSelect,
+  onMenuOpenChange,
+  onMenuItemSelect,
 }: BrowserShellProps) {
   const idPrefix = useId().replaceAll(':', '');
   const tabElements = useRef(new Map<string, HTMLButtonElement>());
@@ -197,6 +218,10 @@ export function BrowserShell({
   const passwordManagerInteractive =
     snapshot.passwordManager?.interactionEnabled === true &&
     onPasswordManagerSelect !== undefined;
+  const menuInteractive =
+    snapshot.menu?.interactionEnabled === true &&
+    onMenuOpenChange !== undefined &&
+    onMenuItemSelect !== undefined;
   const chromeInert =
     locked ||
     (dimmed && snapshot.passwordManager?.allowInteractionWhenDimmed !== true);
@@ -568,9 +593,84 @@ export function BrowserShell({
               >
                 {accountInitials}
               </span>
-              <span className={styles.menuHint} role="img" aria-label="Browsermenü und Einstellungen">
-                <BrowserChromeIcon kind="menu" />
-              </span>
+              {snapshot.menu === undefined ? (
+                <span
+                  className={styles.menuHint}
+                  role="img"
+                  aria-label="Browsermenü und Einstellungen"
+                >
+                  <BrowserChromeIcon kind="menu" />
+                </span>
+              ) : (
+                <div
+                  className={styles.menuControl}
+                  onBlur={(event) => {
+                    if (
+                      snapshot.menu?.open === true &&
+                      (!(event.relatedTarget instanceof Node) ||
+                        !event.currentTarget.contains(event.relatedTarget))
+                    ) {
+                      onMenuOpenChange?.(false);
+                    }
+                  }}
+                >
+                  <button
+                    type="button"
+                    className={styles.menuButton}
+                    aria-label={snapshot.menu.label}
+                    aria-haspopup="menu"
+                    aria-expanded={snapshot.menu.open === true}
+                    data-highlighted={snapshot.menu.highlighted || undefined}
+                    disabled={!menuInteractive}
+                    onClick={() => onMenuOpenChange?.(snapshot.menu?.open !== true)}
+                  >
+                    <BrowserChromeIcon kind="menu" />
+                  </button>
+                  {snapshot.menu.open === true ? (
+                    <div className={styles.browserMenu} role="menu" aria-label={snapshot.menu.label}>
+                      {snapshot.menu.items.map((item) => {
+                        const itemContent = (
+                          <>
+                            {item.icon === undefined ? null : (
+                              <span className={styles.browserMenuIcon} aria-hidden="true">
+                                {item.icon}
+                              </span>
+                            )}
+                            <span className={styles.browserMenuLabel}>{item.label}</span>
+                            {item.shortcut === undefined && item.trailingIndicator === undefined ? null : (
+                              <span className={styles.browserMenuTrailing} aria-hidden="true">
+                                {item.shortcut ?? '›'}
+                              </span>
+                            )}
+                          </>
+                        );
+                        return menuInteractive && item.interactionEnabled === true ? (
+                          <button
+                            key={item.id}
+                            type="button"
+                            role="menuitem"
+                            className={styles.browserMenuItem}
+                            data-separator-after={item.separatorAfter || undefined}
+                            onClick={() => onMenuItemSelect?.(item.id)}
+                          >
+                            {itemContent}
+                          </button>
+                        ) : (
+                          <div
+                            key={item.id}
+                            role="menuitem"
+                            aria-disabled="true"
+                            className={styles.browserMenuItem}
+                            data-separator-after={item.separatorAfter || undefined}
+                          >
+                            {itemContent}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  ) : null}
+                </div>
+              )}
             </div>
           </div>
         </header>

@@ -543,6 +543,13 @@ button.activeTab[aria-disabled="true"] {
   gap: var(--space-2);
 }
 
+.menuControl {
+  position: relative;
+  z-index: 5;
+  display: grid;
+  place-items: center;
+}
+
 .passwordManagerControl {
   position: relative;
   z-index: 4;
@@ -691,14 +698,148 @@ button.activeTab[aria-disabled="true"] {
   font-weight: var(--font-weight-heavy);
 }
 
-.menuHint {
+.menuHint,
+.menuButton {
   width: 1.65rem;
   height: 1.65rem;
 }
 
-.menuHint svg {
+.menuButton {
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-round);
+  color: var(--color-ink-muted);
+  background: transparent;
+  font: inherit;
+}
+
+.menuButton:not(:disabled) {
+  cursor: pointer;
+}
+
+.menuButton:disabled {
+  cursor: default;
+  opacity: 1;
+}
+
+.menuButton[data-highlighted="true"] {
+  color: var(--color-accent-strong);
+  background: color-mix(in srgb, var(--color-accent-soft) 78%, var(--passwo-surface));
+  box-shadow: 0 0 0.78rem color-mix(in srgb, var(--color-accent) 36%, transparent);
+  outline: var(--border-width-medium) solid var(--color-accent-strong);
+  outline-offset: 0.12rem;
+  animation: browser-menu-highlight 1.35s ease-in-out infinite;
+}
+
+.menuButton:focus-visible,
+.browserMenu button:focus-visible {
+  outline: var(--border-width-focus) solid var(--passwo-focus);
+  outline-offset: 2px;
+}
+
+.menuHint svg,
+.menuButton svg {
+  width: 1.1rem;
+  height: 1.1rem;
   fill: currentcolor;
   stroke: none;
+}
+
+.browserMenu {
+  position: absolute;
+  z-index: 8;
+  top: calc(100% + 0.62rem);
+  right: 0;
+  display: grid;
+  width: min(20rem, 78vw);
+  gap: var(--space-1);
+  padding: var(--space-2);
+  border: var(--border-width-thin) solid var(--passwo-border);
+  border-radius: var(--radius-medium);
+  background: color-mix(in srgb, var(--passwo-surface) 96%, transparent);
+  box-shadow: 0 1rem 2.4rem color-mix(in srgb, var(--color-ink-strong) 18%, transparent);
+  backdrop-filter: blur(1rem);
+}
+
+.browserMenuItem {
+  display: grid;
+  min-height: var(--size-control-large);
+  grid-template-columns: 1.5rem minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-2) var(--space-3);
+  border: 0;
+  border-radius: var(--radius-small);
+  color: var(--color-ink-strong);
+  background: transparent;
+  font: inherit;
+  font-size: var(--font-size-small);
+  font-weight: var(--font-weight-bold);
+  text-align: left;
+}
+
+.browserMenu button.browserMenuItem {
+  cursor: pointer;
+}
+
+.browserMenu div.browserMenuItem {
+  color: color-mix(in srgb, var(--color-ink-strong) 86%, var(--color-ink-muted));
+}
+
+.browserMenuItem[data-separator-after="true"] {
+  margin-bottom: var(--space-2);
+  border-bottom: var(--border-width-thin) solid var(--passwo-border);
+  border-radius: var(--radius-small) var(--radius-small) 0 0;
+  padding-bottom: calc(var(--space-2) + var(--space-2));
+}
+
+.browserMenuLabel {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.browserMenuTrailing {
+  color: var(--color-ink-muted);
+  font-size: var(--font-size-small);
+  font-weight: var(--font-weight-semibold);
+}
+
+.browserMenuIcon {
+  display: grid;
+  width: 1.25rem;
+  height: 1.25rem;
+  place-items: center;
+  color: var(--color-accent-strong);
+}
+
+.browserMenuIcon > svg,
+.browserMenuIcon > span {
+  width: 100%;
+  height: 100%;
+}
+
+@media (hover: hover) {
+  .menuButton:not(:disabled):hover,
+  .browserMenu button.browserMenuItem:hover {
+    color: var(--color-accent-strong);
+    background: color-mix(in srgb, var(--color-accent-soft) 72%, var(--passwo-surface));
+  }
+}
+
+.menuButton:not(:disabled):active,
+.browserMenu button.browserMenuItem:active {
+  filter: brightness(0.96) saturate(0.96);
+}
+
+@keyframes browser-menu-highlight {
+  50% {
+    box-shadow: 0 0 1.1rem color-mix(in srgb, var(--color-accent) 54%, transparent);
+    transform: scale(1.06);
+  }
 }
 
 .viewport {
@@ -1097,6 +1238,7 @@ button.activeTab[aria-disabled="true"] {
 @media (prefers-reduced-motion: reduce) {
   .newTabButton[data-guided-highlight="true"],
   .passwordManagerIndicator[data-highlighted="true"],
+  .menuButton[data-highlighted="true"],
   .passwordManagerStatus {
     animation: none;
   }

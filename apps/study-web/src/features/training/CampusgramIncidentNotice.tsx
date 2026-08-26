@@ -8,6 +8,7 @@ import {
   type ReactNode,
 } from 'react';
 import { PasswordVisibilityIcon } from './PasswordVisibilityIcon.js';
+import { SimulatedPasteButton } from './SimulatedPasteButton.js';
 import { SimulatedPasswordInput } from './SimulatedPasswordInput.js';
 import styles from './CampusgramIncidentNotice.module.css';
 
@@ -314,17 +315,12 @@ export function CampusgramIncidentNotice({
                   {simulatedClipboardValue === null ||
                   simulatedPasteLabel === undefined ||
                   (guidedPasteTarget !== undefined && guidedPasteTarget !== 'new') ? null : (
-                    <button
-                      type="button"
-                      className={styles.pasteButton}
-                      data-centered={centerSimulatedPaste || undefined}
-                      data-guided-highlight={
-                        (highlightGuidedActions && guidedPasteTarget === 'new') || undefined
-                      }
+                    <SimulatedPasteButton
+                      centered={centerSimulatedPaste}
+                      guided={highlightGuidedActions && guidedPasteTarget === 'new'}
+                      label={simulatedPasteLabel}
                       onClick={() => pasteSimulatedPassword('new')}
-                    >
-                      {simulatedPasteLabel}
-                    </button>
+                    />
                   )}
                   <button
                     type="button"
@@ -370,17 +366,12 @@ export function CampusgramIncidentNotice({
                   {simulatedClipboardValue === null ||
                   simulatedPasteLabel === undefined ||
                   (guidedPasteTarget !== undefined && guidedPasteTarget !== 'confirm') ? null : (
-                    <button
-                      type="button"
-                      className={styles.pasteButton}
-                      data-centered={centerSimulatedPaste || undefined}
-                      data-guided-highlight={
-                        (highlightGuidedActions && guidedPasteTarget === 'confirm') || undefined
-                      }
+                    <SimulatedPasteButton
+                      centered={centerSimulatedPaste}
+                      guided={highlightGuidedActions && guidedPasteTarget === 'confirm'}
+                      label={simulatedPasteLabel}
                       onClick={() => pasteSimulatedPassword('confirm')}
-                    >
-                      {simulatedPasteLabel}
-                    </button>
+                    />
                   )}
                   <button
                     type="button"

@@ -193,7 +193,8 @@ die jeweilige Landingpage, zum Beispiel `/design-lab/s01?account=campus-email&vi
 Die Warnszene und die anschließende Campusgram-Erklärung sind unter `/design-lab/s03-warning`
 beziehungsweise `/design-lab/s04` direkt erreichbar.
 Die My-Shop-Registrierung beginnt unter `/design-lab/s2-2-my-shop-registration` unmittelbar mit
-dem leeren S13-Registrierungsformular.
+dem leeren S13-Registrierungsformular. Die Campusgram-Anmeldung ohne Autofill ist unter
+`/design-lab/s2-5-campusgram-manual-login` direkt ab dem leeren Passwortfeld erreichbar.
 
 Für einen direkten, ausschließlich lokalen QA-Einstieg in ein Trainingssegment kann der
 Desktop-Entwicklungsstart mit `PASSWO_QA_SEGMENT` aufgerufen werden. Dabei werden weder eine
@@ -210,10 +211,13 @@ PASSWO_QA_SEGMENT=s07 pnpm dev
 PASSWO_QA_SEGMENT=s08 pnpm dev
 PASSWO_QA_SEGMENT=s09 pnpm dev
 PASSWO_QA_SEGMENT=s13 pnpm dev
+PASSWO_QA_SEGMENT=s13-campusgram pnpm dev
 ```
 
 `s13` öffnet direkt das leere My-Shop-Registrierungsformular. Dieser Einstieg ist ausschließlich
-lokale QA und verändert den serverseitigen S08-Resume-Checkpoint nicht.
+lokale QA und verändert den serverseitigen S08-Resume-Checkpoint nicht. `s13-campusgram` öffnet
+entsprechend direkt die Campusgram-Anmeldung ohne Autofill und rekonstruiert dabei ausschließlich
+lokale Übungswerte, die auch das bestehende minimale S08-Resume-Modell zulässt.
 
 Die fiktiven QA-Passwörter können für denselben Start optional überschrieben werden. Nicht
 angegebene Werte behalten die jeweiligen Vorschau-Defaults (`preview-master-campus`,

@@ -38,6 +38,7 @@ import {
   type PasswordManagerVaultEntry,
 } from '../S12/S12PasswordManagerTraining.js';
 import { S13MusterBankPasswordChange } from '../S13/S13MusterBankPasswordChange.js';
+import { S13CampusgramManualLogin } from '../S13/S13CampusgramManualLogin.js';
 import { S13PasswordManagerPractice } from '../S13/S13PasswordManagerPractice.js';
 import {
   blockedS08ProtectionSteps,
@@ -61,14 +62,17 @@ import styles from './S08NetworkRewindStage.module.css';
 
 export type S08ChangeableAccountId = Exclude<S06AccountId, 'campusgram'>;
 
+export type S08NetworkRewindInitialStage =
+  | 's08'
+  | 's09'
+  | 'manager'
+  | 's13'
+  | 's13-network'
+  | 's13-bank'
+  | 's13-campusgram';
+
 interface S08Context {
-  readonly initialStage:
-    | 's08'
-    | 's09'
-    | 'manager'
-    | 's13'
-    | 's13-network'
-    | 's13-bank';
+  readonly initialStage: S08NetworkRewindInitialStage;
   readonly phaseDurationMs: number;
   readonly protectionResolutionDurationMs: number;
   readonly reductionDurationMs: number;
@@ -91,6 +95,7 @@ type S08Event =
   | { readonly type: 'OPEN_BROWSER' }
   | { readonly type: 'S13_BROWSER_CLOSED' }
   | { readonly type: 'S13_BANK_BROWSER_CLOSED' }
+  | { readonly type: 'S13_CAMPUSGRAM_COMPLETED' }
   | { readonly type: 'NEXT' };
 
 const s08Machine = setup({
@@ -99,13 +104,7 @@ const s08Machine = setup({
     events: {} as S08Event,
     input: {} as {
       readonly recommendedAccountIds: readonly S08ChangeableAccountId[];
-      readonly initialStage:
-        | 's08'
-        | 's09'
-        | 'manager'
-        | 's13'
-        | 's13-network'
-        | 's13-bank';
+      readonly initialStage: S08NetworkRewindInitialStage;
       readonly phaseDurationMs: number;
       readonly protectionResolutionDurationMs: number;
       readonly reductionDurationMs: number;
@@ -139,6 +138,7 @@ const s08Machine = setup({
     startsAtS13: ({ context }) => context.initialStage === 's13',
     startsAtS13Network: ({ context }) => context.initialStage === 's13-network',
     startsAtS13Bank: ({ context }) => context.initialStage === 's13-bank',
+    startsAtS13Campusgram: ({ context }) => context.initialStage === 's13-campusgram',
   },
   actions: {
     startProtectionResolution: assign({
@@ -175,6 +175,7 @@ const s08Machine = setup({
   states: {
     entry: {
       always: [
+        { guard: 'startsAtS13Campusgram', target: 'managerPracticeCampusgram' },
         { guard: 'startsAtS13Bank', target: 'managerPracticeBank' },
         { guard: 'startsAtS13Network', target: 'managerPracticeNetworkReturn' },
         { guard: 'startsAtS13', target: 'managerPractice' },
@@ -309,7 +310,11 @@ const s08Machine = setup({
     },
     managerPracticeBankProtected: {
       tags: ['manager', 'expanded', 's13-network', 's13-bank-result'],
-      on: { NEXT: { target: 'complete' } },
+      on: { OPEN_BROWSER: { target: 'managerPracticeCampusgram' } },
+    },
+    managerPracticeCampusgram: {
+      tags: ['manager', 'expanded'],
+      on: { S13_CAMPUSGRAM_COMPLETED: { target: 'complete' } },
     },
     complete: {
       tags: ['manager', 'expanded', 's13-network', 's13-bank-result'],
@@ -324,13 +329,7 @@ export interface S08NetworkRewindStageProps {
   readonly plan?: PasswordConsequenceScenePlan | null;
   readonly resumeState?: SupportiveS08ResumeState;
   readonly platform: DesktopPlatform;
-  readonly initialStage?:
-    | 's08'
-    | 's09'
-    | 'manager'
-    | 's13'
-    | 's13-network'
-    | 's13-bank';
+  readonly initialStage?: S08NetworkRewindInitialStage;
   readonly onComplete?: () => void;
 }
 
@@ -864,32 +863,32 @@ export function S08NetworkRewindStage({
   const s13NetworkSpeech = state.matches('managerPracticeNewAccountConnections')
     ? {
         id: 's13-network-new-account',
-        text: s13PasswordManagerPracticeContent.network.guide.newAccount,
+        text: [s13PasswordManagerPracticeContent.network.guide.newAccount],
       }
     : state.matches('managerPracticeExistingAccount')
       ? {
           id: 's13-network-existing-account',
-          text: s13PasswordManagerPracticeContent.network.guide.existingAccount,
+          text: [s13PasswordManagerPracticeContent.network.guide.existingAccount],
         }
       : state.matches('managerPracticeExistingAccountUnchanged')
         ? {
             id: 's13-network-unchanged',
-            text: s13PasswordManagerPracticeContent.network.guide.unchangedAtService,
+            text: [s13PasswordManagerPracticeContent.network.guide.unchangedAtService],
           }
         : state.matches('managerPracticeExistingAccountRelation')
           ? {
               id: 's13-network-reused-password',
-              text: s13PasswordManagerPracticeContent.network.guide.reusedPassword,
+              text: [s13PasswordManagerPracticeContent.network.guide.reusedPassword],
             }
           : state.matches('managerPracticeExistingAccountReplace')
             ? {
                 id: 's13-network-replace-at-service',
-                text: s13PasswordManagerPracticeContent.network.guide.replaceAtService,
+                text: [s13PasswordManagerPracticeContent.network.guide.replaceAtService],
               }
             : state.matches('managerPracticeBankProtected')
               ? {
                   id: 's13-network-bank-password-changed',
-                  text: s13PasswordManagerPracticeContent.network.guide.passwordChanged,
+                  text: s13PasswordManagerPracticeContent.network.guide.campusgramTransition,
                 }
               : null;
   const s13NetworkStep = state.matches('managerPracticeNewAccountReveal')
@@ -925,7 +924,9 @@ export function S08NetworkRewindStage({
   const s13ExistingAccountRelationVisible =
     state.matches('managerPracticeExistingAccountRelation') ||
     state.matches('managerPracticeExistingAccountReplace');
-  const browserReopenPrompt = state.matches('managerPracticeExistingAccountReplace');
+  const browserReopenPrompt =
+    state.matches('managerPracticeExistingAccountReplace') ||
+    state.matches('managerPracticeBankProtected');
   const celebratesMyShop =
     state.matches('managerPracticeNewAccountShield') ||
     state.matches('managerPracticeNewAccountConnections');
@@ -968,13 +969,18 @@ export function S08NetworkRewindStage({
   const managerTransitionVisible = state.matches('managerTransition');
   const managerPracticeVisible = state.matches('managerPractice');
   const bankPracticeVisible = state.matches('managerPracticeBank');
+  const campusgramPracticeVisible = state.matches('managerPracticeCampusgram');
 
   return (
     <div className={styles.stageStack}>
       <section
         className={styles.training}
         aria-hidden={
-          managerTransitionVisible || managerPracticeVisible || bankPracticeVisible || undefined
+          managerTransitionVisible ||
+          managerPracticeVisible ||
+          bankPracticeVisible ||
+          campusgramPracticeVisible ||
+          undefined
         }
         aria-label={
           state.hasTag('s13-network')
@@ -1001,7 +1007,10 @@ export function S08NetworkRewindStage({
         data-s09-reducing={state.hasTag('reducing') || undefined}
         data-manager-active={state.matches('managerLesson') || undefined}
         data-s13-browser-active={
-          state.matches('managerPractice') || state.matches('managerPracticeBank') || undefined
+          state.matches('managerPractice') ||
+          state.matches('managerPracticeBank') ||
+          state.matches('managerPracticeCampusgram') ||
+          undefined
         }
         data-s13-network-step={s13NetworkStep}
         data-s13-focus={s13FocusTarget}
@@ -1207,7 +1216,7 @@ export function S08NetworkRewindStage({
               helpOpen
               helpId="s13-network-speech"
               openHelpLabel="PassWo-Hinweis öffnen"
-              speech={[s13NetworkSpeech.text]}
+              speech={s13NetworkSpeech.text}
               speechEmphasis={passWoSpeechEmphasisFor(s13NetworkSpeech.id)}
               speechKey={s13NetworkSpeech.id}
               speechObstacleSelector="[data-s13-import-vault]"
@@ -1326,6 +1335,18 @@ export function S08NetworkRewindStage({
             displayName={displayName}
             platform={platform}
             onBrowserClosed={() => send({ type: 'S13_BANK_BROWSER_CLOSED' })}
+          />
+        </div>
+      ) : null}
+      {campusgramPracticeVisible ? (
+        <div className={styles.stageOverlay}>
+          <S13CampusgramManualLogin
+            displayName={displayName}
+            {...(resumeState === undefined
+              ? {}
+              : { passphraseIds: resumeState.passphraseIds })}
+            platform={platform}
+            onComplete={() => send({ type: 'S13_CAMPUSGRAM_COMPLETED' })}
           />
         </div>
       ) : null}

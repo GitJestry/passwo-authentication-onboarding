@@ -22,6 +22,7 @@ import { CampusgramIncidentNotice } from '../../CampusgramIncidentNotice.js';
 import { CelebrationConfetti } from '../../CelebrationConfetti.js';
 import { PassWoGuide } from '../../PassWoGuide.js';
 import { passWoSpeechEmphasisFor } from '../../PassWoSpeechEmphasis.js';
+import { TrainingCopyToast } from '../../TrainingCopyToast.js';
 import {
   type S07AccountFeedback,
   type S07RemainingAccountId,
@@ -432,14 +433,7 @@ function GeneratorPage({
               {page.copy}
             </button>
             {copied && toastPoint !== null ? (
-              <span
-                className={styles.copyToast}
-                role="status"
-                style={{ left: toastPoint.x, top: toastPoint.y }}
-              >
-                <span aria-hidden="true">✓</span>
-                {page.copied}
-              </span>
+              <TrainingCopyToast label={page.copied} point={toastPoint} />
             ) : null}
           </section>
         </div>

@@ -409,8 +409,14 @@ describe('research-safe contracts', () => {
     expect(designLabScenarioForPath('/design-lab/s2-4-muster-bank-login')).toBe(
       's2-4-muster-bank-login',
     );
+    expect(designLabScenarioForPath('/design-lab/s2-5-campusgram-manual-login')).toBe(
+      's2-5-campusgram-manual-login',
+    );
     expect(designLabPathForTrainingQaSegment('s13')).toBe(
       '/design-lab/s2-2-my-shop-registration',
+    );
+    expect(designLabPathForTrainingQaSegment('s13-campusgram')).toBe(
+      '/design-lab/s2-5-campusgram-manual-login',
     );
     expect(designLabScenarioForPath('/design-lab/s07-directly-reached')).toBeNull();
   });

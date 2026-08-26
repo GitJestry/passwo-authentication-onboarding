@@ -525,3 +525,115 @@ Quelle ist der ausdrückliche Nutzerauftrag vom 26. August 2026. Die Content-Ver
 
 Der Website-Name und die übrigen authored Vorkommen von `My Shop` bleiben unverändert; das Delta
 ist auf die beiden Darstellungen der gemeinsamen Tab-Beschriftung begrenzt.
+
+## Folgeauftrag: Campusgram-Anmeldung ohne Autofill, 26. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 26. August 2026 für `12.5 – Wenn Autofill nicht
+funktioniert` sowie die vier lokalen Gestaltungsreferenzen `Dropdown.png`, `allgemein.png`,
+`passwörter.png` und `PasswortManager.png`. Die Content-Version steigt von `2.5.0` auf `3.0.0`,
+weil S13 um einen vollständigen neuen Übungsabschnitt mit Einstellungen, Passwortmanagerliste und
+Campusgram-Rückkehr erweitert wird. Alle Zugangsdaten, Sichtbarkeitszustände und der simulierte
+Kopierwert bleiben flüchtig und werden weder in die Systemzwischenablage geschrieben noch
+persistiert oder exportiert.
+
+| Text-ID | Bisher | Neu | Primäre Rolle | Grund | Bedeutungsänderung | Interaktionsziel | Hervorhebung |
+|---|---|---|---|---|---|---|---|
+| `S13.network.guide.campusgramTransition` | Muster-Bank-Ergebnis mit `Weiter` zum Segmentabschluss | `Muster Bank hat jetzt ein eigenes Passwort. Der bisherige Verbindungsweg ist weg.`; `Versuch dich zum Abschluss noch einmal bei Campusgram anzumelden. Deine Passphrase ist bereits im Passwortmanager gespeichert.` | Ergebnisfeedback und Navigation | ausdrücklich vorgegebener Übergang zur abschließenden Campusgram-Handlung | ausdrücklich freigegeben | hervorgehobenes Browser-Dock; kein Sprechblasenbutton | `Passphrase ist bereits im Passwortmanager gespeichert` · Akzent |
+| `S13.campusgram.guide.autofillUnavailable` | nicht vorhanden | `Autofill funktioniert nicht auf jeder Website zuverlässig.`; `Bei Campusgram klappt Autofill hier nicht. Öffne über die Browser-Einstellungen den Passwortmanager und kopiere dort das Campusgram-Passwort zum Anmelden.` | Mechanismuserklärung und Navigation | erklärt den erst nach Passwortfeldfokus sichtbaren Übungsfall und benennt das Browsermenü als Ziel | ausdrücklich freigegeben | hervorgehobenes Browsermenü; kein Sprechblasenbutton | `Autofill funktioniert nicht auf jeder Website zuverlässig` · Akzent |
+| `S13.campusgram.browser.menu.*` | nicht vorhanden | `Einstellungen`; `Passwortmanager` | Navigation | genau die beiden ausdrücklich freigegebenen Dropdown-Ziele | ergänzend | eigener Einstellungen- beziehungsweise Passwortmanager-Tab | nur Fokus-, Hover- und Druckzustand der beiden Ziele |
+| `S13.campusgram.settings.*` | nicht vorhanden | `Allgemein`; `Passwörter`; `Passwortmanager öffnen` und zugehörige neutrale Einstellungsbeschriftungen | Orientierung und Navigation | bildet die vorgegebene Informationshierarchie als responsive lokale UI nach | ergänzend | nur `Allgemein`, `Passwörter` und `Passwortmanager öffnen` sind bedienbar | aktiver Bereich sowie Fokuszustand |
+| `S13.campusgram.passwordManager.*` | nicht vorhanden | `Gespeicherte Passwörter`; Suche; Konto-, Benutzername-, Passwort- und Aktionsspalten; `Kopieren`; `Kopiert` | Orientierung und Navigation | vorgegebene scrollbare Liste mit ungefähr 80 lokalen Beispielkonten | ergänzend | Eintragsauswahl, Sichtbarkeit und simuliertes Kopieren pro Zeile; nur Campusgram setzt den Übungswert | Auswahlzustand, Auge-/Kopieraktion und gemeinsamer grüner Kopier-Toast |
+| `S13.campusgram.website.insertAction` | nicht vorhanden | `Einsetzen` | Navigation | benennt die simulierte Rückgabe des zuvor kopierten Campusgram-Werts | ausdrücklich freigegeben | glassy Aktion am weiterhin leeren Campusgram-Passwortfeld | Form, Fokus, Hover und Druck |
+| `S13.campusgram.guide.complete` | nicht vorhanden | `Wenn Autofill einmal nicht klappt, kannst du das gespeicherte Passwort also auch selbst kopieren und einsetzen. Merken musst du es dir trotzdem nicht.` | Mechanismuserklärung und Kerngedanke | ausdrücklich vorgegebener Abschluss | ausdrücklich freigegeben | `Weiter` beendet den reinen Abschlusssprechschritt | `Merken musst du es dir trotzdem nicht.` · positiv |
+
+Darstellungs- und Interaktionsdelta:
+
+- MyShop und Muster Bank bleiben als inaktive, nicht schließbare Kontexttabs erhalten.
+  Campusgram, ein gegebenenfalls geöffneter Einstellungen-Tab und der Passwortmanager-Tab sind
+  untereinander auswählbar; ein Einstellungen-Aufruf beginnt immer bei `Allgemein`, ein direkter
+  Passwortmanager-Aufruf öffnet unmittelbar die Liste.
+- Im Dropdown besitzt kein Eintrag einen vorgewählten oder vorab hervorgehobenen Zustand. Nur
+  `Einstellungen` und `Passwortmanager` sind darin bedienbar. In den Einstellungen sind nur
+  `Allgemein`, `Passwörter` und `Passwortmanager öffnen` bedienbar; alle übrigen Zeilen dienen der
+  realitätsnahen Orientierung und erhalten keine Hover- oder Druckzustände.
+- Die Passwortmanagerliste bleibt innerhalb der Browserfläche scrollbar. Passwortwerte werden
+  verdeckt und sichtbar einzeilig begrenzt, damit auch lange Passphrasen keine Spalten oder
+  Aktionen verschieben. Auswahl, Auge und Kopieren sind für alle Einträge bedienbar; ausschließlich
+  der Campusgram-Kopierpfad stellt den flüchtigen Wert für `Einsetzen` bereit.
+- Der Datenleck-Hinweis wird in dieser Campusgram-Anmeldeansicht nicht gerendert. Das Passwortfeld
+  bleibt nach Tabwechseln leer, bis `Einsetzen` betätigt wurde. Systemzwischenablage, Browser-
+  Persistenz und echte Anmeldung bleiben ausgeschlossen.
+- Der Design-Lab-Punkt `s2-5-campusgram-manual-login` und der Entwicklungsstart
+  `PASSWO_QA_SEGMENT=s13-campusgram` beginnen deterministisch bei dieser Anmeldung. Sie bilden
+  ausschließlich einen lokalen QA- und Resume-Einstieg ab, rekonstruieren nur die im bestehenden
+  minimalen S08-Resume-Modell zulässigen lokalen Übungswerte und führen weder eine neue persistierte
+  Datenklasse noch einen zusätzlichen serverseitigen Studiencheckpoint ein.
+
+## Korrekturauftrag: Gestufte Campusgram-Anleitung und manuelles Einsetzen, 26. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 26. August 2026. Die Content-Version steigt von
+`3.0.0` auf `3.1.0`. Die Änderung entfernt die allgemeine Autofill-Aussage und teilt die
+Campusgram-Anleitung in zwei nacheinander bestätigte Sprechblasen. Simulierte Kopier- und
+Eingabewerte bleiben ausschließlich im flüchtigen lokalen Statechart-Kontext.
+
+| Text-ID | Bisher | Neu | Primäre Rolle | Grund | Bedeutungsänderung | Interaktionsziel | Hervorhebung |
+|---|---|---|---|---|---|---|---|
+| `S13.campusgram.guide.fillUnavailable` | `Autofill funktioniert nicht auf jeder Website zuverlässig.` und anschließender kombinierter Hinweis | `Bei Campusgram klappt das Ausfüllen hier nicht.` | Mechanismuserklärung | ausdrücklich verlangte kurze erste Sprechblase | begrenzt | `Weiter` öffnet erst die zweite Sprechblase | vollständiger Satz · Akzent |
+| `S13.campusgram.guide.copyInstruction` | Teil des kombinierten Hinweises | `Öffne über die Browser-Einstellungen den Passwortmanager und kopiere dort das Campusgram-Passwort zum Anmelden.` | Navigation | Anleitung soll erst nach `Weiter` erscheinen | nein | Drei-Punkte-Browsermenü | `Browser-Einstellungen` mit neuem Drei-Punkte-Symbol; `kopiere` · Aktion |
+| `S13.campusgram.browser.menu.*` | nur `Einstellungen` und `Passwortmanager` sichtbar | `Neuer Tab`, `Verlauf`, `Downloads`, `Passwortmanager`, `Einstellungen`, `Hilfe` mit Referenzreihenfolge und Trennlinien | Orientierung | Dropdown soll die Inhalte der lokalen Bildreferenz übernehmen | ergänzend | weiterhin ausschließlich `Passwortmanager` und `Einstellungen` bedienbar | keine Vorauswahl |
+
+Darstellungs- und Ablaufdelta:
+
+- Erst die zweite Sprechblase markiert das Drei-Punkte-Menü und schaltet dessen zwei erlaubte
+  Ziele frei.
+- Jede Passwortmanagerzeile ist über ihre gesamte Breite auswählbar. Die Kopieraktion erhält eine
+  größere eigene Fläche; bekannte Konten verwenden ihre Kontozeichen, Einstellungs- und
+  Passwortmanagernavigation passende Funktionszeichen und neutrale Beispielkonten eigene
+  Monogramm-Appzeichen statt des generischen Profilbilds.
+- Jeder kopierte Übungseintrag ersetzt den flüchtigen simulierten Zwischenstand. Der aus S07
+  gemeinsam verwendete glassy `Einsetzen`-Button bleibt danach auch über einem bereits gefüllten
+  Passwortfeld verfügbar. Manuelles Kürzen des eingesetzten Werts ist möglich.
+- `Anmelden` vergleicht den aktuellen flüchtigen Feldwert mit dem gespeicherten Campusgram-Wert.
+  Ein abweichender Wert bleibt mit lokalem Fehlerfeedback im Formular; nur der passende Wert führt
+  in die bekannte angemeldete Campusgram-Website.
+
+## Darstellungskorrektur: Kopierfeedback und verbrauchtes Einsetzen, 26. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 26. August 2026. Teilnehmertexte und
+Content-Version bleiben unverändert. Die bereits versionierten Zustände `Kopieren`, `Kopiert` und
+der vorhandene Loginfehler werden ausschließlich anders dargestellt beziehungsweise
+statechart-gesteuert zugeordnet.
+
+Darstellungs- und Ablaufdelta:
+
+- Die Kopieraktion zeigt ihr kurzes Feedback direkt im betätigten Zeilenbutton als
+  `✓ Kopiert`. Ein separates schwebendes Toast wird in der Passwortmanagerliste nicht mehr
+  gerendert. Der Button behält Hover-, Druck- und Fokuszustände.
+- `Einsetzen` verbraucht den flüchtigen simulierten Kopierwert. Der glassy Button verschwindet
+  unmittelbar danach und erscheint erst nach einer weiteren Kopieraktion erneut.
+- Ein abweichender eingesetzter Feldwert verwendet dieselbe sichtbare S13-Loginfehlerdarstellung
+  wie MyShop und Muster Bank: roter Feldzustand, Ausrufezeichen und bei jedem erneuten Versuch
+  eine alternierende Kartenbewegung. Reduced Motion verkürzt die Bewegung auf den unmittelbaren
+  Zustandswechsel.
+
+## Ablaufkorrektur: Verzögerter erster Campusgram-Hinweis, 26. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 26. August 2026. Teilnehmertext und Content-Version
+bleiben unverändert. Nach dem ersten Fokus beziehungsweise Klick auf das Campusgram-Passwortfeld
+wartet die Statechart einmalig drei Sekunden, bevor `Bei Campusgram klappt das Ausfüllen hier
+nicht.` erscheint. Weitere Klicks während dieser Wartephase starten die Frist nicht neu.
+
+## Darstellungskorrektur: Zeilen nur als Hover-Kontext, 26. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 26. August 2026. Teilnehmertexte und
+Content-Version bleiben unverändert. Passwortmanagerzeilen besitzen keinen Auswahlzustand und
+keine Klick- oder Tastaturaktion mehr. Beim Überfahren bleibt ausschließlich die bestehende
+Zeilenhervorhebung als Orientierung sichtbar; Auge und `Kopieren` bleiben die fokussierbaren und
+bedienbaren Ziele innerhalb einer Zeile.
+
+## Hervorhebungskorrektur: Campusgram-Abschluss, 26. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 26. August 2026. Teilnehmertext und Content-Version
+bleiben unverändert. Im Abschlusssatz wird ausschließlich `selbst kopieren und einsetzen` als
+ausgeführte Handlung hervorgehoben. Die bisherige positive Hervorhebung von `Merken musst du es
+dir trotzdem nicht.` entfällt.

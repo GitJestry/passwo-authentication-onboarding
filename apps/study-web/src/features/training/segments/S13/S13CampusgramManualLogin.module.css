@@ -1,0 +1,904 @@
+.training {
+  position: relative;
+  isolation: isolate;
+  display: flex;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  flex: 1;
+  background: var(--color-surface-primary);
+}
+
+.settingsPage,
+.passwordManagerPage {
+  display: grid;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  color: var(--color-ink-strong);
+  background:
+    radial-gradient(circle at 88% 92%, rgb(137 189 220 / 16%), transparent 34%),
+    linear-gradient(145deg, #f7fbff, #fff 46%, #f3f8fc);
+}
+
+.settingsPage {
+  grid-template-columns: clamp(13rem, 22cqi, 18rem) minmax(0, 1fr);
+}
+
+.settingsSidebar,
+.passwordManagerSidebar {
+  min-width: 0;
+  border-right: var(--border-width-thin) solid color-mix(in srgb, var(--color-border) 72%, transparent);
+  background: color-mix(in srgb, #f5f8fd 86%, transparent);
+}
+
+.settingsSidebar {
+  padding: clamp(var(--space-4), 2.5cqi, var(--space-6)) var(--space-4);
+}
+
+.settingsSidebar nav,
+.passwordManagerSidebar nav {
+  display: grid;
+  gap: var(--space-1);
+}
+
+.settingsSidebar nav > button,
+.settingsSidebar nav > div {
+  display: grid;
+  min-height: var(--size-control-large);
+  grid-template-columns: 1.6rem minmax(0, 1fr);
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-2) var(--space-3);
+  border: 0;
+  border-radius: var(--radius-medium);
+  color: var(--color-ink-strong);
+  background: transparent;
+  font: inherit;
+  font-size: var(--font-size-small);
+  text-align: left;
+}
+
+.settingsSidebar nav > button {
+  cursor: pointer;
+}
+
+.settingsSidebar nav > button[data-active="true"] {
+  color: var(--color-accent-strong);
+  background: color-mix(in srgb, var(--color-accent-soft) 76%, white);
+  font-weight: var(--font-weight-bold);
+}
+
+.settingsNavigationIcon,
+.settingCardIcon {
+  display: grid;
+  width: 1.45rem;
+  height: 1.45rem;
+  place-items: center;
+  color: currentcolor;
+}
+
+.settingsNavigationIcon svg,
+.settingCardIcon svg,
+.settingsHeading svg,
+.passwordInformation svg,
+.passwordManagerSidebar svg,
+.passwordManagerHeading svg,
+.passwordSearch svg,
+.passwordCell svg,
+.copyEntryButton svg {
+  width: 100%;
+  height: 100%;
+  fill: none;
+  stroke: currentcolor;
+  stroke-width: 1.7;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.settingsMain {
+  min-width: 0;
+  overflow: auto;
+  padding: clamp(var(--space-5), 4cqi, var(--space-8));
+}
+
+.settingsHeading {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  margin-bottom: clamp(var(--space-4), 3cqi, var(--space-6));
+}
+
+.settingsHeading > span {
+  display: grid;
+  width: clamp(3rem, 4.8cqi, 4.5rem);
+  height: clamp(3rem, 4.8cqi, 4.5rem);
+  place-items: center;
+  padding: 0.8rem;
+  border: var(--border-width-thin) solid color-mix(in srgb, var(--color-accent) 28%, transparent);
+  border-radius: var(--radius-large);
+  color: var(--color-accent-strong);
+  background: color-mix(in srgb, var(--color-accent-soft) 72%, white);
+}
+
+.settingsHeading h1,
+.passwordManagerHeading h1 {
+  margin: 0;
+  color: var(--color-ink-strong);
+  font-size: clamp(1.9rem, 3.2cqi, 3rem);
+  letter-spacing: var(--letter-spacing-tight);
+  line-height: var(--line-height-tight);
+}
+
+.generalSettingsList,
+.passwordSettingsList,
+.passwordInformation {
+  width: min(100%, 68rem);
+  border: var(--border-width-thin) solid color-mix(in srgb, var(--color-border) 84%, transparent);
+  border-radius: var(--radius-large);
+  background: color-mix(in srgb, white 94%, transparent);
+  box-shadow: 0 1rem 2.6rem rgb(32 65 93 / 8%);
+}
+
+.generalSettingsList > div,
+.passwordSettingsList > div,
+.openPasswordManager {
+  display: grid;
+  min-height: 5.25rem;
+  grid-template-columns: auto minmax(0, 1fr) minmax(8rem, auto);
+  align-items: center;
+  gap: var(--space-4);
+  padding: var(--space-4) var(--space-5);
+  border: 0;
+  border-bottom: var(--border-width-thin) solid color-mix(in srgb, var(--color-border) 72%, transparent);
+  color: var(--color-ink-strong);
+  background: transparent;
+  font: inherit;
+  text-align: left;
+}
+
+.generalSettingsList > div:last-child,
+.passwordSettingsList > div:last-of-type {
+  border-bottom: 0;
+}
+
+.generalSettingsList strong,
+.generalSettingsList small,
+.passwordSettingsList strong,
+.passwordSettingsList small,
+.passwordInformation strong,
+.passwordInformation small,
+.openPasswordManager strong,
+.openPasswordManager small {
+  display: block;
+}
+
+.generalSettingsList strong,
+.passwordSettingsList strong,
+.passwordInformation strong,
+.openPasswordManager strong {
+  font-size: var(--font-size-body);
+}
+
+.generalSettingsList small,
+.passwordSettingsList small,
+.passwordInformation small,
+.openPasswordManager small {
+  margin-top: var(--space-1);
+  color: var(--color-ink-muted);
+  font-size: var(--font-size-small);
+  line-height: var(--line-height-body);
+}
+
+.settingValue {
+  justify-self: end;
+  max-width: 18rem;
+  overflow: hidden;
+  padding: var(--space-2) var(--space-3);
+  border: var(--border-width-thin) solid color-mix(in srgb, var(--color-border) 76%, transparent);
+  border-radius: var(--radius-small);
+  color: var(--color-ink-muted);
+  background: #fff;
+  font-size: var(--font-size-small);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.passwordSettingsList > div {
+  grid-template-columns: minmax(0, 1fr) auto;
+}
+
+.staticToggle {
+  display: block;
+  width: 3rem;
+  height: 1.7rem;
+  padding: 0.2rem;
+  border-radius: var(--radius-round);
+  background: linear-gradient(135deg, var(--color-accent-strong), var(--color-accent));
+}
+
+.staticToggle span {
+  display: block;
+  width: 1.3rem;
+  height: 1.3rem;
+  margin-left: auto;
+  border-radius: var(--radius-round);
+  background: white;
+  box-shadow: 0 0.15rem 0.35rem rgb(24 50 70 / 22%);
+}
+
+.openPasswordManager {
+  width: 100%;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  border-top: var(--border-width-medium) solid color-mix(in srgb, var(--color-accent) 54%, transparent);
+  border-bottom: 0;
+  border-radius: 0 0 var(--radius-large) var(--radius-large);
+  color: var(--color-ink-strong);
+  cursor: pointer;
+}
+
+.openPasswordManager > span:last-child {
+  color: var(--color-accent-strong);
+  font-size: 1.55rem;
+}
+
+.passwordInformation {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: var(--space-4);
+  margin-top: var(--space-5);
+  padding: var(--space-5);
+}
+
+.passwordInformation > span:first-child {
+  display: grid;
+  width: 2.8rem;
+  height: 2.8rem;
+  place-items: center;
+  padding: 0.55rem;
+  border-radius: var(--radius-round);
+  color: var(--color-accent-strong);
+  background: var(--color-accent-soft);
+}
+
+.passwordManagerPage {
+  grid-template-columns: clamp(13rem, 20cqi, 17rem) minmax(0, 1fr);
+  overflow: hidden;
+}
+
+.passwordManagerSidebar {
+  padding: var(--space-4);
+  overflow: auto;
+}
+
+.passwordManagerSidebar nav > div {
+  display: grid;
+  min-height: var(--size-control-large);
+  grid-template-columns: 1.45rem minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-medium);
+  color: var(--color-ink-strong);
+  font-size: var(--font-size-small);
+}
+
+.passwordManagerSidebar nav > div[data-active="true"] {
+  color: var(--color-accent-strong);
+  background: color-mix(in srgb, var(--color-accent-soft) 78%, white);
+  font-weight: var(--font-weight-bold);
+}
+
+.passwordManagerSidebar nav > div > span:first-child {
+  display: grid;
+  width: 1.35rem;
+  height: 1.35rem;
+  place-items: center;
+}
+
+.passwordManagerSidebar small {
+  display: grid;
+  min-width: 1.4rem;
+  height: 1.4rem;
+  place-items: center;
+  border: var(--border-width-thin) solid color-mix(in srgb, var(--color-accent) 35%, transparent);
+  border-radius: var(--radius-round);
+  color: var(--color-accent-strong);
+  background: white;
+}
+
+.passwordManagerMain {
+  display: flex;
+  min-width: 0;
+  min-height: 0;
+  flex-direction: column;
+  gap: var(--space-4);
+  overflow: hidden;
+  padding: clamp(var(--space-4), 3cqi, var(--space-6));
+}
+
+.passwordManagerHeading {
+  display: flex;
+  flex: none;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-5);
+}
+
+.passwordManagerHeading > div {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: var(--space-4);
+}
+
+.passwordManagerHeading > div > span {
+  display: grid;
+  width: 3.6rem;
+  height: 3.6rem;
+  flex: none;
+  place-items: center;
+  padding: 0.68rem;
+  border-radius: var(--radius-large);
+  color: var(--color-accent-strong);
+  background: color-mix(in srgb, var(--color-accent-soft) 74%, white);
+}
+
+.passwordManagerHeading h1 {
+  overflow: hidden;
+  font-size: clamp(1.65rem, 2.6cqi, 2.5rem);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.passwordSearch {
+  display: grid;
+  width: min(24rem, 40cqi);
+  min-height: var(--size-control-large);
+  grid-template-columns: 1.3rem minmax(0, 1fr);
+  align-items: center;
+  gap: var(--space-2);
+  padding: 0 var(--space-3);
+  border: var(--border-width-thin) solid var(--color-border);
+  border-radius: var(--radius-medium);
+  color: var(--color-ink-muted);
+  background: white;
+}
+
+.passwordSearch > svg {
+  width: 1.25rem;
+  height: 1.25rem;
+}
+
+.passwordSearch input {
+  min-width: 0;
+  height: 100%;
+  border: 0;
+  outline: 0;
+  color: var(--color-ink-strong);
+  background: transparent;
+  font: inherit;
+  font-size: var(--font-size-small);
+}
+
+.passwordSearch:focus-within {
+  border-color: var(--color-focus);
+  box-shadow: var(--shadow-focus);
+}
+
+.passwordTableFrame {
+  min-width: 0;
+  min-height: 0;
+  flex: 1;
+  overflow: auto;
+  border: var(--border-width-thin) solid color-mix(in srgb, var(--color-border) 82%, transparent);
+  border-radius: var(--radius-large);
+  background: rgb(255 255 255 / 94%);
+  box-shadow: 0 1rem 2.4rem rgb(30 58 80 / 8%);
+  scrollbar-gutter: stable;
+}
+
+.passwordTableFrame table {
+  width: 100%;
+  min-width: 64rem;
+  border-collapse: collapse;
+  table-layout: fixed;
+}
+
+.passwordTableFrame th {
+  position: sticky;
+  z-index: 2;
+  top: 0;
+  padding: var(--space-3) var(--space-4);
+  border-bottom: var(--border-width-thin) solid var(--color-border);
+  color: var(--color-ink-muted);
+  background: color-mix(in srgb, #f7faff 96%, transparent);
+  font-size: var(--font-size-x-small);
+  font-weight: var(--font-weight-bold);
+  text-align: left;
+}
+
+.passwordTableFrame th:nth-child(1) { width: 25%; }
+.passwordTableFrame th:nth-child(2) { width: 24%; }
+.passwordTableFrame th:nth-child(3) { width: 25%; }
+.passwordTableFrame th:nth-child(4) { width: 26%; }
+
+.passwordTableFrame td {
+  min-width: 0;
+  padding: var(--space-2) var(--space-4);
+  border-bottom: var(--border-width-thin) solid color-mix(in srgb, var(--color-border) 58%, transparent);
+  color: var(--color-ink-strong);
+  font-size: var(--font-size-small);
+}
+
+.entryIdentity {
+  display: grid;
+  width: 100%;
+  min-width: 0;
+  grid-template-columns: 1.65rem minmax(0, 1fr);
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-1);
+  color: var(--color-ink-strong);
+}
+
+.entryIdentity > span {
+  display: grid;
+  width: 1.55rem;
+  height: 1.55rem;
+  place-items: center;
+}
+
+.entryIdentity svg {
+  width: 100%;
+  height: 100%;
+}
+
+.entryIdentity strong,
+.cellEllipsis {
+  display: block;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.serviceMonogram {
+  display: grid;
+  width: 1.55rem;
+  height: 1.55rem;
+  place-items: center;
+  border-radius: 0.42rem;
+  color: white;
+  background: #596fe8;
+  font-size: 0.72rem;
+  font-weight: var(--font-weight-heavy);
+}
+
+.serviceMonogram[data-tone="1"] { background: #8c55d9; }
+.serviceMonogram[data-tone="2"] { background: #217d9d; }
+.serviceMonogram[data-tone="3"] { background: #bf5c38; }
+.serviceMonogram[data-tone="4"] { background: #26865d; }
+.serviceMonogram[data-tone="5"] { background: #b74d83; }
+
+.cellEllipsis {
+  color: var(--color-ink-muted);
+}
+
+.passwordCell {
+  display: grid;
+  min-width: 0;
+  grid-template-columns: minmax(0, 1fr) 2rem;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.passwordCell code {
+  display: block;
+  min-width: 0;
+  overflow: hidden;
+  color: var(--color-ink-muted);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+  letter-spacing: 0.04em;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.passwordCell button,
+.copyEntryButton {
+  display: inline-grid;
+  min-height: 2rem;
+  place-items: center;
+  padding: var(--space-1);
+  border: 0;
+  border-radius: var(--radius-small);
+  color: var(--color-ink-muted);
+  background: transparent;
+  font: inherit;
+  cursor: pointer;
+}
+
+.passwordCell button svg {
+  width: 1.2rem;
+  height: 1.2rem;
+}
+
+.copyEntryButton {
+  width: 100%;
+  min-height: 2.8rem;
+  grid-template-columns: 1.35rem auto;
+  gap: var(--space-3);
+  padding: var(--space-2) var(--space-4);
+  border: var(--border-width-thin) solid color-mix(in srgb, var(--color-accent) 34%, transparent);
+  color: var(--color-accent-strong);
+  background: color-mix(in srgb, var(--color-accent-soft) 54%, white);
+  font-size: var(--font-size-small);
+  font-weight: var(--font-weight-bold);
+  transition:
+    border-color var(--motion-fast) var(--motion-ease-out),
+    background-color var(--motion-fast) var(--motion-ease-out),
+    transform var(--motion-fast) var(--motion-ease-out);
+}
+
+.copyEntryButton svg {
+  width: 1.3rem;
+  height: 1.3rem;
+}
+
+.copyEntryButton[data-copied="true"] {
+  border-color: color-mix(in srgb, var(--color-positive) 44%, transparent);
+  color: var(--color-positive-strong, #17633d);
+  background: color-mix(in srgb, var(--color-positive-soft) 78%, white);
+}
+
+.copyEntryButton[data-copy-animation="0"] {
+  animation: copy-button-confirm-even 860ms ease-out;
+}
+
+.copyEntryButton[data-copy-animation="1"] {
+  animation: copy-button-confirm-odd 860ms ease-out;
+}
+
+.campusgramLoginCard {
+  display: grid;
+  width: min(100%, 34rem);
+  gap: var(--space-3);
+  padding: clamp(var(--space-5), 3cqi, var(--space-7));
+  border: var(--border-width-thin) solid var(--color-border);
+  border-radius: var(--radius-large);
+  background: color-mix(in srgb, var(--color-surface-primary) 96%, transparent);
+  box-shadow: 0 1.25rem 3rem color-mix(in srgb, var(--color-ink-strong) 12%, transparent);
+}
+
+.campusgramLoginCard > label {
+  margin-top: var(--space-1);
+  color: var(--color-ink-strong);
+  font-size: var(--font-size-small);
+  font-weight: var(--font-weight-bold);
+}
+
+.campusgramLoginCard > input {
+  min-width: 0;
+  min-height: var(--size-control-large);
+  padding: var(--space-3) var(--space-4);
+  border: var(--border-width-thin) solid var(--color-border);
+  border-radius: var(--radius-small);
+  color: var(--color-ink-strong);
+  background: var(--color-surface-muted);
+  font: inherit;
+}
+
+.campusgramPasswordControl {
+  position: relative;
+  display: grid;
+  min-width: 0;
+  grid-template-columns: minmax(0, 1fr) var(--size-control-large);
+  align-items: stretch;
+  overflow: hidden;
+  border: var(--border-width-thin) solid var(--color-border);
+  border-radius: var(--radius-small);
+  background: var(--color-surface-primary);
+}
+
+.campusgramPasswordControl > span:first-child {
+  min-width: 0;
+}
+
+.campusgramPasswordControl :global(input) {
+  width: 100%;
+  min-width: 0;
+  min-height: var(--size-control-large);
+  padding: var(--space-3) var(--space-4);
+  border: 0;
+  outline: 0;
+  color: var(--color-ink-strong);
+  background: transparent;
+  font: inherit;
+}
+
+.campusgramPasswordControl:focus-within {
+  border-color: var(--color-focus);
+  box-shadow: var(--shadow-focus);
+}
+
+.campusgramLoginCard[data-invalid="true"] .campusgramPasswordControl {
+  border-color: var(--color-danger);
+  box-shadow: 0 0 0 0.18rem color-mix(in srgb, var(--color-danger) 20%, transparent);
+}
+
+.campusgramLoginCard[data-invalid-animation="0"] {
+  animation: campusgram-invalid-login-even 360ms ease-out;
+}
+
+.campusgramLoginCard[data-invalid-animation="1"] {
+  animation: campusgram-invalid-login-odd 360ms ease-out;
+}
+
+.campusgramVisibility {
+  min-height: var(--size-control-large);
+  border: 0;
+  border-left: var(--border-width-thin) solid var(--color-border-soft);
+  font: inherit;
+}
+
+.campusgramVisibility {
+  display: grid;
+  width: var(--size-control-large);
+  place-items: center;
+  padding: 0;
+  color: var(--color-ink-strong);
+  background: var(--color-surface-muted);
+}
+
+.campusgramVisibility svg {
+  width: 1.35rem;
+  height: 1.35rem;
+}
+
+.campusgramVisibility:disabled {
+  cursor: default;
+  opacity: 0.48;
+}
+
+.campusgramLoginAction {
+  min-height: var(--size-control-large);
+  margin-top: var(--space-2);
+  padding: var(--space-3) var(--space-4);
+  border: var(--border-width-medium) solid var(--color-surface-inverse);
+  border-radius: var(--radius-small);
+  color: var(--color-on-inverse);
+  background: var(--color-surface-inverse);
+  font: inherit;
+  font-weight: var(--font-weight-heavy);
+}
+
+.loginError {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin: 0;
+  color: var(--color-danger);
+  font-size: var(--font-size-x-small);
+  font-weight: var(--font-weight-bold);
+}
+
+.loginError span {
+  display: grid;
+  width: 1.15rem;
+  height: 1.15rem;
+  flex: none;
+  place-items: center;
+  border: var(--border-width-medium) solid currentcolor;
+  border-radius: var(--radius-round);
+  font-size: 0.75rem;
+  line-height: 1;
+}
+
+.campusgramLoginAction:not(:disabled),
+.campusgramVisibility:not(:disabled) {
+  cursor: pointer;
+}
+
+.campusgramLoginAction:disabled {
+  cursor: not-allowed;
+  opacity: 0.48;
+}
+
+.screenReaderOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+.settingsSidebar button:focus-visible,
+.openPasswordManager:focus-visible,
+.passwordCell button:focus-visible,
+.copyEntryButton:focus-visible,
+.campusgramVisibility:focus-visible,
+.campusgramLoginAction:focus-visible {
+  position: relative;
+  z-index: 1;
+  outline: var(--border-width-focus) solid var(--color-focus);
+  outline-offset: 2px;
+  box-shadow: var(--shadow-focus);
+}
+
+@media (hover: hover) {
+  .settingsSidebar nav > button:hover,
+  .openPasswordManager:hover,
+  .passwordCell button:hover,
+  .copyEntryButton:hover {
+    color: var(--color-accent-strong);
+    background: color-mix(in srgb, var(--color-accent-soft) 66%, white);
+  }
+
+  .passwordTableFrame tbody tr:hover td {
+    background: color-mix(in srgb, var(--color-accent-soft) 28%, white);
+  }
+
+  .campusgramLoginAction:not(:disabled):hover {
+    filter: brightness(1.08);
+  }
+
+  .copyEntryButton[data-copied="true"]:hover {
+    color: var(--color-positive-strong, #17633d);
+    background: color-mix(in srgb, var(--color-positive-soft) 86%, white);
+  }
+}
+
+.settingsSidebar nav > button:active,
+.openPasswordManager:active,
+.passwordCell button:active,
+.copyEntryButton:active,
+.campusgramLoginAction:not(:disabled):active {
+  filter: brightness(0.96) saturate(0.96);
+}
+
+.copyEntryButton:active {
+  transform: translateY(1px) scale(0.985);
+}
+
+@keyframes copy-button-confirm-even {
+  0% {
+    transform: scale(0.96);
+  }
+
+  24% {
+    transform: scale(1.025);
+  }
+
+  100% {
+    transform: scale(1);
+  }
+}
+
+@keyframes copy-button-confirm-odd {
+  0% {
+    transform: scale(0.965);
+  }
+
+  24% {
+    transform: scale(1.02);
+  }
+
+  100% {
+    transform: scale(1);
+  }
+}
+
+@keyframes campusgram-invalid-login-even {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+
+  25% {
+    transform: translateX(-0.45rem);
+  }
+
+  50% {
+    transform: translateX(0.35rem);
+  }
+
+  75% {
+    transform: translateX(-0.18rem);
+  }
+}
+
+@keyframes campusgram-invalid-login-odd {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+
+  25% {
+    transform: translateX(0.45rem);
+  }
+
+  50% {
+    transform: translateX(-0.35rem);
+  }
+
+  75% {
+    transform: translateX(0.18rem);
+  }
+}
+
+@container artifact-stage (max-width: 900px) {
+  .settingsPage,
+  .passwordManagerPage {
+    grid-template-columns: 11rem minmax(0, 1fr);
+  }
+
+  .settingsSidebar,
+  .passwordManagerSidebar {
+    padding: var(--space-3);
+  }
+
+  .settingsMain,
+  .passwordManagerMain {
+    padding: var(--space-4);
+  }
+
+  .generalSettingsList > div {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+
+  .settingValue {
+    grid-column: 2;
+    justify-self: start;
+  }
+
+  .passwordManagerHeading {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .passwordSearch {
+    width: 100%;
+  }
+}
+
+@container artifact-stage (max-width: 650px) {
+  .settingsPage,
+  .passwordManagerPage {
+    display: block;
+    overflow: auto;
+  }
+
+  .settingsSidebar,
+  .passwordManagerSidebar {
+    border-right: 0;
+    border-bottom: var(--border-width-thin) solid var(--color-border);
+  }
+
+  .settingsSidebar nav,
+  .passwordManagerSidebar nav {
+    display: flex;
+    overflow-x: auto;
+  }
+
+  .settingsSidebar nav > button,
+  .settingsSidebar nav > div,
+  .passwordManagerSidebar nav > div {
+    min-width: max-content;
+  }
+
+  .passwordManagerMain {
+    min-height: 34rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .copyEntryButton[data-copy-animation],
+  .campusgramLoginCard[data-invalid-animation] {
+    animation-duration: var(--motion-instant);
+  }
+}
