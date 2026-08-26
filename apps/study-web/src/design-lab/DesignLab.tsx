@@ -626,6 +626,13 @@ const scenarios: Record<DesignLabScenarioId, DesignLabScenario> = {
     dimmed: false,
     showPassWoOverlay: false,
   },
+  's2-6-password-manager-conclusion': {
+    label: 's2.6–s2.7 · Abschluss und MFA-Übergang',
+    description:
+      'Direkter lokaler QA- und Resume-Einstieg in den Passwortmanager-Abschluss mit übrigen Konten, Systemwahl, Recovery, Netzwerkreparatur und MFA-Übergang.',
+    dimmed: false,
+    showPassWoOverlay: false,
+  },
 };
 
 const scenarioGroups = [
@@ -687,6 +694,7 @@ const scenarioGroups = [
       's2-3-password-manager-network',
       's2-4-muster-bank-login',
       's2-5-campusgram-manual-login',
+      's2-6-password-manager-conclusion',
     ],
   },
 ] as const satisfies readonly DesignLabScenarioGroup[];
@@ -1441,6 +1449,20 @@ export function DesignLab({ scenarioId }: { readonly scenarioId: DesignLabScenar
         <ArtifactPreview>
           <S07DirectQaPreview
             initialStage="s13-campusgram"
+            passwordOverrides={passwordOverrides}
+          />
+        </ArtifactPreview>
+      </main>
+    );
+  }
+
+  if (scenarioId === 's2-6-password-manager-conclusion') {
+    return (
+      <main className={styles.labPage}>
+        <DesignLabIntroduction scenarioId={scenarioId} scenario={scenario} />
+        <ArtifactPreview>
+          <S07DirectQaPreview
+            initialStage="s13-conclusion"
             passwordOverrides={passwordOverrides}
           />
         </ArtifactPreview>

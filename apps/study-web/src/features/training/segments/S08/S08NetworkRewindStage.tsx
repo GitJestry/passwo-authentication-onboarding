@@ -39,6 +39,11 @@ import {
 } from '../S12/S12PasswordManagerTraining.js';
 import { S13MusterBankPasswordChange } from '../S13/S13MusterBankPasswordChange.js';
 import { S13CampusgramManualLogin } from '../S13/S13CampusgramManualLogin.js';
+import {
+  S13MfaTransition,
+  S13PasswordManagerConclusion,
+  type S13PasswordManagerVariant,
+} from '../S13/S13PasswordManagerConclusion.js';
 import { S13PasswordManagerPractice } from '../S13/S13PasswordManagerPractice.js';
 import {
   blockedS08ProtectionSteps,
@@ -52,7 +57,10 @@ import {
   createS09ScalingRiskNetwork,
   createS13BankProtectedNetwork,
   createS13BankShieldedNetwork,
+  createS13FullyProtectedNetwork,
+  createS13MfaIncidentNetwork,
   createS13MyShopNetwork,
+  createS13PasswordRepairNetwork,
   s08AccountHasOpenActionNeed,
   s08HasOpenActionNeed,
   type S08ProtectionRiskModel,
@@ -69,7 +77,8 @@ export type S08NetworkRewindInitialStage =
   | 's13'
   | 's13-network'
   | 's13-bank'
-  | 's13-campusgram';
+  | 's13-campusgram'
+  | 's13-conclusion';
 
 interface S08Context {
   readonly initialStage: S08NetworkRewindInitialStage;
@@ -79,6 +88,10 @@ interface S08Context {
   readonly newAccountShieldDelayMs: number;
   readonly newAccountConnectionDelayMs: number;
   readonly networkReturnDelayMs: number;
+  readonly conclusionFadeDurationMs: number;
+  readonly recoveryRevealDelayMs: number;
+  readonly networkRepairDurationMs: number;
+  readonly mfaIncidentDelayMs: number;
   readonly protectedAccountIds: readonly S08ChangeableAccountId[];
   readonly resolvingAccountId: S08ChangeableAccountId | null;
   readonly riskModel: S08ProtectionRiskModel;
@@ -96,6 +109,12 @@ type S08Event =
   | { readonly type: 'S13_BROWSER_CLOSED' }
   | { readonly type: 'S13_BANK_BROWSER_CLOSED' }
   | { readonly type: 'S13_CAMPUSGRAM_COMPLETED' }
+  | {
+      readonly type: 'S13_VARIANT_SELECTED';
+      readonly variant: S13PasswordManagerVariant;
+    }
+  | { readonly type: 'S13_REPAIR_ALL_PASSWORDS' }
+  | { readonly type: 'S13_FINISH' }
   | { readonly type: 'NEXT' };
 
 const s08Machine = setup({
@@ -111,6 +130,10 @@ const s08Machine = setup({
       readonly newAccountShieldDelayMs: number;
       readonly newAccountConnectionDelayMs: number;
       readonly networkReturnDelayMs: number;
+      readonly conclusionFadeDurationMs: number;
+      readonly recoveryRevealDelayMs: number;
+      readonly networkRepairDurationMs: number;
+      readonly mfaIncidentDelayMs: number;
       readonly riskModel: S08ProtectionRiskModel;
     },
   },
@@ -122,6 +145,10 @@ const s08Machine = setup({
     newAccountShieldDelay: ({ context }) => context.newAccountShieldDelayMs,
     newAccountConnectionDelay: ({ context }) => context.newAccountConnectionDelayMs,
     networkReturnDelay: ({ context }) => context.networkReturnDelayMs,
+    conclusionFadeDuration: ({ context }) => context.conclusionFadeDurationMs,
+    recoveryRevealDelay: ({ context }) => context.recoveryRevealDelayMs,
+    networkRepairDuration: ({ context }) => context.networkRepairDurationMs,
+    mfaIncidentDelay: ({ context }) => context.mfaIncidentDelayMs,
   },
   guards: {
     allResolved: ({ context }) =>
@@ -139,6 +166,10 @@ const s08Machine = setup({
     startsAtS13Network: ({ context }) => context.initialStage === 's13-network',
     startsAtS13Bank: ({ context }) => context.initialStage === 's13-bank',
     startsAtS13Campusgram: ({ context }) => context.initialStage === 's13-campusgram',
+    startsAtS13Conclusion: ({ context }) =>
+      context.initialStage === 's13-conclusion',
+    selectedIntegrated: ({ event }) =>
+      event.type === 'S13_VARIANT_SELECTED' && event.variant === 'integrated',
   },
   actions: {
     startProtectionResolution: assign({
@@ -167,6 +198,10 @@ const s08Machine = setup({
     newAccountShieldDelayMs: input.newAccountShieldDelayMs,
     newAccountConnectionDelayMs: input.newAccountConnectionDelayMs,
     networkReturnDelayMs: input.networkReturnDelayMs,
+    conclusionFadeDurationMs: input.conclusionFadeDurationMs,
+    recoveryRevealDelayMs: input.recoveryRevealDelayMs,
+    networkRepairDurationMs: input.networkRepairDurationMs,
+    mfaIncidentDelayMs: input.mfaIncidentDelayMs,
     protectedAccountIds:
       input.initialStage === 's08' ? [] : [...input.recommendedAccountIds],
     resolvingAccountId: null,
@@ -175,6 +210,10 @@ const s08Machine = setup({
   states: {
     entry: {
       always: [
+        {
+          guard: 'startsAtS13Conclusion',
+          target: 'conclusionRemainingAccountsIntro',
+        },
         { guard: 'startsAtS13Campusgram', target: 'managerPracticeCampusgram' },
         { guard: 'startsAtS13Bank', target: 'managerPracticeBank' },
         { guard: 'startsAtS13Network', target: 'managerPracticeNetworkReturn' },
@@ -314,10 +353,108 @@ const s08Machine = setup({
     },
     managerPracticeCampusgram: {
       tags: ['manager', 'expanded'],
-      on: { S13_CAMPUSGRAM_COMPLETED: { target: 'complete' } },
+      on: {
+        S13_CAMPUSGRAM_COMPLETED: { target: 'conclusionRemainingAccountsIntro' },
+      },
+    },
+    conclusionRemainingAccountsIntro: {
+      tags: ['manager', 'expanded', 's13-network', 's13-conclusion-clear'],
+      on: { NEXT: { target: 'conclusionRemainingAccountsPace' } },
+    },
+    conclusionRemainingAccountsPace: {
+      tags: ['manager', 'expanded', 's13-network', 's13-conclusion-clear'],
+      on: { NEXT: { target: 'conclusionNetworkOverview' } },
+    },
+    conclusionNetworkOverview: {
+      tags: ['manager', 'expanded', 's13-network', 's13-conclusion-clear'],
+      on: {
+        S13_REPAIR_ALL_PASSWORDS: { target: 'conclusionNetworkRepairing' },
+      },
+    },
+    conclusionNetworkRepairing: {
+      tags: ['manager', 'expanded', 's13-network', 's13-conclusion-clear'],
+      after: { networkRepairDuration: { target: 'conclusionNetworkRepaired' } },
+    },
+    conclusionNetworkRepaired: {
+      tags: ['manager', 'expanded', 's13-network', 's13-conclusion-clear'],
+      on: { NEXT: { target: 'conclusionVariantReturn' } },
+    },
+    conclusionVariantReturn: {
+      tags: ['manager', 'expanded', 's13-network', 's13-conclusion-clear'],
+      on: { NEXT: { target: 'conclusionNetworkFade' } },
+    },
+    conclusionNetworkFade: {
+      tags: ['manager', 'expanded', 's13-network', 's13-conclusion-clear'],
+      after: {
+        conclusionFadeDuration: { target: 'conclusionVariantFit' },
+      },
+    },
+    conclusionVariantFit: {
+      tags: ['manager', 'expanded', 's13-conclusion-overlay'],
+      on: { NEXT: { target: 'conclusionVariantQuestion' } },
+    },
+    conclusionVariantQuestion: {
+      tags: ['manager', 'expanded', 's13-conclusion-overlay'],
+      on: {
+        S13_VARIANT_SELECTED: [
+          {
+            guard: 'selectedIntegrated',
+            target: 'conclusionVariantSelectedIntegrated',
+          },
+          { target: 'conclusionVariantSelectedSeparate' },
+        ],
+      },
+    },
+    conclusionVariantSelectedIntegrated: {
+      tags: ['manager', 'expanded', 's13-conclusion-overlay'],
+      after: {
+        recoveryRevealDelay: { target: 'conclusionRecoveryLost' },
+      },
+    },
+    conclusionVariantSelectedSeparate: {
+      tags: ['manager', 'expanded', 's13-conclusion-overlay'],
+      after: {
+        recoveryRevealDelay: { target: 'conclusionRecoveryLost' },
+      },
+    },
+    conclusionRecoveryLost: {
+      tags: ['manager', 'expanded', 's13-conclusion-overlay'],
+      on: { NEXT: { target: 'conclusionRecoveryPath' } },
+    },
+    conclusionRecoveryPath: {
+      tags: ['manager', 'expanded', 's13-conclusion-overlay'],
+      on: { NEXT: { target: 'conclusionRecoveryRestored' } },
+    },
+    conclusionRecoveryRestored: {
+      tags: ['manager', 'expanded', 's13-conclusion-overlay'],
+      on: { NEXT: { target: 'conclusionMfaIncidentFocus' } },
+    },
+    conclusionMfaIncidentFocus: {
+      tags: ['manager', 'expanded', 's13-network', 's13-mfa'],
+      after: { mfaIncidentDelay: { target: 'conclusionMfaPasswordKnown' } },
+    },
+    conclusionMfaPasswordKnown: {
+      tags: ['manager', 'expanded', 's13-network', 's13-mfa', 's13-mfa-preview'],
+      on: { NEXT: { target: 'conclusionMfaPasswordInsufficient' } },
+    },
+    conclusionMfaPasswordInsufficient: {
+      tags: ['manager', 'expanded', 's13-network', 's13-mfa', 's13-mfa-preview'],
+      on: { NEXT: { target: 'conclusionMfaSecondHurdle' } },
+    },
+    conclusionMfaSecondHurdle: {
+      tags: ['manager', 'expanded', 's13-network', 's13-mfa', 's13-mfa-preview'],
+      on: { NEXT: { target: 'conclusionMfaTransition' } },
+    },
+    conclusionMfaTransition: {
+      tags: ['manager', 'expanded', 's13-network', 's13-mfa', 's13-mfa-preview'],
+      on: { S13_FINISH: { target: 'conclusionMfaSectionTransition' } },
+    },
+    conclusionMfaSectionTransition: {
+      tags: ['manager', 'expanded'],
+      on: { TRANSITION_COMPLETE: { target: 'complete' } },
     },
     complete: {
-      tags: ['manager', 'expanded', 's13-network', 's13-bank-result'],
+      tags: ['manager', 'expanded', 's13-network', 's13-mfa', 's13-mfa-preview'],
     },
   },
 });
@@ -353,6 +490,27 @@ function newAccountMotionDurations(): Readonly<{
   return window.matchMedia('(prefers-reduced-motion: reduce)').matches
     ? { shieldDelayMs: 0, connectionDelayMs: 0, networkReturnDelayMs: 0 }
     : { shieldDelayMs: 2600, connectionDelayMs: 650, networkReturnDelayMs: 700 };
+}
+
+function conclusionMotionDurations(): Readonly<{
+  fadeDurationMs: number;
+  recoveryRevealDelayMs: number;
+  repairDurationMs: number;
+  mfaIncidentDelayMs: number;
+}> {
+  return window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    ? {
+        fadeDurationMs: 0,
+        recoveryRevealDelayMs: 0,
+        repairDurationMs: 0,
+        mfaIncidentDelayMs: 0,
+      }
+    : {
+        fadeDurationMs: 520,
+        recoveryRevealDelayMs: 1500,
+        repairDurationMs: 3600,
+        mfaIncidentDelayMs: 2000,
+      };
 }
 
 const s13ImportedVaultEntries: readonly PasswordManagerVaultEntry[] =
@@ -442,6 +600,35 @@ function authoredReplayStep(
   };
 }
 
+const passwordRepairConfettiBurstLimit = 12;
+
+function passwordRepairConfettiNodeIds(
+  network: NetworkSceneSnapshot,
+): readonly string[] {
+  const accountNodeIds = network.nodes
+    .filter(({ kind }) => kind === 'account')
+    .map(({ id }) => id);
+  if (accountNodeIds.length >= passwordRepairConfettiBurstLimit) {
+    return accountNodeIds.slice(0, passwordRepairConfettiBurstLimit);
+  }
+  const supportingNodeIds = network.nodes
+    .filter(({ kind }) => kind !== 'account' && kind !== 'shield')
+    .map(({ id }) => id);
+  const supportingBurstLimit = Math.min(
+    passwordRepairConfettiBurstLimit - accountNodeIds.length,
+    supportingNodeIds.length,
+  );
+
+  const distributedSupportingNodeIds = Array.from(
+    { length: supportingBurstLimit },
+    (_, index) =>
+      supportingNodeIds[
+        Math.floor((index * supportingNodeIds.length) / supportingBurstLimit)
+      ],
+  ).filter((nodeId): nodeId is string => nodeId !== undefined);
+  return [...accountNodeIds, ...distributedSupportingNodeIds];
+}
+
 function authoredReplaySteps(
   network: NetworkSceneSnapshot,
 ): readonly PasswordConsequencePlanStep[] {
@@ -492,6 +679,7 @@ export function S08NetworkRewindStage({
     [plan, resumeState, sourceNetwork],
   );
   const newAccountDurations = newAccountMotionDurations();
+  const conclusionDurations = conclusionMotionDurations();
   const [state, send] = useMachine(s08Machine, {
     input: {
       recommendedAccountIds,
@@ -502,6 +690,10 @@ export function S08NetworkRewindStage({
       newAccountShieldDelayMs: newAccountDurations.shieldDelayMs,
       newAccountConnectionDelayMs: newAccountDurations.connectionDelayMs,
       networkReturnDelayMs: newAccountDurations.networkReturnDelayMs,
+      conclusionFadeDurationMs: conclusionDurations.fadeDurationMs,
+      recoveryRevealDelayMs: conclusionDurations.recoveryRevealDelayMs,
+      networkRepairDurationMs: conclusionDurations.repairDurationMs,
+      mfaIncidentDelayMs: conclusionDurations.mfaIncidentDelayMs,
       riskModel: protectionRiskModel,
     },
   });
@@ -662,6 +854,22 @@ export function S08NetworkRewindStage({
     () => createS13BankShieldedNetwork(managerPracticeNetwork),
     [managerPracticeNetwork],
   );
+  const fullyProtectedNetwork = useMemo(
+    () => createS13FullyProtectedNetwork(bankProtectedNetwork),
+    [bankProtectedNetwork],
+  );
+  const passwordRepairNetwork = useMemo(
+    () => createS13PasswordRepairNetwork(bankProtectedNetwork),
+    [bankProtectedNetwork],
+  );
+  const passwordRepairCelebrationNodeIds = useMemo(
+    () => passwordRepairConfettiNodeIds(passwordRepairNetwork),
+    [passwordRepairNetwork],
+  );
+  const mfaIncidentNetwork = useMemo(
+    () => createS13MfaIncidentNetwork(fullyProtectedNetwork),
+    [fullyProtectedNetwork],
+  );
   const scalingFindingNodeDelayMs = useMemo(
     () =>
       Object.values(scalingRiskNetwork.edgeRevealDelaysMs).reduce<number>(
@@ -687,7 +895,27 @@ export function S08NetworkRewindStage({
       if (state.matches('managerPracticeBankProtectionReveal')) {
         return bankShieldedNetwork;
       }
-      if (state.matches('managerPracticeBankProtected') || state.matches('complete')) {
+      if (state.hasTag('s13-mfa-preview') || state.matches('complete')) {
+        return mfaIncidentNetwork;
+      }
+      if (
+        state.matches('conclusionNetworkRepaired') ||
+        state.matches('conclusionVariantReturn') ||
+        state.matches('conclusionNetworkFade') ||
+        state.matches('conclusionMfaIncidentFocus') ||
+        state.hasTag('s13-conclusion-overlay')
+      ) {
+        return fullyProtectedNetwork;
+      }
+      if (state.matches('conclusionNetworkRepairing')) {
+        return passwordRepairNetwork;
+      }
+      if (
+        state.matches('managerPracticeBankProtected') ||
+        state.matches('conclusionRemainingAccountsIntro') ||
+        state.matches('conclusionRemainingAccountsPace') ||
+        state.matches('conclusionNetworkOverview')
+      ) {
         return bankProtectedNetwork;
       }
       if (state.hasTag('s13-network')) {
@@ -729,7 +957,10 @@ export function S08NetworkRewindStage({
       bankProtectedNetwork,
       bankShieldedNetwork,
       conservativeScaleNetwork,
+      fullyProtectedNetwork,
       managerPracticeNetwork,
+      mfaIncidentNetwork,
+      passwordRepairNetwork,
       newAccountRevealedNetwork,
       newAccountShieldedNetwork,
       returnedManagerNetwork,
@@ -749,8 +980,8 @@ export function S08NetworkRewindStage({
   const bankFocusVisible =
     state.matches('managerPracticeExistingAccountRelation') ||
     state.matches('managerPracticeExistingAccountReplace') ||
-    state.hasTag('s13-bank-result') ||
-    state.matches('complete');
+    state.hasTag('s13-bank-result');
+  const mfaFocusVisible = state.hasTag('s13-mfa-preview');
   const presentationHighlightedNodeId = state.hasTag('s13-new-account')
     ? 'my-shop'
     : bankFocusVisible
@@ -890,36 +1121,107 @@ export function S08NetworkRewindStage({
                   id: 's13-network-bank-password-changed',
                   text: s13PasswordManagerPracticeContent.network.guide.campusgramTransition,
                 }
-              : null;
+              : state.matches('conclusionRemainingAccountsIntro')
+                ? {
+                    id: 's13-conclusion-remaining-accounts-intro',
+                    text: [
+                      s13PasswordManagerPracticeContent.conclusion.remainingAccounts.guide
+                        .intro,
+                    ],
+                  }
+                : state.matches('conclusionRemainingAccountsPace')
+                  ? {
+                      id: 's13-conclusion-remaining-accounts-pace',
+                      text: [
+                        s13PasswordManagerPracticeContent.conclusion.remainingAccounts.guide
+                          .pace,
+                      ],
+                    }
+                  : state.matches('conclusionNetworkRepaired')
+                    ? {
+                        id: 's13-conclusion-network-repaired',
+                        text: [
+                          s13PasswordManagerPracticeContent.conclusion.network.guide.repaired,
+                        ],
+                      }
+                    : state.matches('conclusionVariantReturn')
+                      ? {
+                          id: 's13-conclusion-variant-return',
+                          text: [
+                            s13PasswordManagerPracticeContent.conclusion.variants.returnGuide,
+                          ],
+                        }
+                      : state.matches('conclusionMfaPasswordKnown')
+                        ? {
+                            id: 's13-conclusion-mfa-password-known',
+                            text: [
+                              s13PasswordManagerPracticeContent.conclusion.mfa.guide
+                                .passwordKnown,
+                            ],
+                          }
+                        : state.matches('conclusionMfaPasswordInsufficient')
+                          ? {
+                              id: 's13-conclusion-mfa-password-insufficient',
+                              text: [
+                                s13PasswordManagerPracticeContent.conclusion.mfa.guide
+                                  .passwordInsufficient,
+                              ],
+                            }
+                          : state.matches('conclusionMfaSecondHurdle')
+                            ? {
+                                id: 's13-conclusion-mfa-second-hurdle',
+                                text: [
+                                  s13PasswordManagerPracticeContent.conclusion.mfa.guide
+                                    .secondHurdle,
+                                ],
+                              }
+                            : null;
   const s13NetworkStep = state.matches('managerPracticeNewAccountReveal')
     ? 'new-account-reveal'
     : state.matches('managerPracticeNetworkReturn')
       ? 'network-return'
       : state.matches('managerPracticeNewAccountShield')
-      ? 'new-account-shield'
-      : state.matches('managerPracticeNewAccountConnections')
-        ? 'new-account-connections'
-        : state.matches('managerPracticeExistingAccount')
-          ? 'existing-account'
-          : state.matches('managerPracticeExistingAccountUnchanged')
-            ? 'existing-account-unchanged'
-            : state.matches('managerPracticeExistingAccountRelation')
-              ? 'existing-account-relation'
-              : state.matches('managerPracticeExistingAccountReplace')
-                ? 'existing-account-replace'
-                : state.matches('managerPracticeBankRelationDissolving')
-                  ? 'bank-relation-dissolving'
-                  : state.matches('managerPracticeBankProtectionReveal')
-                    ? 'bank-shield-reveal'
-                    : state.matches('managerPracticeBankProtected') ||
-                        state.matches('complete')
-                      ? 'bank-protected'
-                      : undefined;
+        ? 'new-account-shield'
+        : state.matches('managerPracticeNewAccountConnections')
+          ? 'new-account-connections'
+          : state.matches('managerPracticeExistingAccount')
+            ? 'existing-account'
+            : state.matches('managerPracticeExistingAccountUnchanged')
+              ? 'existing-account-unchanged'
+              : state.matches('managerPracticeExistingAccountRelation')
+                ? 'existing-account-relation'
+                : state.matches('managerPracticeExistingAccountReplace')
+                  ? 'existing-account-replace'
+                  : state.matches('managerPracticeBankRelationDissolving')
+                    ? 'bank-relation-dissolving'
+                    : state.matches('managerPracticeBankProtectionReveal')
+                      ? 'bank-shield-reveal'
+                      : state.matches('conclusionRemainingAccountsPace')
+                        ? 'remaining-accounts-pace'
+                        : state.matches('managerPracticeBankProtected') ||
+                            state.matches('conclusionRemainingAccountsIntro')
+                          ? 'bank-protected'
+                          : state.matches('conclusionNetworkFade')
+                            ? 'conclusion-network-fade'
+                            : state.matches('conclusionNetworkOverview')
+                              ? 'all-accounts-overview'
+                              : state.matches('conclusionNetworkRepairing')
+                                ? 'all-accounts-repairing'
+                                : state.matches('conclusionNetworkRepaired') ||
+                                    state.matches('conclusionVariantReturn')
+                                  ? 'all-accounts-protected'
+                                  : state.hasTag('s13-mfa-preview')
+                                    ? 'mfa-incident'
+                                    : state.matches('conclusionMfaIncidentFocus')
+                                      ? 'all-accounts-protected'
+                                      : undefined;
   const s13FocusTarget = state.hasTag('s13-new-account')
     ? 'my-shop'
-    : bankFocusVisible
-      ? 'muster-bank'
-      : undefined;
+    : mfaFocusVisible
+      ? 'master-campus'
+      : bankFocusVisible
+        ? 'muster-bank'
+        : undefined;
   const importedVaultVisible = state.hasTag('s13-existing-account');
   const s13ExistingAccountRelationVisible =
     state.matches('managerPracticeExistingAccountRelation') ||
@@ -927,6 +1229,13 @@ export function S08NetworkRewindStage({
   const browserReopenPrompt =
     state.matches('managerPracticeExistingAccountReplace') ||
     state.matches('managerPracticeBankProtected');
+  const networkRepairPrompt = state.matches('conclusionNetworkOverview');
+  const fullyProtectedVisible =
+    state.matches('conclusionNetworkRepairing') ||
+    state.matches('conclusionNetworkRepaired') ||
+    state.matches('conclusionVariantReturn') ||
+    state.matches('conclusionNetworkFade') ||
+    state.hasTag('s13-mfa');
   const celebratesMyShop =
     state.matches('managerPracticeNewAccountShield') ||
     state.matches('managerPracticeNewAccountConnections');
@@ -970,6 +1279,32 @@ export function S08NetworkRewindStage({
   const managerPracticeVisible = state.matches('managerPractice');
   const bankPracticeVisible = state.matches('managerPracticeBank');
   const campusgramPracticeVisible = state.matches('managerPracticeCampusgram');
+  const conclusionOverlayPhase = state.matches('conclusionVariantFit')
+    ? 'variant-fit'
+    : state.matches('conclusionVariantQuestion')
+      ? 'variant-question'
+      : state.matches('conclusionVariantSelectedIntegrated') ||
+          state.matches('conclusionVariantSelectedSeparate')
+        ? 'variant-selected'
+        : state.matches('conclusionRecoveryLost')
+          ? 'recovery-lost'
+          : state.matches('conclusionRecoveryPath')
+            ? 'recovery-path'
+            : state.matches('conclusionRecoveryRestored')
+              ? 'recovery-restored'
+              : null;
+  const selectedVariant: S13PasswordManagerVariant | null = state.matches(
+    'conclusionVariantSelectedIntegrated',
+  )
+    ? 'integrated'
+    : state.matches('conclusionVariantSelectedSeparate')
+      ? 'separate'
+      : null;
+  const mfaPreviewVisible = state.hasTag('s13-mfa-preview');
+  const mfaTransitionVisible = state.matches('conclusionMfaTransition');
+  const mfaSectionTransitionVisible = state.matches(
+    'conclusionMfaSectionTransition',
+  );
 
   return (
     <div className={styles.stageStack}>
@@ -980,6 +1315,8 @@ export function S08NetworkRewindStage({
           managerPracticeVisible ||
           bankPracticeVisible ||
           campusgramPracticeVisible ||
+          conclusionOverlayPhase !== null ||
+          mfaSectionTransitionVisible ||
           undefined
         }
         aria-label={
@@ -1013,10 +1350,18 @@ export function S08NetworkRewindStage({
           undefined
         }
         data-s13-network-step={s13NetworkStep}
+        data-s13-network-hidden={
+          conclusionOverlayPhase !== null || mfaSectionTransitionVisible || undefined
+        }
         data-s13-focus={s13FocusTarget}
         data-s13-network-dimmed={
-          state.matches('managerPractice') || state.hasTag('s13-network') || undefined
+          state.matches('managerPractice') ||
+          (state.hasTag('s13-network') &&
+            !state.hasTag('s13-conclusion-clear') &&
+            !state.hasTag('s13-mfa')) ||
+          undefined
         }
+        data-s13-fully-protected={fullyProtectedVisible || undefined}
         data-s08-resolving-account={state.context.resolvingAccountId ?? undefined}
         data-s08-releasing-master-campus={
           releasingAccountIds.includes('master-campus') || undefined
@@ -1071,11 +1416,43 @@ export function S08NetworkRewindStage({
           <AccountAssessmentNetwork
             adapter={adapter}
             presentation={presentation}
-            ariaLabel={projectedNetwork.accessibleSummary}
+            ariaLabel={
+              state.matches('conclusionNetworkRepaired')
+                ? s13PasswordManagerPracticeContent.conclusion.network.repairedAriaLabel
+                : projectedNetwork.accessibleSummary
+            }
             attackPhase={pathReplayRunning ? 'attacking' : 'incident-check'}
-            attackerAccountId={replayRunning || replayComplete ? 'campusgram' : null}
-            attackerAttemptStatus={replayRunning || replayComplete ? 'protected' : null}
-            attackTargetId={replayRunning || replayComplete ? 'campusgram' : null}
+            attackerAccountId={
+              mfaPreviewVisible
+                ? 'master-campus'
+                : replayRunning || replayComplete
+                  ? 'campusgram'
+                  : null
+            }
+            attackerAttemptStatus={
+              mfaPreviewVisible
+                ? 'affected'
+                : replayRunning || replayComplete
+                  ? 'protected'
+                  : null
+            }
+            {...(mfaPreviewVisible
+              ? {
+                  attackerLabel:
+                    s13PasswordManagerPracticeContent.conclusion.mfa.previewLead,
+                  attackerPreview: true,
+                  attackerPreviewSymbolId:
+                    s13PasswordManagerPracticeContent.conclusion.mfa
+                      .previewAccountSymbolId,
+                }
+              : {})}
+            attackTargetId={
+              mfaPreviewVisible
+                ? 'master-campus'
+                : replayRunning || replayComplete
+                  ? 'campusgram'
+                  : null
+            }
             attackBlocked={replayRunning || replayComplete}
             attackEdgeId={null}
             {...(scalingFindingsRevealing
@@ -1083,10 +1460,17 @@ export function S08NetworkRewindStage({
               : {})}
             showAccountShields
             easyToGuessAccountIds={
-              scalingFindingsVisible
-                ? scalingRiskNetwork.easyToGuessAccountIds
-                : easyToGuessAccountIds
+              fullyProtectedVisible
+                ? []
+                : networkRepairPrompt
+                  ? scalingRiskNetwork.easyToGuessAccountIds.filter(
+                      (accountId) => accountId !== 'master-campus',
+                    )
+                  : scalingFindingsVisible
+                  ? scalingRiskNetwork.easyToGuessAccountIds
+                  : easyToGuessAccountIds
             }
+            compromisedNodeId={mfaPreviewVisible ? 'master-campus' : null}
             overview={state.hasTag('expanded')}
             {...(scalingFindingTagsVisible
               ? {
@@ -1103,6 +1487,13 @@ export function S08NetworkRewindStage({
                 }
               : {})}
             celebratingNodeId={s13CelebratingNodeId ?? celebratingNodeId}
+            celebratingNodeIds={
+              state.matches('conclusionNetworkRepairing')
+                ? passwordRepairCelebrationNodeIds
+                : []
+            }
+            celebrationDelayStepMs={220}
+            compactCelebration={state.matches('conclusionNetworkRepairing')}
             interactionDisabled={!state.matches('protection')}
             nodeActionLabels={actionLabels}
             showEdgeLabels={preparationVisible || s13ExistingAccountRelationVisible}
@@ -1212,7 +1603,7 @@ export function S08NetworkRewindStage({
           >
             <PassWoGuide
               guideName={s13PasswordManagerPracticeContent.guide.name}
-              taskLabel="Passwortmanager"
+              taskLabel={state.hasTag('s13-mfa') ? 'MFA' : 'Passwortmanager'}
               helpOpen
               helpId="s13-network-speech"
               openHelpLabel="PassWo-Hinweis öffnen"
@@ -1220,7 +1611,7 @@ export function S08NetworkRewindStage({
               speechEmphasis={passWoSpeechEmphasisFor(s13NetworkSpeech.id)}
               speechKey={s13NetworkSpeech.id}
               speechObstacleSelector="[data-s13-import-vault]"
-              {...(browserReopenPrompt
+              {...(browserReopenPrompt || networkRepairPrompt
                 ? {}
                 : {
                     speechAction: {
@@ -1295,6 +1686,19 @@ export function S08NetworkRewindStage({
             ) : null}
           </>
         ) : null}
+        {networkRepairPrompt ? (
+          <button
+            type="button"
+            className={styles.repairAllAction}
+            autoFocus
+            onClick={() => send({ type: 'S13_REPAIR_ALL_PASSWORDS' })}
+          >
+            {s13PasswordManagerPracticeContent.conclusion.network.repairAction}
+          </button>
+        ) : null}
+        {mfaTransitionVisible ? (
+          <S13MfaTransition onAction={() => send({ type: 'S13_FINISH' })} />
+        ) : null}
         {state.matches('managerLesson') ? (
           <S12PasswordManagerTraining
             displayName={displayName}
@@ -1317,6 +1721,44 @@ export function S08NetworkRewindStage({
           />
         </div>
       ) : null}
+      {mfaSectionTransitionVisible ? (
+        <div className={styles.stageOverlay}>
+          <SectionTransition
+            sectionLabel={
+              s13PasswordManagerPracticeContent.conclusion.mfa.transition
+                .sectionTransition.sectionLabel
+            }
+            title={
+              s13PasswordManagerPracticeContent.conclusion.mfa.transition
+                .sectionTransition.title
+            }
+            currentSection={3}
+            totalSections={3}
+            parts={
+              s13PasswordManagerPracticeContent.conclusion.mfa.transition
+                .sectionTransition.parts
+            }
+            currentPart={1}
+            holdDurationMs={
+              s13PasswordManagerPracticeContent.conclusion.mfa.transition
+                .sectionTransition.holdDurationMs
+            }
+            onComplete={() => send({ type: 'TRANSITION_COMPLETE' })}
+          />
+        </div>
+      ) : null}
+      {conclusionOverlayPhase === null ? null : (
+        <div className={styles.stageOverlay}>
+          <S13PasswordManagerConclusion
+            phase={conclusionOverlayPhase}
+            selectedVariant={selectedVariant}
+            onNext={() => send({ type: 'NEXT' })}
+            onVariantSelect={(variant) =>
+              send({ type: 'S13_VARIANT_SELECTED', variant })
+            }
+          />
+        </div>
+      )}
       {managerPracticeVisible ? (
         <div className={styles.stageOverlay}>
           <S13PasswordManagerPractice

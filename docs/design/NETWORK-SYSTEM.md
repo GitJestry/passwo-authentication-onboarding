@@ -160,6 +160,29 @@ mit mittigem Schild. Alle übrigen Knoten und Kanten bleiben transparent abgedun
 Motion durchläuft dieselben fachlichen Zustände ohne Puls-, Auflösungs- oder
 Einblendanimation.
 
+Im abschließenden S13-Überblick erzeugt MyShop keine grünen Schutzverbindungen. Beim authored
+Beheben aller übrigen Beispielpasswörter verschwinden sowohl rote Risikobeziehungen als auch
+bereits sichtbare grüne Schutzpfade und ihre mittigen Schildknoten; der Endzustand trägt die
+Schutzinformation ausschließlich über blaue Kontoknoten und deren Kontoschilde. Vor dem
+Reparaturbutton pulsiert Muster Bank zweimal kurz, Master Campus dagegen nicht. Die anschließende
+Varianten- und Recovery-Überlagerung hält diesen letzten Netzwerk-Snapshot unverändert gemountet,
+aber vollständig unsichtbar und ohne erneut startende Netzwerkanimation. Die anschließende
+MFA-Vorschau liegt rechts-mittig über dem Graphen und projiziert mit zwei Linien und einer schwachen
+Fläche zum betroffenen Master-Campus-Knoten. Sie sitzt am äußersten rechten Bildschirmbereich,
+verwendet für Master Campus das Kontologo mit dem mittig danebenstehenden Status `Bekannt` und
+lässt sämtliche Netzwerkknoten in normaler Deckkraft sichtbar. Die Vorschau bleibt statisch;
+ausschließlich der Knoten pulsiert nach
+dem Projektionsaufbau zweimal. Während dieses MFA-Befalls führen ausschließlich von Master Campus
+zu jedem anderen Hauptkonto direkte grüne Schutzlinien ohne zusätzliche Schildknoten. Die
+Unterknoten behalten ihre neutralen Verbindungen. Diese Pfade gehören nicht zum MyShop- oder
+allgemeinen Passwortreparaturzustand. Reduced Motion zeigt dieselben fachlichen Zustände ohne Puls
+und mit vollständig gesetzten Schutzpfaden. Die schildfreien Direktkanten halten alle Kontopfade
+sichtbar und vermeiden zusätzliche Zwischenknoten und doppelte Kantensegmente. Die bestehenden
+blauen Unterknotenverbindungen von Master Campus und Campusgram werden nach den grünen Pfaden
+gezeichnet und liegen deshalb auch an Kreuzungen strikt darüber. Während Käfer und
+Master-Campus-Status erscheinen, bleibt die rechts positionierte Angreiferkarte unbewegt; nur das
+Käfersymbol pulsiert. Die Projektionsfläche bleibt schwach, aber deutlicher deckend als zuvor.
+
 ## S02-Kontenerkundung
 
 S02 „Konten kennenlernen“ bildet die erste vollständige Kontenerkundung:

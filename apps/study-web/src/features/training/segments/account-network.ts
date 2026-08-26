@@ -862,13 +862,6 @@ export type S13AccountNetworkPhase =
   | 'shielded'
   | 'connected';
 
-function distanceBetweenNodes(source: SceneNode, target: SceneNode): number {
-  return Math.hypot(
-    source.position.x - target.position.x,
-    source.position.y - target.position.y,
-  );
-}
-
 function distanceToPosition(
   node: SceneNode,
   position: SceneNode['position'],
@@ -970,82 +963,19 @@ export function createS13MyShopNetwork(
     ];
   });
 
-  if (phase !== 'connected') {
-    return {
-      ...source,
-      id: `${source.id}-s13-${phase}`,
-      nodes: replacedNodes,
-      edges: replacedEdges,
-      accessibleSummary:
-        phase === 'network'
-          ? `${source.accessibleSummary} Das bestehende Kontonetzwerk ist zurückgekehrt; das neue My-Shop-Konto ist noch nicht eingeblendet.`
-          : phase === 'revealed'
-            ? `${source.accessibleSummary} Das neu angelegte fiktive My-Shop-Konto ist als eigener Kontoknoten hinzugekommen.`
-            : `${source.accessibleSummary} My Shop trägt einen blauen Schutzschild für sein eigenes Passwort.`,
-    };
-  }
-
-  const sortedProtectionTargets = replacedNodes
-    .filter(
-      (node) =>
-        node.kind === 'account' &&
-        node.id !== myShopNode.id,
-    )
-    .sort(
-      (left, right) =>
-        distanceBetweenNodes(myShopNode, left) - distanceBetweenNodes(myShopNode, right),
-    );
-  const nearbyProtectionTargets = sortedProtectionTargets.filter(
-    (target) => distanceBetweenNodes(myShopNode, target) <= 0.145,
-  );
-  const protectionTargets =
-    nearbyProtectionTargets.length >= 3
-      ? nearbyProtectionTargets
-      : sortedProtectionTargets.slice(0, 3);
-  const protectionNodes: SceneNode[] = [];
-  const protectionEdges: SceneEdge[] = [];
-  protectionTargets.forEach((target, index) => {
-    const shieldId = `s13-my-shop-protection-${index + 1}-shield`;
-    protectionNodes.push({
-      id: shieldId,
-      kind: 'shield',
-      symbolId: 'comparison-path-shield',
-      label: 'Eigene Passwörter',
-      description:
-        'Zwischen My Shop und diesem Konto besteht in der Übung keine problematische Passwortverbindung.',
-      status: 'protected',
-      position: {
-        x: (myShopNode.position.x + target.position.x) / 2,
-        y: (myShopNode.position.y + target.position.y) / 2,
-      },
-      selectable: false,
-    });
-    protectionEdges.push(
-      {
-        id: `s13-my-shop-protection-${index + 1}-source`,
-        sourceId: myShopNode.id,
-        targetId: shieldId,
-        kind: 'blocked-path',
-        status: 'blocked',
-        label: null,
-      },
-      {
-        id: `s13-my-shop-protection-${index + 1}-target`,
-        sourceId: target.id,
-        targetId: shieldId,
-        kind: 'blocked-path',
-        status: 'blocked',
-        label: null,
-      },
-    );
-  });
-
   return {
     ...source,
-    id: `${source.id}-s13-connected`,
-    nodes: [...replacedNodes, ...protectionNodes],
-    edges: [...replacedEdges, ...protectionEdges],
-    accessibleSummary: `${source.accessibleSummary} My Shop besitzt ein eigenes Passwort, trägt einen blauen Schutzschild und ist durch ${protectionTargets.length} grüne Schildverbindungen von allen Konten in seinem Nahbereich getrennt. Muster Bank bleibt rot markiert und besitzt eine rote Verbindung für dasselbe Passwort.`,
+    id: `${source.id}-s13-${phase}`,
+    nodes: replacedNodes,
+    edges: replacedEdges,
+    accessibleSummary:
+      phase === 'network'
+        ? `${source.accessibleSummary} Das bestehende Kontonetzwerk ist zurückgekehrt; das neue My-Shop-Konto ist noch nicht eingeblendet.`
+        : phase === 'revealed'
+          ? `${source.accessibleSummary} Das neu angelegte fiktive My-Shop-Konto ist als eigener Kontoknoten hinzugekommen.`
+          : phase === 'shielded'
+            ? `${source.accessibleSummary} My Shop trägt einen blauen Schutzschild für sein eigenes Passwort.`
+            : `${source.accessibleSummary} My Shop besitzt ein eigenes Passwort und trägt einen blauen Schutzschild. Muster Bank bleibt rot markiert und besitzt eine rote Verbindung für dasselbe Passwort.`,
   };
 }
 
@@ -1156,6 +1086,87 @@ export function createS13BankShieldedNetwork(
         targetId !== 's13-muster-bank-protection-shield',
     ),
     accessibleSummary: `${finalSummaryBase} Muster Bank besitzt jetzt ein eigenes Passwort und trägt einen blauen Schutzschild. Die bisherige rote Passwortbeziehung ist entfernt; eine grüne Schutzverbindung ist noch nicht dargestellt.`,
+  };
+}
+
+/**
+ * Projects the authored end state after the participant-triggered password-manager simulation.
+ * Relationship paths are removed because the account shields carry the final protection state.
+ */
+export function createS13FullyProtectedNetwork(
+  source: NetworkSceneSnapshot,
+): NetworkSceneSnapshot {
+  const protectedNodes = source.nodes
+    .filter(({ kind }) => kind !== 'shield')
+    .map((node): SceneNode =>
+      node.kind === 'account' ? { ...node, status: 'protected' } : node,
+    );
+  const retainedNodeIds = new Set(protectedNodes.map(({ id }) => id));
+  const protectedEdges = source.edges.filter(
+    ({ sourceId, targetId, kind }) =>
+      retainedNodeIds.has(sourceId) &&
+      retainedNodeIds.has(targetId) &&
+      kind !== 'identical-reuse' &&
+      kind !== 'similar-pattern' &&
+      kind !== 'blocked-path',
+  );
+
+  return {
+    ...source,
+    id: `${source.id}-fully-protected`,
+    nodes: protectedNodes,
+    edges: protectedEdges,
+    accessibleSummary:
+      'Alle fiktiven Konten verwenden in dieser Simulation ein eigenes starkes Passwort und tragen einen blauen Schutzschild. Die früheren roten und grünen Passwortbeziehungen sind entfernt.',
+  };
+}
+
+export function createS13PasswordRepairNetwork(
+  source: NetworkSceneSnapshot,
+): NetworkSceneSnapshot {
+  return {
+    ...source,
+    id: `${source.id}-password-repairing`,
+    nodes: source.nodes.map((node): SceneNode =>
+      node.kind === 'account' ? { ...node, status: 'protected' } : node,
+    ),
+    accessibleSummary:
+      'Die fiktiven Konten wechseln nacheinander zu eigenen starken Passwörtern und blauen Schutzschilden. Die bisherigen roten und grünen Beispielbeziehungen verschwinden dabei.',
+  };
+}
+
+export function createS13MfaIncidentNetwork(
+  source: NetworkSceneSnapshot,
+): NetworkSceneSnapshot {
+  const masterCampusNode = source.nodes.find(({ id }) => id === 'master-campus');
+  const otherAccountNodes = source.nodes.filter(
+    (node) => node.kind === 'account' && node.id !== 'master-campus',
+  );
+  const protectionEdges: SceneEdge[] =
+    masterCampusNode === undefined
+      ? []
+      : otherAccountNodes.map(
+          (account): SceneEdge => ({
+            id: `s13-master-campus-protection-${account.id}`,
+            sourceId: 'master-campus',
+            targetId: account.id,
+            kind: 'blocked-path',
+            status: 'blocked',
+            label: null,
+          }),
+        );
+
+  return {
+    ...source,
+    id: `${source.id}-mfa-incident`,
+    nodes: source.nodes.map((node): SceneNode =>
+      node.id === 'master-campus' ? { ...node, status: 'affected' } : node,
+    ),
+    // Existing account-to-detail edges follow the green protection paths so their
+    // authored blue strokes remain the topmost layer at shared and crossing sections.
+    edges: [...protectionEdges, ...source.edges],
+    accessibleSummary:
+      'Das geordnete Kontonetzwerk bleibt vollständig sichtbar. Master Campus ist rot hervorgehoben, weil der Angreifer in dieser Vorschau das korrekte Passwort kennt. Von Master Campus führt zu jedem anderen Konto eine grüne Schutzlinie für die zusätzliche Hürde; die Unterknoten behalten ihre neutralen Verbindungen.',
   };
 }
 

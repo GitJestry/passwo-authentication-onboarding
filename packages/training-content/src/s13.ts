@@ -1,13 +1,13 @@
 import type { TrainingSectionId } from '@passwo/contracts';
 import { s12PasswordManagerContent } from './s12.js';
 
-export const S13_PASSWORD_MANAGER_PRACTICE_CONTENT_VERSION = '3.1.0';
+export const S13_PASSWORD_MANAGER_PRACTICE_CONTENT_VERSION = '4.6.0';
 
 export const s13PasswordManagerPracticeContent = {
   version: S13_PASSWORD_MANAGER_PRACTICE_CONTENT_VERSION,
   source: {
     revision:
-      'Nutzerauftrag vom 2026-08-26 · gestufte Campusgram-Anmeldung mit manuellem Einsetzen',
+      'Nutzerauftrag vom 2026-08-26 · gekürzte Systemwahleinordnung und statische Master-Campus-Unterkanten',
     copyReference: 'docs/design/S13-COPY-AUDIT.md',
   },
   segment: {
@@ -16,7 +16,7 @@ export const s13PasswordManagerPracticeContent = {
     slice: 'integrated-password-manager-practice',
   },
   trainingAriaLabel:
-    'Training, Segment S13, neue und vorhandene Konten sowie Campusgram-Anmeldung mit dem Passwortmanager',
+    'Training, Segment S13, Passwortmanager anwenden, vergleichen und wiederherstellen sowie Übergang zu MFA',
   browser: {
     ariaLabel: 'Fiktiver Browser mit My Shop',
     tabId: 'my-shop',
@@ -193,6 +193,107 @@ export const s13PasswordManagerPracticeContent = {
         'Muster Bank hat jetzt ein eigenes Passwort. Der bisherige Verbindungsweg ist weg.',
         'Versuch dich zum Abschluss noch einmal bei Campusgram anzumelden. Deine Passphrase ist bereits im Passwortmanager gespeichert.',
       ],
+    },
+  },
+  conclusion: {
+    remainingAccounts: {
+      guide: {
+        intro: 'Die übrigen Konten musst du nicht alle auf einmal umstellen.',
+        pace:
+          'Neue Konten kannst du ab jetzt direkt so anlegen. Bestehende kannst du nach und nach ändern, wenn du sie ohnehin wieder benutzt.',
+      },
+    },
+    variants: {
+      returnGuide:
+        'Bleibt noch die Frage, welcher Passwortmanager eher zu deinem Alltag passt.',
+      integrated: {
+        id: 'integrated',
+        title: 'Integriert passt eher, wenn …',
+        bullets: [
+          'du möglichst wenig zusätzlich einrichten möchtest',
+          'du überwiegend denselben Browser oder dasselbe Plattform-Ökosystem nutzt',
+        ],
+      },
+      separate: {
+        id: 'separate',
+        title: 'Eigenständig passt eher, wenn …',
+        bullets: [
+          'du zwischen verschiedenen Browsern oder Betriebssystemen wechselst',
+          'du denselben Tresor unabhängig vom einzelnen Browser nutzen möchtest',
+        ],
+      },
+      fitGuide: 'Beide Wege können starke und einzigartige Passwörter für dich verwalten.',
+      question: 'Was würde eher zu deinem Alltag passen?',
+      options: {
+        integrated: 'Integriert',
+        separate: 'Separat',
+      },
+    },
+    recovery: {
+      title: 'Was passiert, wenn dein Gerät verloren geht?',
+      oldDevice: {
+        label: 'Altes Gerät',
+        status: 'Gerät verloren',
+      },
+      path: {
+        label: 'Wiederherstellungsweg',
+      },
+      newDevice: {
+        label: 'Neues Gerät',
+        status: 'Tresor wieder verfügbar',
+      },
+      guide: {
+        lost:
+          'Ein verlorenes Gerät heißt nicht automatisch, dass dein Passwort-Tresor verloren ist.',
+        path:
+          'Viele Passwortmanager bieten einen Weg, ihn auf einem neuen Gerät wieder zu nutzen.',
+        restored:
+          'Schau bei deinem eigenen nach, wie dieser Weg aussieht und was du dafür brauchst.',
+      },
+      continueAction: 'Weiter',
+    },
+    network: {
+      guide: {
+        repaired:
+          'So sieht das Netzwerk aus, wenn jedes Konto ein eigenes starkes Passwort verwendet.',
+      },
+      repairAction: 'Alle Passwörter beheben',
+      repairedAriaLabel:
+        'Geordnetes Kontonetzwerk: Jedes Konto verwendet ein eigenes starkes Passwort und trägt einen Schutzschild.',
+    },
+    mfa: {
+      previewTitle: 'Angreifer kennt das korrekte Master Campus-Passwort',
+      previewLead: 'Bekannt',
+      previewAccountSymbolId: 'master-campus',
+      protectionPath: {
+        shieldLabel: 'Zweite Hürde',
+        shieldDescription:
+          'Eine zusätzliche Hürde schützt den Zugang zu diesem anderen Konto.',
+      },
+      guide: {
+        passwordKnown:
+          'Passwörter können nicht nur erraten werden, sondern auch auf anderen Wegen bekannt werden.',
+        passwordInsufficient:
+          'Ist ein Passwort einem Angreifer bekannt, reicht selbst ein sehr starkes Passwort allein nicht mehr aus.',
+        secondHurdle:
+          'Um den Zugang auch dann zu schützen, brauchen wir eine zweite Hürde.',
+      },
+      transition: {
+        title: 'Multi-Faktor-Authentifizierung',
+        detail: 'kennenlernen',
+        ariaLabel: 'Multi-Faktor-Authentifizierung kennenlernen',
+        sectionTransition: {
+          sectionLabel: 'Sektion 3 von 3',
+          title: 'Multi-Faktor-Authentifizierung',
+          parts: [
+            {
+              id: 'multi-factor-authentication',
+              label: 'Multi-Faktor-Authentifizierung',
+            },
+          ],
+          holdDurationMs: 3500,
+        },
+      },
     },
   },
   bank: {

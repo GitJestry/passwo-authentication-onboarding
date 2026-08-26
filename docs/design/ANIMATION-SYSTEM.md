@@ -110,6 +110,17 @@ Kante. Die Knoten wechseln gemeinsam in den Befallszustand und bleiben in den na
 Sprechschritten rot. Reduced Motion überspringt die Staffelung und zeigt unmittelbar denselben
 vollständigen Endzustand.
 
+## S13-Konfettibudget im großen Netzwerk
+
+Beim Beheben aller Beispielpasswörter bleibt Konfetti als sichtbarer Erfolgsakzent erhalten, wird
+aber nicht pro Netzwerkknoten vollständig instanziiert. Die deterministische Großsequenz verwendet
+Konfetti an allen Hauptkonten und zusätzlich an gleichmäßig ausgewählten Unterknoten, insgesamt
+höchstens zwölf kompakte Bursts mit je acht Partikeln und höchstens wenigen gleichzeitig laufenden
+Bursts. Die parallel gestaffelte Knotenbewegung beschränkt sich auf compositor-freundliche
+Transformation und Deckkraft; Filter, animierte Schatten und universelle Nachfahrenselektoren sind
+in diesem Massenpfad ausgeschlossen. Einzelne Abschlussmomente dürfen weiterhin den vollständigen
+Burst verwenden. Reduced Motion zeigt den Endzustand ohne Konfetti.
+
 ## Design Lab
 
 Jede komplexe Sequenz erhält eine deterministische Route oder Query im `/design-lab`, sodass

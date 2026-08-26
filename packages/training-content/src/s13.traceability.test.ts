@@ -49,7 +49,7 @@ describe('S13 integrated password-manager practice traceability', () => {
   });
 
   it('keeps the rebuilt My Shop landing-page copy in versioned content', () => {
-    expect(s13PasswordManagerPracticeContent.version).toBe('3.1.0');
+    expect(s13PasswordManagerPracticeContent.version).toBe('4.6.0');
     expect(s13PasswordManagerPracticeContent.website.shop.hero).toMatchObject({
       eyebrow: 'Sommer-Sale',
       title: 'Bis zu 40% sparen!',
@@ -175,5 +175,63 @@ describe('S13 integrated password-manager practice traceability', () => {
       s13PasswordManagerPracticeContent.campusgram.passwordManager.knownAccounts.length +
         s13PasswordManagerPracticeContent.campusgram.passwordManager.additionalAccounts.length,
     ).toBe(80);
+  });
+
+  it('keeps the password-manager conclusion and MFA handoff together', () => {
+    expect(s13PasswordManagerPracticeContent.conclusion.remainingAccounts.guide).toEqual({
+      intro: 'Die übrigen Konten musst du nicht alle auf einmal umstellen.',
+      pace:
+        'Neue Konten kannst du ab jetzt direkt so anlegen. Bestehende kannst du nach und nach ändern, wenn du sie ohnehin wieder benutzt.',
+    });
+    expect(s13PasswordManagerPracticeContent.conclusion.variants).toMatchObject({
+      fitGuide:
+        'Beide Wege können starke und einzigartige Passwörter für dich verwalten.',
+      question: 'Was würde eher zu deinem Alltag passen?',
+      options: { integrated: 'Integriert', separate: 'Separat' },
+      integrated: { title: 'Integriert passt eher, wenn …' },
+      separate: { title: 'Eigenständig passt eher, wenn …' },
+    });
+    expect(s13PasswordManagerPracticeContent.conclusion.recovery).toMatchObject({
+      title: 'Was passiert, wenn dein Gerät verloren geht?',
+      path: { label: 'Wiederherstellungsweg' },
+      newDevice: { status: 'Tresor wieder verfügbar' },
+    });
+    expect(s13PasswordManagerPracticeContent.conclusion.network).toMatchObject({
+      repairAction: 'Alle Passwörter beheben',
+    });
+    expect(s13PasswordManagerPracticeContent.conclusion.mfa).toMatchObject({
+      previewTitle: 'Angreifer kennt das korrekte Master Campus-Passwort',
+      previewLead: 'Bekannt',
+      previewAccountSymbolId: 'master-campus',
+      protectionPath: {
+        shieldLabel: 'Zweite Hürde',
+        shieldDescription:
+          'Eine zusätzliche Hürde schützt den Zugang zu diesem anderen Konto.',
+      },
+      guide: {
+        passwordKnown:
+          'Passwörter können nicht nur erraten werden, sondern auch auf anderen Wegen bekannt werden.',
+        passwordInsufficient:
+          'Ist ein Passwort einem Angreifer bekannt, reicht selbst ein sehr starkes Passwort allein nicht mehr aus.',
+        secondHurdle:
+          'Um den Zugang auch dann zu schützen, brauchen wir eine zweite Hürde.',
+      },
+      transition: {
+        title: 'Multi-Faktor-Authentifizierung',
+        detail: 'kennenlernen',
+        ariaLabel: 'Multi-Faktor-Authentifizierung kennenlernen',
+        sectionTransition: {
+          sectionLabel: 'Sektion 3 von 3',
+          title: 'Multi-Faktor-Authentifizierung',
+          parts: [
+            {
+              id: 'multi-factor-authentication',
+              label: 'Multi-Faktor-Authentifizierung',
+            },
+          ],
+          holdDurationMs: 3500,
+        },
+      },
+    });
   });
 });

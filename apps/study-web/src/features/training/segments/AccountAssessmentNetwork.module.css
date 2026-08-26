@@ -37,6 +37,26 @@
   pointer-events: none;
 }
 
+.compromisedBug {
+  position: absolute;
+  z-index: 13;
+  display: grid;
+  width: 86%;
+  aspect-ratio: 1;
+  place-items: center;
+  color: #fff;
+  filter:
+    drop-shadow(0 0.18rem 0.18rem rgb(38 0 10 / 96%))
+    drop-shadow(0 0 0.75rem rgb(255 49 94 / 92%));
+  pointer-events: none;
+  animation: compromised-bug-in 420ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.compromisedBug svg {
+  width: 100%;
+  height: 100%;
+}
+
 .network :global([data-size="detail"] [data-account-shield]) {
   display: none;
 }
@@ -98,6 +118,29 @@
   pointer-events: none;
 }
 
+.attackerProjection {
+  position: absolute;
+  z-index: 0;
+  top: 50%;
+  left: 100%;
+  width: 68%;
+  height: 144%;
+  overflow: visible;
+  pointer-events: none;
+}
+
+.attackerProjection polygon {
+  fill: rgb(255 49 94 / 14%);
+}
+
+.attackerProjection line {
+  stroke: rgb(255 76 116 / 78%);
+  stroke-dasharray: 5 9;
+  stroke-linecap: round;
+  stroke-width: 1.5;
+  vector-effect: non-scaling-stroke;
+}
+
 .attacker {
   position: absolute;
   z-index: 1;
@@ -129,8 +172,49 @@
   font-size: clamp(0.62rem, 1.05cqi, 0.78rem);
   line-height: 1;
   letter-spacing: 0.02em;
-  white-space: nowrap;
+  width: max-content;
+  max-width: 17rem;
+  text-align: center;
+  white-space: normal;
   transform: translateX(-50%);
+}
+
+.attackerPreviewBug {
+  position: absolute;
+  z-index: 3;
+  top: var(--space-3);
+  left: var(--space-3);
+  display: grid;
+  width: clamp(1.7rem, 2.8cqi, 2.35rem);
+  aspect-ratio: 1;
+  place-items: center;
+  color: #fff;
+  filter: drop-shadow(0 0 0.5rem rgb(255 49 94 / 68%));
+}
+
+.attackerPreviewBug svg {
+  width: 100%;
+  height: 100%;
+}
+
+.attackerPreviewSymbol {
+  display: grid;
+  width: clamp(2.6rem, 4.6cqi, 3.8rem);
+  aspect-ratio: 1;
+  flex: 0 0 auto;
+  place-items: center;
+  border: var(--border-width-medium) solid rgb(255 255 255 / 84%);
+  border-radius: 50%;
+  color: #9d2046;
+  background: #fff;
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 88%),
+    0 0 1rem rgb(255 255 255 / 24%);
+}
+
+.attackerPreviewSymbol svg {
+  width: 72%;
+  height: 72%;
 }
 
 .comparisonResult {
@@ -766,6 +850,13 @@
   }
 }
 
+@keyframes compromised-bug-in {
+  from {
+    opacity: 0;
+    transform: translateY(-0.35rem) scale(0.62) rotate(-12deg);
+  }
+}
+
 @keyframes account-protection-node-arrival {
   0% {
     border-color: #2497ff;
@@ -882,6 +973,10 @@
 
   .attackConnection {
     animation: none !important;
+  }
+
+  .compromisedBug {
+    animation: none;
   }
 
   .network[data-attack-phase="source-transition"]

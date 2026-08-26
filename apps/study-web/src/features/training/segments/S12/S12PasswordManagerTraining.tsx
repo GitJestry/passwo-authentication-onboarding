@@ -479,16 +479,17 @@ function AutofillScene({
 
 function VariantCard({
   kind,
+  copy,
   active,
   browserFocused,
   children,
 }: {
   readonly kind: 'integrated' | 'separate';
+  readonly copy: PasswordManagerVariantCopy;
   readonly active: boolean;
   readonly browserFocused?: boolean;
   readonly children?: ReactNode;
 }) {
-  const variant = s12PasswordManagerContent.variants[kind];
   return (
     <article
       className={styles.variantCard}
@@ -511,9 +512,9 @@ function VariantCard({
           aria-hidden="true"
         />
       </div>
-      <h2>{variant.title}</h2>
+      <h2>{copy.title}</h2>
       <ul>
-        {variant.bullets.map((bullet) => (
+        {copy.bullets.map((bullet) => (
           <li key={bullet}>{bullet}</li>
         ))}
       </ul>
@@ -527,16 +528,34 @@ function VariantScene({
   browserFocused,
   phase,
   username,
+  integratedCopy = s12PasswordManagerContent.variants.integrated,
+  separateCopy = s12PasswordManagerContent.variants.separate,
+  questioned = false,
+  showPassphrasePreview = true,
+  wrapHeadings = false,
 }: {
   readonly active: 'integrated' | 'separate' | null;
   readonly browserFocused: boolean;
   readonly phase: 'closing' | 'transition' | 'reveal' | 'ready';
   readonly username: string;
+  readonly integratedCopy?: PasswordManagerVariantCopy;
+  readonly separateCopy?: PasswordManagerVariantCopy;
+  readonly questioned?: boolean;
+  readonly showPassphrasePreview?: boolean;
+  readonly wrapHeadings?: boolean;
 }) {
   const passphrase = s12PasswordManagerContent.variants.passphrasePreview;
   return (
-    <div className={styles.variantScene} data-reveal-phase={phase}>
-      <div className={styles.variantVault} data-s12-speech-obstacle>
+    <div
+      className={styles.variantScene}
+      data-reveal-phase={phase}
+      data-wrap-headings={wrapHeadings || undefined}
+    >
+      <div
+        className={styles.variantVault}
+        data-questioned={questioned || undefined}
+        data-s12-speech-obstacle
+      >
         <PasswordManagerVaultVisual
           open={false}
           hideCount
@@ -544,6 +563,15 @@ function VariantScene({
           listLayout
           username={username}
         />
+        {questioned ? (
+          <strong
+            className={styles.variantQuestionMark}
+            data-variant-question-mark
+            aria-hidden="true"
+          >
+            ?
+          </strong>
+        ) : null}
       </div>
       {phase === 'closing' || phase === 'transition' ? null : (
         <>
@@ -556,11 +584,16 @@ function VariantScene({
           <div className={styles.variantCards}>
             <VariantCard
               kind="integrated"
+              copy={integratedCopy}
               active={active === 'integrated'}
               browserFocused={browserFocused}
             />
-            <VariantCard kind="separate" active={active === 'separate'}>
-              {active === 'separate' ? (
+            <VariantCard
+              kind="separate"
+              copy={separateCopy}
+              active={active === 'separate'}
+            >
+              {active === 'separate' && showPassphrasePreview ? (
                 <div
                   className={styles.passphrasePreview}
                   aria-label={s12PasswordManagerContent.variants.passphrasePreviewAriaLabel}
@@ -580,6 +613,37 @@ function VariantScene({
         </>
       )}
     </div>
+  );
+}
+
+export interface PasswordManagerVariantCopy {
+  readonly title: string;
+  readonly bullets: readonly string[];
+}
+
+export function PasswordManagerVariantComparison({
+  integrated,
+  separate,
+  active = null,
+  questioned = false,
+}: {
+  readonly integrated: PasswordManagerVariantCopy;
+  readonly separate: PasswordManagerVariantCopy;
+  readonly active?: 'integrated' | 'separate' | null;
+  readonly questioned?: boolean;
+}) {
+  return (
+    <VariantScene
+      active={active}
+      browserFocused={false}
+      phase="ready"
+      username={s12PasswordManagerContent.vault.entry.username}
+      integratedCopy={integrated}
+      separateCopy={separate}
+      questioned={questioned}
+      showPassphrasePreview={false}
+      wrapHeadings
+    />
   );
 }
 

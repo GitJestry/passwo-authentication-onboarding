@@ -295,6 +295,29 @@ const emphasisBySpeechId: Readonly<Record<string, readonly PassWoSpeechEmphasis[
   's13-campusgram-complete': [
     { phrase: 'selbst kopieren und einsetzen', tone: 'action' },
   ],
+  's13-conclusion-remaining-accounts-pace': [
+    { phrase: 'nach und nach ändern', tone: 'accent' },
+  ],
+  's13-conclusion-variant-return': [{ phrase: 'zu deinem Alltag passt', tone: 'accent' }],
+  's13-conclusion-variant-fit': [
+    { phrase: 'zu deinen Geräten und deinem Alltag passt', tone: 'accent' },
+  ],
+  's13-conclusion-recovery-lost': [
+    { phrase: 'nicht automatisch', tone: 'accent' },
+  ],
+  's13-conclusion-recovery-path': [
+    { phrase: 'auf einem neuen Gerät wieder zu nutzen', tone: 'accent' },
+  ],
+  's13-conclusion-recovery-restored': [
+    { phrase: 'Schau bei deinem eigenen nach', tone: 'action' },
+  ],
+  's13-conclusion-network-repaired': [
+    { phrase: 'eigenes starkes Passwort', tone: 'positive' },
+  ],
+  's13-conclusion-mfa-password-insufficient': [
+    { phrase: 'sehr starkes Passwort allein nicht mehr aus.', tone: 'warning' },
+  ],
+  's13-conclusion-mfa-second-hurdle': [{ phrase: 'zweite Hürde', tone: 'accent' }],
   's13-bank-autofill-explanation': [
     { phrase: 'direkt ausgefüllt', tone: 'positive' },
   ],

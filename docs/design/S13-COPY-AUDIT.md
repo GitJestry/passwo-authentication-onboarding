@@ -637,3 +637,258 @@ Quelle ist der ausdrückliche Nutzerauftrag vom 26. August 2026. Teilnehmertext 
 bleiben unverändert. Im Abschlusssatz wird ausschließlich `selbst kopieren und einsetzen` als
 ausgeführte Handlung hervorgehoben. Die bisherige positive Hervorhebung von `Merken musst du es
 dir trotzdem nicht.` entfällt.
+
+## Folgeauftrag: Übrige Konten, Systemwahl, Recovery und MFA-Übergang, 26. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 26. August 2026 für `12.6 – Und die übrigen
+Konten?`, `12.7 – Welcher passt eher zu deinem Alltag?`, die anschließende Recovery-Erklärung,
+den Abschluss des Kontonetzwerks und den Übergang zu MFA. Die Content-Version steigt von `3.1.0`
+auf `4.0.0`, weil S13 um den vollständigen Abschluss der Passwortmanager-Sektion und ihre
+ausdrücklich freigegebene Sektionsgrenze erweitert wird. Die Auswahl `Integriert` oder `Separat`
+bleibt eine flüchtige Trainingsinteraktion und wird weder persistiert noch exportiert.
+
+| Text-ID | Bisher | Neu | Primäre Rolle | Grund | Bedeutungsänderung | Interaktionsziel | Hervorhebung |
+|---|---|---|---|---|---|---|---|
+| `S13.conclusion.remainingAccounts.guide.*` | nicht vorhanden | übrige Konten schrittweise umstellen; neue Konten direkt passend anlegen; mit häufig genutzten oder wichtigen Konten beginnen | Kerngedanke und Navigation | ausdrücklich vorgegebene realistische Ausweitungsstrategie | ausdrücklich freigegeben | jeweils `Weiter` | Muster Bank pulsiert im Priorisierungsschritt |
+| `S13.conclusion.variants.returnGuide` | nicht vorhanden | `Bleibt noch die Frage, welcher Passwortmanager eher zu deinem Alltag passt.` | Orientierung | Rückkehr zur bekannten S12-Systemgegenüberstellung | ausdrücklich freigegeben | `Weiter` | großes schattenbetontes Fragezeichen über dem Tresor |
+| `S13.conclusion.variants.integrated` | S12-Funktionsmerkmale | `Integriert passt eher, wenn …` mit zwei alltagsbezogenen Kriterien | Mechanismuserklärung | ausdrücklich vorgegebene Entscheidungshilfe | ausdrücklich freigegeben | kein | bekannte linke Systemkarte |
+| `S13.conclusion.variants.separate` | S12-Funktionsmerkmale | `Eigenständig passt eher, wenn …` mit zwei alltagsbezogenen Kriterien | Mechanismuserklärung | ausdrücklich vorgegebene Entscheidungshilfe | ausdrücklich freigegeben | kein | bekannte rechte Systemkarte |
+| `S13.conclusion.variants.fitGuide` | nicht vorhanden | beide Wege verwalten starke einzigartige Passwörter; Passung zu Geräten und Alltag entscheidet | Kerngedanke | ausdrücklich vorgegebene nicht wertende Einordnung | ausdrücklich freigegeben | Antwortbuttons `Integriert` und `Separat` | gewählte Karte leuchtet kurz auf |
+| `S13.conclusion.recovery.*` | nicht vorhanden | Geräteverlust, neutraler Wiederherstellungsweg, neues Gerät und anbieterspezifischer Hinweis | Mechanismuserklärung | ausdrücklich vorgegebene Recovery-Grenze ohne konkrete Synchronisationsbehauptung | ausdrücklich freigegeben | `Weiter` pro sichtbarer Station | Symbol, Statuswortlaut und ×/✓ statt Farbe allein |
+| `S13.conclusion.network.guide.overview` | nicht vorhanden | neue Konten direkt anlegen und bestehende nach und nach umstellen | Kerngedanke | Netzwerkabschluss ausdrücklich vorgegeben | ausdrücklich freigegeben | `Alle Passwörter beheben` | großer glasartiger Aktionsbutton |
+| `S13.conclusion.network.guide.repaired` | nicht vorhanden | jedes Konto verwendet ein eigenes starkes Passwort | Ergebnisfeedback | erklärt den sichtbaren blauen Schildzustand und die entfernten roten Verbindungen | ausdrücklich freigegeben | `Weiter` | blaue Konten, Schutzschilde und kurze Konfetti-Akzente |
+| `S13.conclusion.mfa.guide.*` | nicht vorhanden | bekanntes starkes Passwort reicht allein nicht; keine Ausweitung auf andere Konten; zweite Hürde | Mechanismuserklärung und Kerngedanke | ausdrücklich vorgegebene Begrenzung der Passwortschutzwirkung | ausdrücklich freigegeben | `Weiter` | Master Campus, Käfer und Angreifervorschau |
+| `S13.conclusion.mfa.transition` | nicht vorhanden | `Multi-Faktor-Authentifizierung` / `kennenlernen` / `Zur nächsten Sektion` | Navigation | ausdrücklich vorgegebene Sektionsgrenze | ausdrücklich freigegeben | glasartiger Sektionsbutton | keine |
+
+Darstellungs- und Ablaufdelta:
+
+- Nach der Campusgram-Anmeldung schließt die Browserüberlagerung. Das vollständige Netzwerk ist
+  zunächst nicht abgedunkelt; im zweiten Sprechschritt pulsiert Muster Bank. Danach blendet das
+  Netzwerk aus und die bereits implementierte S12-Tresor-/Variantenaufteilung kehrt an denselben
+  Positionen zurück.
+- Die neue Systemwahl verändert keine Forschungsdaten. Nach der Antwort verschwinden die beiden
+  Antwortbuttons; nur die gewählte Karte wird kurz hervorgehoben. Die Recovery-Darstellung rückt
+  die Karten anschließend sichtbar in den Hintergrund und zeigt ihre drei Stationen nacheinander.
+- `Alle Passwörter beheben` ist eine ausdrücklich authored Simulationshandlung, keine Bewertung
+  realer Konten oder Passwörter. Sie setzt die lokalen Beispielknoten gestuft auf den geschützten
+  Zustand, entfernt die roten Beispielbeziehungen und zeigt denselben Endzustand bei Reduced
+  Motion ohne gestaffelte Bewegung.
+- Der MFA-Übergang lässt das geordnete Netzwerk bestehen. Master Campus wechselt als einzelner
+  Knoten in den roten Vorschauzustand, erhält das bekannte Käferzeichen und eine rechts
+  ausfahrende Angreifervorschau. Die Vorschau behauptet keinen konkreten Angriffsweg und bleibt bis
+  zum Sektionsbutton geöffnet.
+
+## QA-/Resume-Einstieg für den S13-Abschluss, 26. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 26. August 2026. Teilnehmertexte und
+Content-Version bleiben unverändert. Der Design-Lab-Punkt
+`s2-6-password-manager-conclusion` und der Entwicklungsstart
+`PASSWO_QA_SEGMENT=s13-conclusion` beginnen deterministisch beim ersten Sprechschritt über die
+übrigen Konten. Der Einstieg rekonstruiert den bereits versionierten lokalen S13-Zustand aus dem
+bestehenden minimalen S08-Resume-Modell. Er führt weder eine neue persistierte Datenklasse noch
+einen zusätzlichen serverseitigen Studiencheckpoint ein; die produktive Wiederaufnahme beginnt
+weiterhin an der in ADR 0016 festgelegten S08-Grenze.
+
+## Ablauf- und Darstellungskorrektur des S13-Abschlusses, 26. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 26. August 2026. Diese Entscheidung ersetzt für
+den S13-Abschluss die unmittelbar vorangehende Ablaufbeschreibung, lässt deren historischen Stand
+aber lesbar. Die Content-Version steigt von `4.0.0` auf `4.1.0`. Die Auswahl der
+Passwortmanager-Variante bleibt flüchtig und wird weiterhin weder persistiert noch exportiert.
+
+| Text-ID | Bisher | Neu | Primäre Rolle | Grund und Bedeutungsänderung | Interaktionsziel | Hervorhebung |
+|---|---|---|---|---|---|---|
+| `S13.conclusion.remainingAccounts.guide.*` | zwei Texte in einem Sprechschritt; anschließend `Du kannst zum Beispiel mit häufig genutzten oder wichtigen Konten beginnen.` | `Die übrigen Konten musst du nicht alle auf einmal umstellen.` und `Neue Konten kannst du ab jetzt direkt so anlegen. Bestehende kannst du nach und nach ändern, wenn du sie ohnehin wieder benutzt.` als zwei eigene Sprechschritte; Priorisierungssatz entfernt | Kerngedanke | ausdrücklich freigegebene Trennung und Entfernung kognitiver Last | je `Weiter`, danach alleiniger Button `Alle Passwörter beheben` | nur `nach und nach ändern`; Master Campus pulsiert beim Aktionsbutton zweimal blau |
+| `S13.conclusion.network.guide.overview` | zusammenfassender PassWo-Text beim Reparaturbutton | entfernt | Kerngedanke | PassWo soll für die authored Simulationshandlung vollständig verschwinden | kein Sprechblasenbutton | keine |
+| `S13.conclusion.recovery.path.note` | `Der genaue Weg hängt vom Passwortmanager ab.` | entfernt | Mechanismuserklärung | ausdrücklich freigegebene Textreduktion | kein | keine |
+| `S13.conclusion.mfa.transition` | Titel, Detail und separater Button `Zur nächsten Sektion` | großer mittiger Button `Multi-Faktor-Authentifizierung` / `kennenlernen`; separater Buttontext entfernt | Navigation | sichtbares Ziel und ausgelöste Sektionsgrenze werden zu einer eindeutigen Handlung zusammengeführt | großer Sektionsbutton | keine |
+
+Darstellungs- und Ablaufdelta:
+
+- `Alle Passwörter beheben` steht nach dem zweiten Sprechschritt allein vor dem Netzwerk. Nach der
+  Reparatur folgen bei noch vollständig sichtbarem Netzwerk zuerst das Ergebnisfeedback und dann
+  die Frage nach der passenden Passwortmanager-Variante. Erst anschließend blendet das Netzwerk
+  schnell vollständig aus.
+- Die Alltagskriterien erscheinen sofort zusammen mit der nicht wertenden Einordnung. Die Frage
+  zur eigenen Passung steht transparent und mittig unten. Die Recovery-Szene folgt nach 1,5
+  Sekunden, besitzt keine große Hintergrundbox, liegt tiefer und verwendet die bekannte
+  Tresordarstellung auf beiden Geräten.
+- Nach dem letzten Recovery-Schritt bleibt zunächst nur das vollständig geschützte Netzwerk
+  sichtbar. Nach zwei Sekunden erscheinen Angreiferprojektion, Verbindung zum Master-Campus-Knoten
+  und der erste MFA-Sprechschritt gemeinsam. Knotenfokusse laufen höchstens zweimal; Muster Bank
+  bleibt im geschützten blauen Zustand.
+
+## Folgekorrektur: Recovery-Pfad, Schutzverbindungen und MFA-Sektionskarte, 26. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 26. August 2026. Die Content-Version steigt von
+`4.1.0` auf `4.2.0`, weil der bereits freigegebene MFA-Titel nun zusätzlich die sichtbare
+Sektionskarte speist. Die fachlichen Aussagen der Sprechblasen bleiben unverändert.
+
+| Text-ID | Bisher | Neu | Primäre Rolle | Grund und Bedeutungsänderung | Interaktionsziel | Hervorhebung |
+|---|---|---|---|---|---|---|
+| `S13.conclusion.mfa.transition` | mittiger Button `Multi-Faktor-Authentifizierung` / `kennenlernen` beendet S13 unmittelbar | derselbe kleinere glassy Button öffnet anschließend `Sektion 3 von 3` mit dem Titel und Teil `Multi-Faktor-Authentifizierung` | Navigation | ausdrücklich verlangte sichtbare Sektions-Transition; keine fachliche Bedeutungsänderung | MFA-Sektionskarte | keine |
+
+Darstellungs- und Ablaufdelta:
+
+- Die Frage `Was würde eher zu deinem Alltag passen?` rückt innerhalb der unteren Mitte nach oben.
+  Das Fragezeichen behält nur einen eng am Zeichen liegenden Schein ohne großflächigen Schatten.
+- Beim Wechsel zur Recovery-Szene werden die integrierte und die eigenständige Variante vollständig
+  aus dem DOM entfernt. Der mittlere Wiederherstellungspfad verwendet das bereitgestellte
+  freigestellte PNG; sein größerer Pfeil liegt direkt und mit eigener Ebene auf der Verbindung.
+- Bereits grüne Schutzverbindungen und ihre Schildknoten bleiben beim Beheben aller Konten erhalten.
+  Noch rote Passwortbeziehungen werden als grüne, schildgetrennte Pfade dargestellt. Jeder dabei
+  blau werdende Kontoknoten erhält einen einzelnen kompakten, zeitversetzten Konfettiimpuls.
+- Die Angreifervorschau erscheint wieder als große gerahmte Projektionskarte mit Käferzeichen und
+  bleibt über eine sichtbare Projektion mit Master Campus verbunden.
+
+## Darstellungskorrektur: Netzwerkabschluss und MFA-Projektion, 26. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 26. August 2026. Teilnehmertexte und
+Content-Version bleiben unverändert. Diese Korrektur ersetzt für die genannten Darstellungen die
+unmittelbar vorangehende Folgekorrektur.
+
+Darstellungs- und Ablaufdelta:
+
+- Frage und Antwortbuttons von `Was würde eher zu deinem Alltag passen?` stehen gemeinsam höher
+  in der unteren Mitte und bleiben auf schmalen Artifact-Stages vollständig bedienbar.
+- MyShop erhält beim Reveal seinen blauen Kontoschutz, zeichnet aber keine grünen
+  Schutzverbindungen zu anderen Konten.
+- Beim zweiten Sprechschritt zu den übrigen Konten pulsiert ausschließlich Muster Bank zweimal
+  kurz. Der anschließende Reparaturbutton löst keinen Master-Campus-Puls aus.
+- `Alle Passwörter beheben` lässt die vorhandenen roten und grünen Beziehungslinien samt ihren
+  mittigen Schildknoten verschwinden. Der Endzustand zeigt die Konten ausschließlich als blaue
+  Schutzknoten mit Kontoschilden und ergänzt keine neuen grünen Pfade.
+- Die MFA-Angreifervorschau steht statisch rechts-mittig in einer deckenden, über den
+  Netzwerkknoten liegenden Zeichenebene. Zwei Projektionslinien und eine schwache
+  Projektionsfläche verbinden sie mit Master Campus; erst der betroffene Knoten pulsiert nach dem
+  Erscheinen der Projektion zweimal kurz.
+
+## Laufzeitkorrektur: Konfetti beim Beheben aller Konten, 26. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 26. August 2026. Teilnehmertexte und
+Content-Version bleiben unverändert.
+
+Darstellungs- und Ablaufdelta:
+
+- Die große Reparatursequenz erzeugt nicht länger für jeden der ungefähr 80 Kontoknoten eine
+  vollständige Konfetti-Instanz. Zwölf deterministisch über die Knotenreihenfolge verteilte
+  Akzent-Bursts erhalten den sichtbaren Konfettiverlauf innerhalb derselben Gesamtdauer.
+- Jeder kompakte Burst verwendet acht statt 36 einzeln animierter Partikel. Vollständige
+  Einzelabschluss-Bursts außerhalb dieser Großsequenz bleiben unverändert.
+- Die gestaffelte blaue Schutzbewegung aller Konten bleibt erhalten, animiert in der Großsequenz
+  aber ausschließlich Deckkraft und Transformation. Filter- und Schatten-Keyframes sowie die
+  pauschale Verzögerung sämtlicher Knotennachfahren entfallen.
+- Reduced Motion unterdrückt das Konfetti weiterhin und zeigt denselben fachlichen blauen
+  Endzustand unmittelbar.
+
+## Copy- und Darstellungskorrektur: MFA-Mechanismus, 26. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 26. August 2026. Die Content-Version steigt von
+`4.2.0` auf `4.3.0`, weil drei sichtbare MFA-Sprechschritte ausdrücklich ersetzt beziehungsweise
+neu zugeordnet werden. Interaktionsziel bleibt jeweils `Weiter`.
+
+| Text-ID | Bisher | Neu | Primäre Rolle | Grund und Bedeutungsänderung | Interaktionsziel | Hervorhebung |
+|---|---|---|---|---|---|---|
+| `S13.conclusion.mfa.guide.passwordKnown` | `Wird ein Passwort auf unterschiedliche Weise herausgefunden, schützt auch das stärkste Passwort allein nicht mehr.` | `Passwörter können nicht nur erraten werden, sondern auch auf anderen Wegen bekannt werden.` | Mechanismuserklärung | trennt den Herkunftsmechanismus ausdrücklich vom anschließenden Schutzgedanken; ausdrücklich freigegeben | `Weiter` | keine |
+| `S13.conclusion.mfa.guide.isolated` / `passwordInsufficient` | `Der Angreifer kann darüber aber kein weiteres Konto erreichen.` | `Ist ein Passwort einem Angreifer bekannt, reicht selbst ein sehr starkes Passwort allein nicht mehr aus.` | Mechanismuserklärung | bisherige Isolationsaussage ausdrücklich gelöscht und durch eigenen Passwortgrenzen-Schritt ersetzt | `Weiter` | `sehr starkes Passwort allein nicht mehr aus.` · Warnrot |
+| `S13.conclusion.mfa.guide.secondHurdle` | `Damit ein Passwort allein nicht ausreicht, brauchen wir noch eine zweite Hürde.` | `Um den Zugang auch dann zu schützen, brauchen wir eine zweite Hürde.` | Kerngedanke | ausdrücklich vorgegebene handlungsnähere Überleitung zu MFA | `Weiter` | `zweite Hürde` · Akzent |
+
+Darstellungs- und Ablaufdelta:
+
+- Ausschließlich der unterstrichene Titel `Was würde eher zu deinem Alltag passen?` steht deutlich
+  höher; die Antwortbuttons behalten ihre vorherige Position.
+- In allen MFA-Vorschauschritten bleiben sämtliche Netzwerkknoten in normaler Deckkraft sichtbar.
+  Eine allgemeine transparente Netzwerkabdunklung wird nicht angewendet.
+- Die statische Angreifervorschau rückt auf breiten Artifact-Stages weiter an den rechten
+  Bildschirmbereich. Ausschließlich die Fläche des betroffenen Master-Campus-Knotens pulsiert;
+  die Vorschau behält unverändert Position und Größe.
+- In der Vorschau ersetzt das Master-Campus-Logo den sichtbaren Ausdruck
+  `Master Campus-Passwort`. Der vollständige Titel bleibt als zugängliche Inhaltsbeschreibung
+  erhalten.
+
+## Copy- und Darstellungsdelta: MFA-Schutzpfade, 26. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 26. August 2026. Die Content-Version steigt von
+`4.3.0` auf `4.4.0`, weil die neuen grünen Schildknoten eine zugängliche Bezeichnung und
+Beschreibung benötigen. Der sichtbare Sprechblasenwortlaut bleibt unverändert.
+
+| Text-ID | Neu | Primäre Rolle | Grund | Sichtbarkeit |
+|---|---|---|---|---|
+| `S13.conclusion.mfa.protectionPath.shieldLabel` | `Zweite Hürde` | zugängliche Grafikbezeichnung | benennt den grünen Schildknoten entsprechend dem unmittelbar folgenden MFA-Kerngedanken | Netzwerk-/Assistenztechnik |
+| `S13.conclusion.mfa.protectionPath.shieldDescription` | `Eine zusätzliche Hürde schützt den Zugang zu diesem verbundenen Bereich.` | zugängliche Grafikbeschreibung | erklärt die Bedeutung jedes grünen Schutzpfads ohne absolute Sicherheitsbehauptung | Netzwerk-/Assistenztechnik |
+
+Darstellungsdelta: Im MFA-Befallszustand ersetzt jede direkte Verbindung zwischen Master Campus
+und einem umliegenden Knoten ihren neutralen Pfad durch zwei grüne Schutzsegmente mit einem grünen
+Schild in der Mitte. MyShop und der allgemeine Passwortreparaturzustand erhalten diese Pfade nicht.
+Diese zunächst umgesetzte Zielauswahl wird durch die nachfolgende Kontopfade-Korrektur ersetzt;
+maßgeblich bleibt aus diesem Stand nur die zugängliche Benennung des Schildmotivs.
+
+## Copy- und Darstellungsdelta: MFA-Kontopfade und Vorschau, 26. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 26. August 2026. Die Content-Version steigt von
+`4.4.0` auf `4.5.0`, weil der sichtbare Vorschautext und die zugängliche Beschreibung der
+Schutzpfade ersetzt werden.
+
+| Text-ID | Bisher | Neu | Primäre Rolle | Grund |
+|---|---|---|---|---|
+| `S13.conclusion.mfa.previewLead` | `Angreifer kennt das korrekte` | `Bekannt` | Statuslabel | Das Master-Campus-Logo übernimmt die Kontobezeichnung; der kurze Status steht mittig daneben. |
+| `S13.conclusion.mfa.protectionPath.shieldDescription` | `Eine zusätzliche Hürde schützt den Zugang zu diesem verbundenen Bereich.` | `Eine zusätzliche Hürde schützt den Zugang zu diesem anderen Konto.` | zugängliche Grafikbeschreibung | Die grünen Pfade zielen auf andere Hauptkonten und ausdrücklich nicht auf Unterknoten. |
+
+Darstellungs- und Ablaufdelta:
+
+- PassWo behält ab dem Variantenvergleich die bestehende Netzwerkposition bei; der eigene
+  Abschlusscontainer verwendet denselben unteren Abstand.
+- Die statische Angreifervorschau sitzt am äußersten rechten Bildschirmbereich und zeigt zuerst das
+  Master-Campus-Logo, direkt daneben mittig `Bekannt`.
+- Grüne Schildpfade verbinden Master Campus mit jedem anderen Hauptkonto. Bereits vorhandene
+  neutrale Unterknotenpfade werden nicht ersetzt.
+- Das performante Großkonfetti bleibt auf zwölf kompakte Bursts begrenzt, verteilt diese aber nach
+  allen Hauptkonten zusätzlich auf ausgewählte Unterknoten.
+
+## Darstellungskorrektur: Direkte MFA-Schutzlinien, 26. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 26. August 2026. Der sichtbare
+Sprechblasenwortlaut und die Content-Version bleiben unverändert. Die zugängliche
+Szenenzusammenfassung ersetzt `grüne Schutzlinie mit einem grünen Schild` durch `grüne
+Schutzlinie`, damit sie den sichtbaren Zustand weiterhin wahrheitsgemäß beschreibt.
+
+Darstellungsdelta:
+
+- Im `Bekannt`-Vorfall verbindet jeweils eine direkte grüne Schutzlinie Master Campus mit jedem
+  anderen Hauptkonto. Die mittigen grünen Schildknoten und die dadurch verdoppelten
+  Kantensegmente entfallen; alle Kontopfade bleiben vollständig sichtbar.
+- Die statischen grünen Kanten verzichten in dieser dichten Vorschau auf den rechenintensiven
+  Leuchtschatten. Linienfarbe und Strichmuster bleiben erhalten.
+- Die gerahmte Angreifervorschau wird über den konkreten MFA-Vorschauselektor am rechten
+  Bühnenrand positioniert. Auf schmalen Artifact-Stages verwendet sie eine kompaktere Breite und
+  bleibt rechts neben dem Master-Campus-Knoten.
+- Die blauen Unterknotenlinien von Master Campus und Campusgram werden nach den grünen
+  Schutzlinien gezeichnet und liegen dadurch an gemeinsamen Abschnitten und Kreuzungen strikt
+  darüber.
+- Die Projektionsfläche erhält eine etwas höhere Deckkraft. Der Erscheinungs- und Doppelpuls wird
+  auf das Käfersymbol begrenzt; Angreiferkarte und Projektion bleiben dabei statisch.
+
+## Laufzeitkorrektur: Kein Netzwerk-Flash im Variantenübergang, 26. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 26. August 2026. Teilnehmertext und Content-Version
+bleiben unverändert.
+
+- Ab dem abgeschlossenen Netzwerk-Fade bleibt derselbe vollständig geschützte Snapshot während
+  `Integriert`, `Eigenständig` und Recovery gemountet, wird aber nicht erneut projiziert.
+- Der unsichtbare Netzwerk-Layer deaktiviert seine allgemeine Eintrittsanimation vollständig.
+  Dadurch kann das Netzwerk zwischen Varianten- und Recovery-Zuständen nicht kurz aufblitzen.
+
+## Copy- und Darstellungskorrektur: Systemwahleinordnung und Master-Campus-Unterkanten, 26. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 26. August 2026. Die Content-Version steigt von
+`4.5.0` auf `4.6.0`, weil die nicht wertende Einordnung zur Passwortmanager-Systemwahl ausdrücklich
+gekürzt wird.
+
+| Text-ID | Bisher | Neu | Primäre Rolle | Grund und Bedeutungsänderung | Interaktionsziel | Hervorhebung |
+|---|---|---|---|---|---|---|
+| `S13.conclusion.variants.fitGuide` | `Beide Wege können starke und einzigartige Passwörter für dich verwalten. Entscheidend ist, welcher besser zu deinen Geräten und deinem Alltag passt.` | `Beide Wege können starke und einzigartige Passwörter für dich verwalten.` | Kerngedanke | ausdrücklich vorgegebene Kürzung; die nachfolgende sichtbare Alltagsfrage trägt die entfernte Passungsaussage bereits; begrenzt | kein | keine |
+
+Darstellungsdelta: Im vollständig geschützten Netzwerkzustand am Ende der
+Passwortmanager-Sektion erscheinen die blauen Unterknotenlinien von Master Campus unmittelbar im
+bereits gesetzten Schutzstil: vier Pixel dick und ohne Drift- oder Zeichenanimation. Die anderen
+Netzwerkphasen bleiben unverändert.
