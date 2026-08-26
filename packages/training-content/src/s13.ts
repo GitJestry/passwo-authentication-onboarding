@@ -1,14 +1,15 @@
 import type { TrainingSectionId } from '@passwo/contracts';
 import { s12PasswordManagerContent } from './s12.js';
 
-export const S13_PASSWORD_MANAGER_PRACTICE_CONTENT_VERSION = '4.7.0';
+export const S13_PASSWORD_MANAGER_PRACTICE_CONTENT_VERSION = '4.8.0';
 
 export const s13PasswordManagerPracticeContent = {
   version: S13_PASSWORD_MANAGER_PRACTICE_CONTENT_VERSION,
   source: {
     revision:
-      'Nutzerauftrag vom 2026-08-26 · zweiteilige MFA-Übergangsroadmap',
-    copyReference: 'docs/design/S13-COPY-AUDIT.md',
+      'Nutzerauftrag vom 2026-08-26 · eigener Sprechschritt für den Campusgram-Abschlussauftrag',
+    copyReference:
+      'docs/design/S13-COPY-AUDIT.md#copy--und-ablaufdelta-eigener-campusgram-abschlussauftrag-26-august-2026',
   },
   segment: {
     id: 'S13',
@@ -189,10 +190,8 @@ export const s13PasswordManagerPracticeContent = {
         'Um das zu ändern, musst du das Passwort direkt bei Muster Bank in den Einstellungen ersetzen. Lass dir dafür vom Passwortmanager ein neues erzeugen.',
       passwordChanged:
         'Muster Bank hat jetzt ein eigenes Passwort. Der bisherige Verbindungsweg ist weg.',
-      campusgramTransition: [
-        'Muster Bank hat jetzt ein eigenes Passwort. Der bisherige Verbindungsweg ist weg.',
+      campusgramTransition:
         'Versuch dich zum Abschluss noch einmal bei Campusgram anzumelden. Deine Passphrase ist bereits im Passwortmanager gespeichert.',
-      ],
     },
   },
   conclusion: {

@@ -267,7 +267,7 @@ const emphasisBySpeechId: Readonly<Record<string, readonly PassWoSpeechEmphasis[
       contrastId: 's13-bank-settings',
     },
   ],
-  's13-network-bank-password-changed': [
+  's13-network-campusgram-transition': [
     {
       phrase: 'Passphrase ist bereits im Passwortmanager gespeichert',
       tone: 'accent',

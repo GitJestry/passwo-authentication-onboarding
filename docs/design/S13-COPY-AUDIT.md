@@ -1,5 +1,25 @@
 # S13 Copy-Audit — Ein neues Konto
 
+## Copy- und Ablaufdelta eigener Campusgram-Abschlussauftrag, 26. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 26. August 2026. Der bestehende Wortlaut bleibt
+unverändert, wird nach dem Muster-Bank-Ergebnis aber als eigener PassWo-Sprechschritt gezeigt.
+Damit trägt die erste Blase nur das Ergebnis der gerade abgeschlossenen Passwortänderung; die
+zweite Blase enthält ausschließlich den Auftrag für Campusgram.
+
+`S13_PASSWORD_MANAGER_PRACTICE_CONTENT_VERSION` steigt von `4.7.0` auf `4.8.0`. Die gemeinsame
+`SUPPORTIVE_ARTIFACT_VERSION` steigt von `supportive-s00-s17-1.26.0` auf
+`supportive-s00-s17-1.27.0`.
+
+| Text-ID | Bisher | Neu | Primäre Rolle | Interaktionsziel | Grund und Bedeutungsänderung | Hervorhebung |
+|---|---|---|---|---|---|---|
+| `S13.network.guide.passwordChanged` | erster Absatz derselben Sprechblase wie der Campusgram-Auftrag | unveränderter Wortlaut als eigener Sprechschritt | Ergebnisfeedback | `Weiter` zum Campusgram-Auftrag | ein Hauptgedanke pro Sprechblase; keine Bedeutungsänderung | keine |
+| `S13.network.guide.campusgramTransition` | zweiter Absatz der Muster-Bank-Ergebnisblase | `Versuch dich zum Abschluss noch einmal bei Campusgram anzumelden. Deine Passphrase ist bereits im Passwortmanager gespeichert.` als eigener Sprechschritt | Navigation | hervorgehobenes Browser-Dock; kein Sprechblasenbutton | ausdrücklich verlangte Trennung des Abschlussauftrags; keine Bedeutungsänderung | `Passphrase ist bereits im Passwortmanager gespeichert` · Akzent |
+
+Der neue Zwischenzustand verändert weder die Campusgram-Anmeldung noch die Browser- oder
+Passwortmanagerlogik. Erst der eigene Campusgram-Sprechschritt markiert wie bisher das Browser-Dock
+als einziges Handlungsziel.
+
 ## Copy- und Ablaufdelta zweiteilige MFA-Roadmap, 26. August 2026
 
 Quelle ist der ausdrückliche Nutzerauftrag vom 26. August 2026. Die bestehende Übergangskarte

@@ -49,7 +49,7 @@ describe('S13 integrated password-manager practice traceability', () => {
   });
 
   it('keeps the rebuilt My Shop landing-page copy in versioned content', () => {
-    expect(s13PasswordManagerPracticeContent.version).toBe('4.7.0');
+    expect(s13PasswordManagerPracticeContent.version).toBe('4.8.0');
     expect(s13PasswordManagerPracticeContent.website.shop.hero).toMatchObject({
       eyebrow: 'Sommer-Sale',
       title: 'Bis zu 40% sparen!',
@@ -139,10 +139,12 @@ describe('S13 integrated password-manager practice traceability', () => {
   });
 
   it('keeps the Campusgram manual password-manager fallback together', () => {
-    expect(s13PasswordManagerPracticeContent.network.guide.campusgramTransition).toEqual([
+    expect(s13PasswordManagerPracticeContent.network.guide.passwordChanged).toBe(
       'Muster Bank hat jetzt ein eigenes Passwort. Der bisherige Verbindungsweg ist weg.',
+    );
+    expect(s13PasswordManagerPracticeContent.network.guide.campusgramTransition).toBe(
       'Versuch dich zum Abschluss noch einmal bei Campusgram anzumelden. Deine Passphrase ist bereits im Passwortmanager gespeichert.',
-    ]);
+    );
     expect(s13PasswordManagerPracticeContent.campusgram.guide).toMatchObject({
       fillUnavailable: 'Bei Campusgram klappt das Ausfüllen hier nicht.',
       copyInstruction:

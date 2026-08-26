@@ -393,6 +393,10 @@ const s08Machine = setup({
     },
     managerPracticeBankProtected: {
       tags: ['manager', 'expanded', 's13-network', 's13-bank-result'],
+      on: { NEXT: { target: 'managerPracticeCampusgramPrompt' } },
+    },
+    managerPracticeCampusgramPrompt: {
+      tags: ['manager', 'expanded', 's13-network', 's13-bank-result'],
       on: { OPEN_BROWSER: { target: 'managerPracticeCampusgram' } },
     },
     managerPracticeCampusgram: {
@@ -1082,6 +1086,7 @@ export function S08NetworkRewindStage({
       }
       if (
         state.matches('managerPracticeBankProtected') ||
+        state.matches('managerPracticeCampusgramPrompt') ||
         state.matches('conclusionRemainingAccountsIntro') ||
         state.matches('conclusionRemainingAccountsPace') ||
         state.matches('conclusionNetworkOverview')
@@ -1321,63 +1326,70 @@ export function S08NetworkRewindStage({
             : state.matches('managerPracticeBankProtected')
               ? {
                   id: 's13-network-bank-password-changed',
-                  text: s13PasswordManagerPracticeContent.network.guide.campusgramTransition,
+                  text: [s13PasswordManagerPracticeContent.network.guide.passwordChanged],
                 }
-              : state.matches('conclusionRemainingAccountsIntro')
+              : state.matches('managerPracticeCampusgramPrompt')
                 ? {
-                    id: 's13-conclusion-remaining-accounts-intro',
+                    id: 's13-network-campusgram-transition',
                     text: [
-                      s13PasswordManagerPracticeContent.conclusion.remainingAccounts.guide
-                        .intro,
+                      s13PasswordManagerPracticeContent.network.guide.campusgramTransition,
                     ],
                   }
-                : state.matches('conclusionRemainingAccountsPace')
+                : state.matches('conclusionRemainingAccountsIntro')
                   ? {
-                      id: 's13-conclusion-remaining-accounts-pace',
+                      id: 's13-conclusion-remaining-accounts-intro',
                       text: [
                         s13PasswordManagerPracticeContent.conclusion.remainingAccounts.guide
-                          .pace,
+                          .intro,
                       ],
                     }
-                  : state.matches('conclusionNetworkRepaired')
+                  : state.matches('conclusionRemainingAccountsPace')
                     ? {
-                        id: 's13-conclusion-network-repaired',
+                        id: 's13-conclusion-remaining-accounts-pace',
                         text: [
-                          s13PasswordManagerPracticeContent.conclusion.network.guide.repaired,
+                          s13PasswordManagerPracticeContent.conclusion.remainingAccounts.guide
+                            .pace,
                         ],
                       }
-                    : state.matches('conclusionVariantReturn')
+                    : state.matches('conclusionNetworkRepaired')
                       ? {
-                          id: 's13-conclusion-variant-return',
+                          id: 's13-conclusion-network-repaired',
                           text: [
-                            s13PasswordManagerPracticeContent.conclusion.variants.returnGuide,
+                            s13PasswordManagerPracticeContent.conclusion.network.guide.repaired,
                           ],
                         }
-                      : state.matches('conclusionMfaPasswordKnown')
+                      : state.matches('conclusionVariantReturn')
                         ? {
-                            id: 's13-conclusion-mfa-password-known',
+                            id: 's13-conclusion-variant-return',
                             text: [
-                              s13PasswordManagerPracticeContent.conclusion.mfa.guide
-                                .passwordKnown,
+                              s13PasswordManagerPracticeContent.conclusion.variants.returnGuide,
                             ],
                           }
-                        : state.matches('conclusionMfaPasswordInsufficient')
+                        : state.matches('conclusionMfaPasswordKnown')
                           ? {
-                              id: 's13-conclusion-mfa-password-insufficient',
+                              id: 's13-conclusion-mfa-password-known',
                               text: [
                                 s13PasswordManagerPracticeContent.conclusion.mfa.guide
-                                  .passwordInsufficient,
+                                  .passwordKnown,
                               ],
                             }
-                          : state.matches('conclusionMfaSecondHurdle')
+                          : state.matches('conclusionMfaPasswordInsufficient')
                             ? {
-                                id: 's13-conclusion-mfa-second-hurdle',
+                                id: 's13-conclusion-mfa-password-insufficient',
                                 text: [
                                   s13PasswordManagerPracticeContent.conclusion.mfa.guide
-                                    .secondHurdle,
+                                    .passwordInsufficient,
                                 ],
                               }
-                            : null;
+                            : state.matches('conclusionMfaSecondHurdle')
+                              ? {
+                                  id: 's13-conclusion-mfa-second-hurdle',
+                                  text: [
+                                    s13PasswordManagerPracticeContent.conclusion.mfa.guide
+                                      .secondHurdle,
+                                  ],
+                                }
+                              : null;
   const mfaConclusionSpeech = state.matches('s15PasswordAlone')
     ? {
         id: 's15-mfa-password-alone',
@@ -1461,6 +1473,7 @@ export function S08NetworkRewindStage({
                       : state.matches('conclusionRemainingAccountsPace')
                         ? 'remaining-accounts-pace'
                         : state.matches('managerPracticeBankProtected') ||
+                            state.matches('managerPracticeCampusgramPrompt') ||
                             state.matches('conclusionRemainingAccountsIntro')
                           ? 'bank-protected'
                           : state.matches('conclusionNetworkFade')
@@ -1492,7 +1505,7 @@ export function S08NetworkRewindStage({
     state.matches('managerPracticeExistingAccountReplace');
   const browserReopenPrompt =
     state.matches('managerPracticeExistingAccountReplace') ||
-    state.matches('managerPracticeBankProtected');
+    state.matches('managerPracticeCampusgramPrompt');
   const networkRepairPrompt = state.matches('conclusionNetworkOverview');
   const fullyProtectedVisible =
     state.matches('conclusionNetworkRepairing') ||

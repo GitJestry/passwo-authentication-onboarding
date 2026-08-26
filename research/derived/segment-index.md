@@ -444,6 +444,11 @@ Seitenangaben beziehen sich auf die im Trainingsdokument ausgewiesene interne Pa
 - `password-manager`: S12–S13
 - `mfa`: S14–S17
 
+Für den S13-Abschluss sind das Muster-Bank-Ergebnis und der anschließende Campusgram-Auftrag zwei
+getrennte PassWo-Sprechschritte. Erst der Campusgram-Auftrag markiert den Browser als nächstes
+Handlungsziel. `S13_PASSWORD_MANAGER_PRACTICE_CONTENT_VERSION 4.8.0` beschreibt diese Trennung
+ohne Änderung der Campusgram- oder Passwortmanagerlogik.
+
 ## Globale Interaktionsregel
 
 Bei erklärenden Simulationen gilt grundsätzlich:
