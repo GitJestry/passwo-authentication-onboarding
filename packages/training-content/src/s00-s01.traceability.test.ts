@@ -50,12 +50,12 @@ describe('S00 to S02 training-content traceability', () => {
   });
 
   it('keeps S01 linked to its named source page and canonical account order', () => {
-    expect(S01_CONTENT_VERSION).toBe('2.16.4');
+    expect(S01_CONTENT_VERSION).toBe('2.16.5');
     expect(s01Content.source).toMatchObject({
       document: 'research/private/training-script.pdf',
       internalPage: 3,
       copyReference:
-        'docs/design/S00-S05-COPY-AUDIT.md#copy-delta-s01-simuliertes-browserfenster-8-august-2026',
+        'docs/design/S00-S05-COPY-AUDIT.md#copy-delta-s01-einheitliche-master-campus-navigation-26-august-2026',
     });
     expect(s01Content.segment.id).toBe('S01');
     expect(s01Content.browser.accounts.map(({ id }) => id)).toEqual(canonicalAccountIds);

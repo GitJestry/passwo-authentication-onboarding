@@ -183,6 +183,13 @@ gezeichnet und liegen deshalb auch an Kreuzungen strikt darüber. Während Käfe
 Master-Campus-Status erscheinen, bleibt die rechts positionierte Angreiferkarte unbewegt; nur das
 Käfersymbol pulsiert. Die Projektionsfläche bleibt schwach, aber deutlicher deckend als zuvor.
 
+Nach der flüchtigen S14-Einrichtung und der Anmeldung mit zweitem Faktor löst ausschließlich das
+Schließen des simulierten Browsers die Rückkehr ins Kontonetzwerk aus. Der rote Master-Campus-
+Vorschauzustand wechselt dabei in den blauen Schutzstatus mit Kontoschild. Die direkten grünen
+Schutzlinien der vorherigen MFA-Vorschau bleiben als sichtbare zusätzliche Hürde erhalten; es
+entstehen keine neuen Konto- oder Detailknoten. Reduced Motion zeigt denselben Endzustand ohne
+zusätzliche Bewegung.
+
 ## S02-Kontenerkundung
 
 S02 „Konten kennenlernen“ bildet die erste vollständige Kontenerkundung:

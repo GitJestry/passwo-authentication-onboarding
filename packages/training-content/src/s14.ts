@@ -1,6 +1,7 @@
 import type { TrainingSectionId } from '@passwo/contracts';
+import { masterCampusDashboardNavigation } from './s01.js';
 
-export const S14_MFA_CONTENT_VERSION = '1.4.0';
+export const S14_MFA_CONTENT_VERSION = '1.5.0';
 
 export type S14FactorId = 'knowledge' | 'possession' | 'biometrics';
 
@@ -16,7 +17,7 @@ export const s14MfaContent = {
   version: S14_MFA_CONTENT_VERSION,
   source: {
     revision:
-      'Nutzerauftrag vom 2026-08-26 · S14.3 einheitliche Authentifizierungsbegriffe',
+      'Nutzerauftrag vom 2026-08-26 · S14.4 2FA bei Master Campus einrichten und anwenden',
     scriptPages: '66-67',
     copyReference: 'docs/design/S14-COPY-AUDIT.md',
   },
@@ -30,6 +31,8 @@ export const s14MfaContent = {
     cleanDesktopDurationMs: 900,
     combinationRevealDurationMs: 620,
     searchResultsDelayMs: 900,
+    loginAutofillDurationMs: 1_250,
+    authenticatorCodeRefreshMs: 10_000,
   },
   concepts: {
     mfa: {
@@ -127,6 +130,12 @@ export const s14MfaContent = {
     findAvailability:
       'Finde zuerst heraus, ob Master Campus Zwei-Faktor-Authentifizierung anbietet und wo du sie aktivieren kannst.',
     helpFound: 'Gefunden. Aktiviere 2FA jetzt bei Master Campus.',
+    configured: [
+      'Damit ist die Zwei-Faktor-Authentifizierung für Master Campus eingerichtet.',
+      'Probier jetzt aus, was sich beim Anmelden verändert.',
+    ],
+    closeAfterLogin:
+      'Schließe den Browser noch einmal und schau, was sich im Kontonetzwerk verändert hat.',
   },
   browser: {
     ariaLabel: 'Fiktiver Browser mit Master Campus und einem Suchtab',
@@ -210,6 +219,166 @@ export const s14MfaContent = {
       feedbackQuestion: 'War dieser Artikel hilfreich?',
       positiveFeedback: 'Ja',
       negativeFeedback: 'Nein',
+    },
+    masterCampus: {
+      interactionLabel: 'Master Campus, angemeldet',
+      breadcrumbsAriaLabel: 'Brotkrümelnavigation',
+      navigation: masterCampusDashboardNavigation.map((item) => ({
+        ...item,
+        interactive: item.id === 'overview' || item.id === 'settings',
+      })),
+      utilitySearchLabel: 'Master Campus durchsuchen',
+      settings: {
+        title: 'Einstellungen',
+        description: 'Verwalte deine Kontoeinstellungen und Sicherheit.',
+        cardsAriaLabel: 'Einstellungsbereiche',
+        cards: [
+          {
+            id: 'security',
+            title: 'Sicherheit',
+            description:
+              'Passwort ändern, Zwei-Faktor-Authentifizierung und weitere Sicherheitseinstellungen verwalten.',
+            interactive: true,
+            icon: 'shield',
+          },
+          {
+            id: 'profile',
+            title: 'Profil',
+            description: 'Persönliche Informationen, Profilbild und Kontaktdaten bearbeiten.',
+            interactive: false,
+            icon: 'profile',
+          },
+          {
+            id: 'notifications',
+            title: 'Benachrichtigungen',
+            description:
+              'Einstellungen für E-Mail-Benachrichtigungen und In-App-Mitteilungen anpassen.',
+            interactive: false,
+            icon: 'notification',
+          },
+          {
+            id: 'privacy',
+            title: 'Datenschutz',
+            description: 'Verwalte deine Datenschutzeinstellungen und Datenfreigaben.',
+            interactive: false,
+            icon: 'lock',
+          },
+          {
+            id: 'devices',
+            title: 'Verknüpfte Geräte',
+            description: 'Übersicht über Geräte, die mit deinem Konto verbunden sind.',
+            interactive: false,
+            icon: 'devices',
+          },
+        ],
+      },
+      security: {
+        breadcrumbs: ['Einstellungen', 'Sicherheit'],
+        title: 'Sicherheit',
+        description: 'Verwalte deine Anmelde- und Sicherheitseinstellungen.',
+        cards: [
+          {
+            id: 'two-factor',
+            title: 'Zwei-Faktor-Authentifizierung',
+            description: 'Füge deiner Anmeldung einen zweiten Faktor hinzu.',
+            interactive: true,
+            icon: 'shield-lock',
+          },
+          {
+            id: 'password',
+            title: 'Passwort',
+            description: 'Ändere dein Passwort und verwalte deine Passworteinstellungen.',
+            interactive: false,
+            icon: 'lock',
+          },
+          {
+            id: 'sessions',
+            title: 'Anmeldesitzungen',
+            description: 'Übersicht über aktive Sitzungen und Geräte.',
+            interactive: false,
+            icon: 'session',
+          },
+          {
+            id: 'devices',
+            title: 'Verknüpfte Geräte',
+            description: 'Verwalte Geräte, die mit deinem Konto verbunden sind.',
+            interactive: false,
+            icon: 'devices',
+          },
+          {
+            id: 'recovery',
+            title: 'Wiederherstellung',
+            description: 'Optionen zur Kontowiederherstellung verwalten.',
+            interactive: false,
+            icon: 'recovery',
+          },
+        ],
+      },
+      twoFactor: {
+        breadcrumbs: [
+          'Einstellungen',
+          'Sicherheit',
+          'Zwei-Faktor-Authentifizierung',
+        ],
+        title: 'Zwei-Faktor-Authentifizierung',
+        description: 'Schütze dein Konto zusätzlich mit einer zweiten Anmeldestufe.',
+        inactiveStatus: 'Noch nicht aktiviert',
+        inactiveStatusDescription:
+          'Für dieses Konto ist noch kein zweiter Faktor eingerichtet.',
+        activeStatus: 'Aktiviert',
+        statusDescription: 'Zwei-Faktor-Authentifizierung ist für Master Campus eingerichtet.',
+        setupTitle: '1. Authenticator-App einrichten',
+        setupDescription:
+          'Öffne die Authenticator-App auf dem Handy und ziehe das Handy auf den QR-Code.',
+        qrCodeLabel: 'QR-Code für Master Campus',
+        qrDropLabel: 'Handy hierher ziehen, um den QR-Code zu scannen',
+        qrScannedLabel: 'QR-Code gescannt',
+        codeTitle: '2. Bestätigungscode eingeben',
+        codeDescription: 'Übernimm den sechsstelligen Code aus der Authenticator-App.',
+        activateAction: '2FA aktivieren',
+        activatedNotice:
+          'Bei der nächsten Anmeldung fragt Master Campus zusätzlich nach einem Code aus der Authenticator-App.',
+      },
+      authenticator: {
+        appTitle: 'Authenticator',
+        scannerTitle: 'QR-Code scannen',
+        scannerInstruction: 'Positioniere den QR-Code im Rahmen',
+        scanAction: 'Handy auf den QR-Code ziehen',
+        phoneAriaLabel: 'Handy mit geöffneter Authenticator-App',
+        accountLabel: 'Master Campus',
+        accountIdentifier: 'campus-konto',
+        useCodeAction: 'Code für Master Campus übernehmen',
+        codes: ['382714', '604291', '157830'],
+      },
+      login: {
+        address: 'campus.example/master-campus/login',
+        secondFactorAddress: 'campus.example/master-campus/login/2fa',
+        title: 'Anmelden',
+        description: 'Melde dich bei Master Campus an.',
+        publicNavigationAriaLabel: 'Master-Campus-Hilfenavigation',
+        helpLabel: 'Hilfe',
+        languageLabel: 'DE',
+        usernameLabel: 'Benutzername',
+        usernameFallback: 'Campus-Konto',
+        passwordLabel: 'Passwort',
+        automaticStatus: 'Passwortmanager füllt automatisch aus',
+        filledStatus: 'automatisch ausgefüllt',
+        maskedPassword: '••••••••••••',
+        secondFactorTitle: 'Bestätigungscode eingeben',
+        secondFactorDescription:
+          'Gib den sechsstelligen Code ein, der in deiner Authenticator-App angezeigt wird.',
+        emptyCodeLabel: 'Bestätigungscode noch nicht übernommen',
+        codeLabel: (code: string) => `Bestätigungscode ${code}`,
+        confirmAction: 'Code bestätigen',
+        backAction: 'Zurück zur Anmeldung',
+        successStatus: 'Angemeldet',
+      },
+      tasks: {
+        setupLabel: 'Einrichten',
+        loginLabel: 'Anmelden',
+        progressLabel: (current: number, total: number) =>
+          `2FA-Aufgabe: ${current}/${total} Schritte abgeschlossen`,
+      },
     },
   },
 } as const;

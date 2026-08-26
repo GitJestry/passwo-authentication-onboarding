@@ -171,3 +171,68 @@ Kombinationszuständen an derselben oberen Position. Der jeweilige MFA-/2FA-Begr
 darunter. Kräftigere Verbindungslinien, eine helle Konturkante und sichtbare Endpunkte machen die
 Verbindung zu jeder Faktorkarte eindeutig; die aktive Faktor-Erklärung verändert nur Rahmen und
 Leuchte, nicht mehr die Kartenposition.
+
+## S14.4 — 2FA bei Master Campus einrichten und anwenden, 26. August 2026
+
+### Umfang und Quelle
+
+Der ausdrückliche Nutzerauftrag für die dort bezeichneten Schritte 14.1 und 14.2 sowie die fünf
+benannten Referenzbilder `einstellungen.png`, `sicherheit.png`,
+`zwei fakto authentifizierung.png`, `2fa einrichten mit phone.png` und
+`mit authenticator phone anmelden.png` sind die Inhalts-, Reihenfolge- und
+Darstellungsentscheidung. Der bestehende Rechercheablauf bleibt unverändert und führt nun in die
+vollständige flüchtige Einrichtung und erneute Anmeldung. Die S14-Content-Version steigt von
+`1.4.0` auf `1.5.0`, die Supportive-Artifact-Version von `supportive-s00-s14-1.15.0` auf
+`supportive-s00-s14-1.16.0`. Geschützter Wortlaut wird nicht verändert.
+
+### Copy-Delta
+
+| Text-ID | Quelle / bisher | Implementierter Wortlaut | Primäre Rolle | Interaktionsziel | Hervorhebung | Grund und Bedeutungsänderung |
+|---|---|---|---|---|---|---|
+| `S14.browser.masterCampus.navigation` | Nutzerauftrag; bisher `Sicherheit` vor `Profil` | `Übersicht`, `Campus Workspace`, `Campus Services`, `Campus Cloud`, `Profil`, `Einstellungen` | Navigation | ausschließlich `Übersicht` und `Einstellungen` | aktive Zeile, Icon und Tastaturfokus | ausdrücklich verlangte Reihenfolge und Bediengrenze; freigegeben |
+| `S14.browser.masterCampus.settings` | drei Referenzbilder; nicht vorhanden | `Einstellungen` → `Sicherheit` → `Zwei-Faktor-Authentifizierung` | Navigation | jeweils die einzige bedienbare Hauptkarte | geführter Aktionsrahmen | ausdrücklich vorgegebener Aktivierungspfad; freigegeben |
+| `S14.browser.masterCampus.twoFactor.inactiveStatusDescription` | Referenzzustand; nicht vorhanden | `Für dieses Konto ist noch kein zweiter Faktor eingerichtet.` | Orientierung | QR-Code und Handy | Statuszeile `Noch nicht aktiviert` | trennt den Ausgangszustand eindeutig vom späteren Einrichtungsergebnis; freigegeben |
+| `S14.browser.masterCampus.twoFactor.setupDescription` | Nutzerauftrag und Referenz; nicht vorhanden | `Öffne die Authenticator-App auf dem Handy und ziehe das Handy auf den QR-Code.` | Navigation | sichtbares Handy und QR-Ziel | geführter QR-Rahmen | Interaktion benennt exakt Drag-and-drop; Tastaturaktivierung löst dieselbe Handlung aus |
+| `S14.browser.masterCampus.twoFactor.codeDescription` | Nutzerauftrag; nicht vorhanden | `Übernimm den sechsstelligen Code aus der Authenticator-App.` | Navigation | sichtbarer Code in der Handy-App | geführte Codekarte | ausdrücklich geforderte Codeübernahme; freigegeben |
+| `S14.guide.configured` | Nutzerauftrag; nicht vorhanden | `Damit ist die Zwei-Faktor-Authentifizierung für Master Campus eingerichtet.` / `Probier jetzt aus, was sich beim Anmelden verändert.` | Ergebnisfeedback und Navigation | `Weiter` | `Zwei-Faktor-Authentifizierung für Master Campus eingerichtet` · positiv | beide ausdrücklich vorgegebenen Sätze bleiben als zwei Absätze in einem kurzen Übergang zusammen; freigegeben |
+| `S14.browser.masterCampus.login.secondFactorTitle` | Nutzerauftrag; nicht vorhanden | `Bestätigungscode eingeben` | Orientierung | Codekarte in der Authenticator-App | keine | neuer sichtbarer Anmeldeschritt; freigegeben |
+| `S14.browser.masterCampus.login.confirmAction` | Nutzerauftrag; nicht vorhanden | `Code bestätigen` | Navigation | primäre Seitenaktion nach Codeübernahme | keine | Button löst exakt die bezeichnete Handlung aus; freigegeben |
+| `S14.browser.masterCampus.login.successStatus` | Nutzerauftrag; nicht vorhanden | `Angemeldet` | Ergebnisfeedback | kein | Häkchen plus Text | geforderte, nicht allein farbcodierte Erfolgsmeldung |
+| `S14.guide.closeAfterLogin` | Nutzerauftrag; nicht vorhanden | `Schließe den Browser noch einmal und schau, was sich im Kontonetzwerk verändert hat.` | Navigation | sichtbare Browser-Schließen-Steuerung | `Schließe den Browser noch einmal` · Aktion | ausdrücklich vorgegebene Folgehandlung ohne Ersatzbutton; freigegeben |
+
+### Interaktions- und Darstellungsdelta
+
+- Nach Wahl des Master-Campus-Tabs bleiben Such- und Master-Campus-Tab bedienbar. Die linke
+  Portalnavigation rendert nur `Übersicht` und `Einstellungen` als Buttons; alle übrigen Einträge
+  bleiben nicht bedienbare Orientierung. `Einstellungen` steht als letzter Listeneintrag.
+- Sicherheit und Zwei-Faktor-Authentifizierung sind die jeweils einzigen bedienbaren Inhaltskarten.
+  Die übrigen Referenzkarten sind statische Portaloberfläche und erzeugen keine versteckten
+  Übergänge.
+- Das Handy kann per Drag-and-drop auf den QR-Code gezogen oder als fokussierbares gleichwertiges
+  Ziel mit der Tastatur ausgelöst werden. Nach dem Scan erscheint der flüchtige Master-Campus-
+  Eintrag in der Authenticator-App; drei deterministische sechsstellige Beispielcodes wechseln in
+  der S14-Statechart. Kein Code, Scan- oder Einrichtungszustand wird persistiert oder geloggt.
+- `Weiter` nach dem Einrichtungsfeedback öffnet die Anmeldung. Der Passwortmanager füllt den
+  lokalen Beispielbenutzernamen und das maskierte Passwort ohne zusätzlichen Klick aus; danach
+  erscheint der eigenständige Bestätigungscode-Schritt mit dem Handy unten rechts.
+- Nach `Code bestätigen` zeigt die Oberfläche Häkchen und `Angemeldet`. PassWo verweist anschließend
+  ohne Ersatzaktion auf die hervorgehobene Browser-Schließen-Steuerung. Das Schließen entfernt die
+  Browserüberlagerung und zeigt den aktualisierten Master-Campus-Zustand im bestehenden Netzwerk.
+- Farben sind durch Icons, Text, Rahmen und Statuszeichen redundant codiert. Schmale Container
+  ordnen Karten und Handy untereinander an; Reduced Motion entfernt Ankunfts-, Autofill- und
+  Codeübergangsbewegungen, nicht aber Zustände oder Bedienhandlungen.
+
+## Folgekorrektur — konsistentes Master-Campus-Portal, 26. August 2026
+
+Der ausdrückliche Nutzerauftrag vereinheitlicht die Master-Campus-Portaloberfläche über den frühen
+S01-Zustand und die S14-Einrichtung hinweg. Die in S14.4 freigegebene Navigationsliste ist nun die
+gemeinsame Contentquelle; S14 ergänzt ausschließlich die bereits festgelegte Bedienbarkeit von
+`Übersicht` und `Einstellungen`. Das zugehörige Copy-Delta und der Versionssprung stehen im
+S01-Audit unter `Copy-Delta S01 einheitliche Master-Campus-Navigation, 26. August 2026`. Der
+sichtbare S14-Wortlaut bleibt unverändert, daher bleibt `S14_MFA_CONTENT_VERSION` bei `1.5.0`.
+
+Darstellungsdelta: Die dunkelblaue Portalnavigation streckt sich bei der längeren
+Zwei-Faktor-Einrichtungsseite über die vollständige scrollbare Seitenhöhe. Der Kontokreis in der
+Master-Campus-Kopfleiste zeigt statt des festen Platzhalters `P` nur noch die erste Initiale des
+flüchtigen Übungsbenutzernamens; ohne Namen wird neutral `C` angezeigt. Persistenz, Interaktion und
+Forschungsdaten bleiben unverändert.

@@ -17,6 +17,15 @@
   container-type: size;
 }
 
+.training[data-awaiting-browser-close]
+  :global(button[aria-label="Browserfenster schließen"]) {
+  outline: 0.2rem solid var(--browser-guided-ring-bright);
+  outline-offset: 0.16rem;
+  box-shadow:
+    0 0 0 0.34rem var(--browser-guided-ring),
+    0 0 1rem var(--browser-guided-glow-strong);
+}
+
 .lessonViewport {
   position: absolute;
   z-index: 1;

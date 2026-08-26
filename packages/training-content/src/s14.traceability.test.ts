@@ -3,7 +3,7 @@ import { s14MfaContent } from './s14.js';
 
 describe('S14 MFA introduction traceability', () => {
   it('keeps MFA, 2FA and the three factor categories together', () => {
-    expect(s14MfaContent.version).toBe('1.4.0');
+    expect(s14MfaContent.version).toBe('1.5.0');
     expect(s14MfaContent.segment).toMatchObject({
       id: 'S14',
       sectionId: 'mfa',
@@ -106,5 +106,34 @@ describe('S14 MFA introduction traceability', () => {
       'Master Campus Zwei-Faktor-Authentifizierung',
     );
     expect(s14MfaContent.browser.helpPage).not.toHaveProperty('introduction');
+  });
+
+  it('keeps the Master Campus setup and second-factor login explicit', () => {
+    expect(
+      s14MfaContent.browser.masterCampus.navigation.map(({ label, interactive }) => ({
+        label,
+        interactive,
+      })),
+    ).toEqual([
+      { label: 'Übersicht', interactive: true },
+      { label: 'Campus Workspace', interactive: false },
+      { label: 'Campus Services', interactive: false },
+      { label: 'Campus Cloud', interactive: false },
+      { label: 'Profil', interactive: false },
+      { label: 'Einstellungen', interactive: true },
+    ]);
+    expect(s14MfaContent.browser.masterCampus.security.cards[0]).toMatchObject({
+      id: 'two-factor',
+      title: 'Zwei-Faktor-Authentifizierung',
+      interactive: true,
+    });
+    expect(s14MfaContent.browser.masterCampus.authenticator.codes).toHaveLength(3);
+    expect(s14MfaContent.guide.configured).toEqual([
+      'Damit ist die Zwei-Faktor-Authentifizierung für Master Campus eingerichtet.',
+      'Probier jetzt aus, was sich beim Anmelden verändert.',
+    ]);
+    expect(s14MfaContent.guide.closeAfterLogin).toBe(
+      'Schließe den Browser noch einmal und schau, was sich im Kontonetzwerk verändert hat.',
+    );
   });
 });

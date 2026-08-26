@@ -13,7 +13,7 @@ import {
   DesktopSurface,
 } from '@passwo/ui';
 import { NetworkSymbol } from '../../../../adapters/network/NetworkSymbolRegistry.js';
-import { CampusWebsiteBackdrop } from '../../CampusWebsiteBackdrop.js';
+import { AccountSuccessOverlay } from '../../AccountSuccessOverlay.js';
 import { PassWoGuide } from '../../PassWoGuide.js';
 import { passWoSpeechEmphasisFor } from '../../PassWoSpeechEmphasis.js';
 import searchStyles from '../S07/S07PassphraseSearchTraining.module.css';
@@ -21,6 +21,10 @@ import {
   type S14BrowserTabId,
   s14MfaIntroductionMachine,
 } from './S14MfaIntroductionMachine.js';
+import {
+  S14MasterCampusMfa,
+  type S14MasterCampusPhase,
+} from './S14MasterCampusMfa.js';
 import styles from './S14MfaIntroduction.module.css';
 
 function FactorIcon({ iconId }: { readonly iconId: S14FactorIconId }) {
@@ -584,34 +588,110 @@ type S14BrowserPhase =
   | 'search-loading'
   | 'search-results'
   | 'help-found'
-  | 'free-navigation';
+  | 'free-navigation'
+  | Exclude<S14MasterCampusPhase, 'dashboard'>;
+
+function masterCampusPhaseFor(
+  phase: S14BrowserPhase,
+): S14MasterCampusPhase | null {
+  switch (phase) {
+    case 'free-navigation':
+      return 'dashboard';
+    case 'settings':
+    case 'security':
+    case 'setup-awaiting-scan':
+    case 'setup-scanned':
+    case 'setup-code-entered':
+    case 'mfa-activated':
+    case 'login-autofilling':
+    case 'second-factor':
+    case 'second-factor-code-entered':
+    case 'login-success':
+    case 'signed-in':
+      return phase;
+    case 'service-variation':
+    case 'search-task':
+    case 'search-loading':
+    case 'search-results':
+    case 'help-found':
+      return null;
+  }
+}
+
+function masterCampusAddress(phase: S14MasterCampusPhase, dashboardAddress: string): string {
+  const content = s14MfaContent.browser.masterCampus;
+  switch (phase) {
+    case 'dashboard':
+    case 'login-success':
+    case 'signed-in':
+      return `${dashboardAddress}/dashboard`;
+    case 'settings':
+      return `${dashboardAddress}/settings`;
+    case 'security':
+      return `${dashboardAddress}/settings/security`;
+    case 'setup-awaiting-scan':
+    case 'setup-scanned':
+    case 'setup-code-entered':
+    case 'mfa-activated':
+      return `${dashboardAddress}/settings/security/2fa`;
+    case 'login-autofilling':
+      return content.login.address;
+    case 'second-factor':
+    case 'second-factor-code-entered':
+      return content.login.secondFactorAddress;
+  }
+}
 
 function BrowserLesson({
   activeTabId,
+  authenticatorCode,
   displayName,
+  onActivateMfa,
+  onBrowserClosed,
+  onConfirmSecondFactor,
   onNext,
   onOpenHelp,
+  onOpenOverview,
+  onOpenSecurity,
+  onOpenSettings,
+  onOpenTwoFactor,
+  onScanQrCode,
   onSubmitSearch,
   onTabSelect,
+  onUseAuthenticatorCode,
+  onSuccessOverlayComplete,
   phase,
   platform,
 }: {
   readonly activeTabId: S14BrowserTabId;
+  readonly authenticatorCode: string;
   readonly displayName: string;
+  readonly onActivateMfa: () => void;
+  readonly onBrowserClosed: () => void;
+  readonly onConfirmSecondFactor: () => void;
   readonly onNext: () => void;
   readonly onOpenHelp: () => void;
+  readonly onOpenOverview: () => void;
+  readonly onOpenSecurity: () => void;
+  readonly onOpenSettings: () => void;
+  readonly onOpenTwoFactor: () => void;
+  readonly onScanQrCode: () => void;
   readonly onSubmitSearch: () => void;
   readonly onTabSelect: (tabId: S14BrowserTabId) => void;
+  readonly onUseAuthenticatorCode: () => void;
+  readonly onSuccessOverlayComplete: () => void;
   readonly phase: S14BrowserPhase;
   readonly platform: DesktopPlatform;
 }) {
   const browser = s14MfaContent.browser;
+  const masterCampusContent = browser.masterCampus;
   const masterCampus = s01Content.browser.accounts.find(
     ({ id }) => id === browser.masterCampusTab.id,
   );
   if (masterCampus === undefined) return null;
 
-  const navigationFree = phase === 'help-found' || phase === 'free-navigation';
+  const masterCampusPhase = masterCampusPhaseFor(phase);
+  const navigationFree = phase === 'help-found' || masterCampusPhase !== null;
   const helpVisible = navigationFree;
   const queryVisible = phase !== 'service-variation';
   const searchTabLabel = helpVisible
@@ -622,17 +702,54 @@ function BrowserLesson({
   const speech = phase === 'service-variation'
     ? {
         id: 's14-service-variation',
-        text: s14MfaContent.guide.serviceVariation,
+        paragraphs: [s14MfaContent.guide.serviceVariation],
         action: { kind: 'advance' as const, onAction: onNext },
       }
     : phase === 'search-task'
       ? {
           id: 's14-find-availability',
-          text: s14MfaContent.guide.findAvailability,
+          paragraphs: [s14MfaContent.guide.findAvailability],
         }
       : phase === 'help-found'
-        ? { id: 's14-help-found', text: s14MfaContent.guide.helpFound }
-        : null;
+        ? { id: 's14-help-found', paragraphs: [s14MfaContent.guide.helpFound] }
+        : phase === 'mfa-activated'
+          ? {
+              id: 's14-mfa-configured',
+              paragraphs: s14MfaContent.guide.configured,
+              action: { kind: 'advance' as const, onAction: onNext },
+            }
+          : phase === 'signed-in'
+            ? {
+                id: 's14-close-after-login',
+                paragraphs: [s14MfaContent.guide.closeAfterLogin],
+              }
+            : null;
+  const loginPhase =
+    masterCampusPhase === 'login-autofilling' ||
+    masterCampusPhase === 'second-factor' ||
+    masterCampusPhase === 'second-factor-code-entered' ||
+    masterCampusPhase === 'login-success' ||
+    masterCampusPhase === 'signed-in';
+  const progressCurrent = masterCampusPhase === null
+    ? null
+    : masterCampusPhase === 'dashboard'
+      ? 0
+      : masterCampusPhase === 'settings' || masterCampusPhase === 'login-autofilling'
+        ? 1
+        : masterCampusPhase === 'security' ||
+            masterCampusPhase === 'second-factor' ||
+            masterCampusPhase === 'second-factor-code-entered'
+          ? 2
+          : 3;
+  const taskComplete =
+    masterCampusPhase === 'mfa-activated' ||
+    masterCampusPhase === 'login-success' ||
+    masterCampusPhase === 'signed-in';
+  const guideVisible = speech !== null || masterCampusPhase !== null;
+  const dimmed =
+    phase === 'service-variation' ||
+    phase === 'mfa-activated' ||
+    phase === 'signed-in';
   const snapshot: BrowserShellSnapshot = {
     tabs: [
       {
@@ -654,18 +771,37 @@ function BrowserLesson({
     activeTabId,
     address:
       activeTabId === browser.masterCampusTab.id
-        ? `${masterCampus.address}/dashboard`
+        ? masterCampusPhase === null
+          ? `${masterCampus.address}/dashboard`
+          : masterCampusAddress(masterCampusPhase, masterCampus.address)
         : helpVisible
           ? browser.searchTab.helpAddress
           : phase === 'search-loading' || phase === 'search-results'
             ? browser.searchTab.resultsAddress
             : browser.searchTab.homeAddress,
-    scrollKey: `s14:${activeTabId}:${helpVisible ? 'help' : phase}`,
-    dimmed: phase === 'service-variation',
+    scrollKey:
+      activeTabId === browser.masterCampusTab.id
+        ? `s14:${activeTabId}:${phase}`
+        : `s14:${activeTabId}:${helpVisible ? 'help' : phase}`,
+    dimmed,
+    ...(phase === 'signed-in'
+      ? { allowWindowInteractionWhenDimmed: true }
+      : {}),
     ...(phase === 'help-found'
       ? { highlightedTabId: browser.masterCampusTab.id }
       : {}),
     ...(displayName.trim() === '' ? {} : { accountIdentifier: displayName }),
+    ...(phase === 'login-autofilling'
+      ? {
+          passwordManager: {
+            label: masterCampusContent.login.automaticStatus,
+            active: true,
+            interactionEnabled: false,
+            icon: 'key' as const,
+            statusLabel: masterCampusContent.login.filledStatus,
+          },
+        }
+      : {}),
   };
 
   return (
@@ -674,39 +810,81 @@ function BrowserLesson({
       variant="artifact"
       snapshot={snapshot}
       ariaLabel={browser.ariaLabel}
-      windowOpen
-      windowCloseEnabled={false}
+      windowCloseEnabled={phase === 'signed-in'}
+      onWindowTransitionEnd={(windowState) => {
+        if (windowState === 'closed' && phase === 'signed-in') onBrowserClosed();
+      }}
       onTabSelect={(tabId) => {
         if (tabId !== 'master-campus' && tabId !== 'mfa-search') return;
         onTabSelect(tabId);
       }}
       layers={{
-        passWo:
-          speech === null ? undefined : (
-            <PassWoGuide
-              guideName={s14MfaContent.guide.name}
-              taskLabel={s14MfaContent.guide.taskLabel}
-              helpOpen
-              helpId="s14-browser-passwo-speech"
-              openHelpLabel={s14MfaContent.guide.openHelpLabel}
-              speech={[speech.text]}
-              speechKey={speech.id}
-              speechEmphasis={passWoSpeechEmphasisFor(speech.id)}
-              {...('action' in speech ? { speechAction: speech.action } : {})}
-              placement="bottom-left"
-              speechPlacement="right"
-              showHelpButton={false}
-            />
-          ),
+        passWo: !guideVisible && phase !== 'login-success' ? undefined : (
+          <>
+            {phase === 'login-success' ? (
+              <AccountSuccessOverlay
+                label={masterCampusContent.login.successStatus}
+                onComplete={onSuccessOverlayComplete}
+              />
+            ) : null}
+            {!guideVisible ? null : (
+              <PassWoGuide
+                guideName={s14MfaContent.guide.name}
+                taskLabel={
+                  masterCampusPhase === null
+                    ? s14MfaContent.guide.taskLabel
+                    : loginPhase
+                      ? masterCampusContent.tasks.loginLabel
+                      : masterCampusContent.tasks.setupLabel
+                }
+                {...(progressCurrent === null
+                  ? {}
+                  : {
+                      progress: {
+                        current: progressCurrent,
+                        total: 3,
+                        label: masterCampusContent.tasks.progressLabel(
+                          progressCurrent,
+                          3,
+                        ),
+                      },
+                    })}
+                taskComplete={taskComplete}
+                helpOpen={speech !== null}
+                helpId="s14-browser-passwo-speech"
+                openHelpLabel={s14MfaContent.guide.openHelpLabel}
+                speech={speech?.paragraphs ?? []}
+                speechKey={speech?.id ?? `s14-${phase}-waiting`}
+                speechEmphasis={passWoSpeechEmphasisFor(speech?.id ?? '')}
+                {...(speech !== null && 'action' in speech
+                  ? { speechAction: speech.action }
+                  : {})}
+                placement="bottom-left"
+                speechPlacement="right"
+                showTaskStatusWhenSpeaking={masterCampusPhase !== null}
+                showHelpButton={false}
+              />
+            )}
+          </>
+        ),
       }}
     >
       {activeTabId === browser.masterCampusTab.id ? (
-        <CampusWebsiteBackdrop
-          accountId="master-campus"
-          interactionLabel="Master Campus, angemeldet"
-          view="dashboard"
-          displayName={displayName}
-        />
+        masterCampusPhase === null ? null : (
+          <S14MasterCampusMfa
+            authenticatorCode={authenticatorCode}
+            displayName={displayName}
+            phase={masterCampusPhase}
+            onActivateMfa={onActivateMfa}
+            onConfirmSecondFactor={onConfirmSecondFactor}
+            onOpenOverview={onOpenOverview}
+            onOpenSecurity={onOpenSecurity}
+            onOpenSettings={onOpenSettings}
+            onOpenTwoFactor={onOpenTwoFactor}
+            onScanQrCode={onScanQrCode}
+            onUseAuthenticatorCode={onUseAuthenticatorCode}
+          />
+        )
       ) : helpVisible ? (
         <HelpPage guideVisible={phase === 'help-found'} />
       ) : phase === 'search-loading' || phase === 'search-results' ? (
@@ -881,20 +1059,29 @@ function FactorBoard({
 }
 
 function motionDurations() {
-  return window.matchMedia('(prefers-reduced-motion: reduce)').matches
-    ? {
-        cleanDesktopDurationMs: 0,
-        combinationRevealDurationMs: 0,
-        searchResultsDelayMs: 0,
-      }
-    : s14MfaContent.timings;
+  const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  return {
+    ...s14MfaContent.timings,
+    authenticatorCodeCount:
+      s14MfaContent.browser.masterCampus.authenticator.codes.length,
+    ...(reducedMotion
+      ? {
+          cleanDesktopDurationMs: 0,
+          combinationRevealDurationMs: 0,
+          loginAutofillDurationMs: 0,
+          searchResultsDelayMs: 0,
+        }
+      : {}),
+  };
 }
 
 export function S14MfaIntroduction({
   displayName = '',
+  onComplete,
   platform = 'mac',
 }: {
   readonly displayName?: string;
+  readonly onComplete?: (() => void) | undefined;
   readonly platform?: DesktopPlatform;
 }) {
   const [state, send] = useMachine(s14MfaIntroductionMachine, {
@@ -914,9 +1101,40 @@ export function S14MfaIntroduction({
             ? 'help-found'
             : state.matches('freeNavigation')
               ? 'free-navigation'
-              : null;
+              : state.matches('settings')
+                ? 'settings'
+                : state.matches('security')
+                  ? 'security'
+                  : state.matches('mfaSetupAwaitingScan')
+                    ? 'setup-awaiting-scan'
+                    : state.matches('mfaSetupScanned')
+                      ? 'setup-scanned'
+                      : state.matches('mfaSetupCodeEntered')
+                        ? 'setup-code-entered'
+                        : state.matches('mfaActivated')
+                          ? 'mfa-activated'
+                          : state.matches('loginAutofilling')
+                            ? 'login-autofilling'
+                            : state.matches('secondFactor')
+                              ? 'second-factor'
+                              : state.matches('secondFactorCodeEntered')
+                                ? 'second-factor-code-entered'
+                                : state.matches('loginSuccess')
+                                  ? 'login-success'
+                                  : state.matches('signedIn')
+                                    ? 'signed-in'
+                                    : null;
   const browserVisible = browserPhase !== null;
-  const mfaVisible = !state.matches('cleanDesktop') && !browserVisible;
+  const mfaVisible =
+    state.matches('mfa') ||
+    state.matches('twoFactor') ||
+    state.matches('knowledge') ||
+    state.matches('possession') ||
+    state.matches('biometrics') ||
+    state.matches('firstCombination') ||
+    state.matches('secondCombination') ||
+    state.matches('thirdCombination') ||
+    state.matches('distinctFactors');
   const conceptId: FactorConceptId | null = state.matches('mfa')
     ? 'mfa'
     : state.matches('twoFactor')
@@ -954,17 +1172,40 @@ export function S14MfaIntroduction({
             : state.matches('distinctFactors')
               ? { id: 's14-distinct-factors', text: s14MfaContent.guide.distinct }
               : null;
+  const authenticatorCodes = s14MfaContent.browser.masterCampus.authenticator.codes;
+  const authenticatorCode =
+    authenticatorCodes[state.context.authenticatorCodeIndex] ??
+    authenticatorCodes[0] ??
+    '000000';
 
   if (browserVisible) {
     return (
-      <section className={styles.training} aria-label={s14MfaContent.trainingAriaLabel}>
+      <section
+        className={styles.training}
+        data-awaiting-browser-close={browserPhase === 'signed-in' || undefined}
+        aria-label={s14MfaContent.trainingAriaLabel}
+      >
         <BrowserLesson
           activeTabId={state.context.activeTabId}
+          authenticatorCode={authenticatorCode}
           displayName={displayName}
           phase={browserPhase}
           platform={platform}
           onNext={() => send({ type: 'NEXT' })}
           onOpenHelp={() => send({ type: 'OPEN_HELP' })}
+          onOpenOverview={() => send({ type: 'OPEN_OVERVIEW' })}
+          onOpenSettings={() => send({ type: 'OPEN_SETTINGS' })}
+          onOpenSecurity={() => send({ type: 'OPEN_SECURITY' })}
+          onOpenTwoFactor={() => send({ type: 'OPEN_TWO_FACTOR' })}
+          onScanQrCode={() => send({ type: 'SCAN_QR_CODE' })}
+          onUseAuthenticatorCode={() => send({ type: 'USE_AUTHENTICATOR_CODE' })}
+          onActivateMfa={() => send({ type: 'ACTIVATE_MFA' })}
+          onConfirmSecondFactor={() => send({ type: 'CONFIRM_SECOND_FACTOR' })}
+          onSuccessOverlayComplete={() => send({ type: 'SUCCESS_OVERLAY_COMPLETE' })}
+          onBrowserClosed={() => {
+            send({ type: 'BROWSER_CLOSED' });
+            onComplete?.();
+          }}
           onSubmitSearch={() => send({ type: 'SUBMIT_SEARCH' })}
           onTabSelect={(tabId) => send({ type: 'SELECT_TAB', tabId })}
         />

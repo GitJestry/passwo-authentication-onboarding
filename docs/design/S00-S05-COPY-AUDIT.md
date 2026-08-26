@@ -4483,3 +4483,18 @@ unverändert. `S05_CONTENT_VERSION` steigt von `2.107.0` auf `2.108.0`.
 | Segment und Text-ID | Aktueller Text | Geplanter Text | Primäre Rolle | Interaktionsziel | Grund und Bedeutungsänderung | Hervorhebung |
 |---|---|---|---|---|---|---|
 | `S05.componentStrategy.commonComponents.machine.generatorLabel` | `Typische Varianten generieren` | `Typische Abwandlung generieren` | Orientierung | kein | ausdrücklich vorgegebene konsistente Terminologie; begrenzt | keine |
+
+## Copy-Delta S01 einheitliche Master-Campus-Navigation, 26. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 26. August 2026 sowie die bereits für S14.4
+freigegebene Master-Campus-Navigation. Die frühe Master-Campus-Übersicht verwendet damit dieselbe
+Navigationsliste wie die spätere Einrichtung der Zwei-Faktor-Authentifizierung. Es entstehen keine
+neuen Begriffe; `Einstellungen` ersetzt den bisherigen direkten Eintrag `Sicherheit`, und `Profil`
+steht wie in S14 vor `Einstellungen`. Die Einträge bleiben in S01 reine Orientierung und lösen
+keinen zusätzlichen Ablauf aus. `S01_CONTENT_VERSION` steigt von `2.16.4` auf `2.16.5`, die
+Supportive-Artifact-Version von `supportive-s00-s14-1.16.0` auf
+`supportive-s00-s14-1.17.0`.
+
+| Segment und Text-ID | Quelle | Aktueller Text | Geplanter Text | Primäre Rolle | Grund | Bedeutungsänderung | Interaktionsziel | Hervorhebung |
+|---|---|---|---|---|---|---|---|---|
+| `S01.browser.accounts.master-campus.dashboard.navigation` | Nutzerauftrag vom 2026-08-26; freigegebene Navigation aus S14.4 | `Übersicht`, `Campus Workspace`, `Campus Services`, `Campus Cloud`, `Sicherheit`, `Profil` | `Übersicht`, `Campus Workspace`, `Campus Services`, `Campus Cloud`, `Profil`, `Einstellungen` | Navigation | Konsistenz mit der später sichtbaren Master-Campus-Informationsarchitektur und dem tatsächlichen 2FA-Pfad über `Einstellungen` | begrenzt | kein; statische Portalnavigation in S01 | aktive Zeile und vorhandene Icons, keine neue Hervorhebung |

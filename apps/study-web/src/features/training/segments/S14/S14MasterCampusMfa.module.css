@@ -1,0 +1,996 @@
+.portalPage,
+.publicPage {
+  --master-navy: #073b70;
+  --master-blue: #075fc8;
+  --master-muted: #516a83;
+  --master-border: #cbd8e5;
+  --master-soft: #edf5fc;
+  --master-burgundy: #a20d36;
+
+  position: relative;
+  min-width: 0;
+  min-height: 100%;
+  color: var(--master-navy);
+}
+
+.portalPage {
+  display: grid;
+  align-content: start;
+  gap: clamp(var(--space-4), 2.5cqb, var(--space-6));
+}
+
+.portalPage[data-phone-visible] {
+  padding-right: clamp(9rem, 17cqi, 14rem);
+}
+
+.portalHeading {
+  display: flex;
+  min-width: 0;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-6);
+}
+
+.portalHeading > div:first-child {
+  min-width: 0;
+}
+
+.portalHeading h1 {
+  margin: 0;
+  color: var(--master-navy);
+  font-size: clamp(1.85rem, 3.4cqi, 2.75rem);
+  letter-spacing: -0.04em;
+  line-height: 1.05;
+}
+
+.portalHeading p {
+  margin: var(--space-3) 0 0;
+  color: var(--master-muted);
+  font-size: clamp(0.9rem, 1.45cqi, 1.08rem);
+}
+
+.breadcrumbs {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+  margin-bottom: var(--space-4);
+  color: var(--master-muted);
+  font-size: clamp(0.75rem, 1.25cqi, 0.92rem);
+}
+
+.breadcrumbs span {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.breadcrumbs svg {
+  width: 0.95rem;
+  height: 0.95rem;
+  color: #7f94aa;
+}
+
+.breadcrumbs span:last-child {
+  color: var(--master-navy);
+}
+
+.utilityBar {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.searchControl {
+  display: flex;
+  width: clamp(9rem, 18cqi, 15rem);
+  min-height: 3rem;
+  align-items: center;
+  gap: var(--space-3);
+  padding: 0 var(--space-4);
+  border: var(--border-width-thin) solid var(--master-border);
+  border-radius: var(--radius-round);
+  background: rgb(255 255 255 / 78%);
+}
+
+.searchControl svg,
+.utilityIcon svg {
+  width: 1.2rem;
+  height: 1.2rem;
+}
+
+.searchControl i {
+  width: 56%;
+  height: 0.32rem;
+  border-radius: var(--radius-round);
+  background: #d7e0e9;
+}
+
+.utilityIcon,
+.avatar {
+  display: grid;
+  width: 3rem;
+  height: 3rem;
+  place-items: center;
+  border-radius: var(--radius-round);
+  background: rgb(255 255 255 / 78%);
+}
+
+.avatar {
+  color: white;
+  background: var(--master-navy);
+  box-shadow: 0 0.55rem 1.2rem rgb(7 59 112 / 18%);
+  font-weight: var(--font-weight-heavy);
+}
+
+.settingsCards {
+  display: grid;
+  gap: clamp(var(--space-3), 1.8cqb, var(--space-4));
+}
+
+.settingsCard {
+  display: grid;
+  width: 100%;
+  min-height: clamp(5.3rem, 10cqb, 7rem);
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: clamp(var(--space-3), 1.8cqi, var(--space-5));
+  padding: clamp(var(--space-3), 1.7cqi, var(--space-5));
+  border: var(--border-width-thin) solid var(--master-border);
+  border-radius: var(--radius-large);
+  color: var(--master-navy);
+  background: rgb(255 255 255 / 82%);
+  box-shadow: 0 0.55rem 1.3rem rgb(7 59 112 / 4%);
+  font: inherit;
+  text-align: left;
+}
+
+button.settingsCard {
+  border-color: color-mix(in srgb, var(--master-blue) 34%, var(--master-border));
+  cursor: pointer;
+}
+
+button.settingsCard:hover {
+  border-color: color-mix(in srgb, var(--master-blue) 62%, var(--master-border));
+  background: #f7fbff;
+  box-shadow: 0 0.85rem 1.8rem rgb(7 59 112 / 9%);
+}
+
+button.settingsCard:active {
+  box-shadow: 0 0.35rem 0.9rem rgb(7 59 112 / 7%);
+}
+
+button.settingsCard:focus-visible,
+.primaryAction:focus-visible,
+.authenticatorEntry:focus-visible,
+.scannablePhone:focus-visible {
+  outline: var(--border-width-focus) solid var(--color-focus);
+  outline-offset: var(--space-1);
+}
+
+.cardIcon {
+  display: grid;
+  width: clamp(3rem, 5cqi, 4rem);
+  aspect-ratio: 1;
+  place-items: center;
+  border-radius: var(--radius-round);
+  color: var(--master-blue);
+  background: linear-gradient(145deg, #f6fbff, #dfedfa);
+}
+
+.cardIcon svg {
+  width: 58%;
+  height: 58%;
+}
+
+.cardCopy {
+  display: grid;
+  min-width: 0;
+  gap: var(--space-1);
+}
+
+.cardCopy strong {
+  font-size: clamp(1rem, 1.75cqi, 1.25rem);
+}
+
+.cardCopy > span {
+  color: var(--master-muted);
+  font-size: clamp(0.78rem, 1.35cqi, 0.98rem);
+  line-height: 1.4;
+}
+
+.cardChevron {
+  width: 1.4rem;
+  height: 1.4rem;
+  color: var(--master-blue);
+}
+
+.statusBanner {
+  display: grid;
+  min-height: 5.4rem;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--space-4);
+  padding: var(--space-4) var(--space-5);
+  border: var(--border-width-thin) solid var(--master-border);
+  border-radius: var(--radius-large);
+  background: rgb(255 255 255 / 84%);
+}
+
+.statusBanner > span {
+  display: grid;
+  width: 3.3rem;
+  aspect-ratio: 1;
+  place-items: center;
+  border-radius: var(--radius-round);
+  color: #d16a00;
+  background: #fff3e5;
+}
+
+.statusBanner > span svg {
+  width: 62%;
+  height: 62%;
+}
+
+.statusBanner > div {
+  display: grid;
+  gap: var(--space-1);
+}
+
+.statusBanner strong {
+  color: #c35c00;
+  font-size: clamp(0.95rem, 1.6cqi, 1.18rem);
+}
+
+.statusBanner small {
+  color: var(--master-muted);
+  font-size: clamp(0.76rem, 1.3cqi, 0.92rem);
+}
+
+.statusBanner[data-active] {
+  border-color: color-mix(in srgb, var(--color-positive) 48%, var(--master-border));
+  background: color-mix(in srgb, var(--color-positive) 7%, white);
+}
+
+.statusBanner[data-active] > span {
+  color: var(--color-positive);
+  background: color-mix(in srgb, var(--color-positive) 14%, white);
+}
+
+.statusBanner[data-active] strong {
+  color: color-mix(in srgb, var(--color-positive) 78%, #063b2a);
+}
+
+.statusBanner > b {
+  display: grid;
+  width: 2rem;
+  height: 2rem;
+  place-items: center;
+  border-radius: var(--radius-round);
+  color: white;
+  background: var(--color-positive);
+}
+
+.setupGrid {
+  display: grid;
+  min-width: 0;
+  grid-template-columns: minmax(13rem, 0.86fr) minmax(17rem, 1.14fr);
+  gap: var(--space-4);
+}
+
+.setupCard {
+  display: grid;
+  min-width: 0;
+  align-content: start;
+  gap: var(--space-3);
+  padding: clamp(var(--space-4), 2.2cqi, var(--space-6));
+  border: var(--border-width-thin) solid var(--master-border);
+  border-radius: var(--radius-large);
+  background: rgb(255 255 255 / 88%);
+}
+
+.setupCard h2 {
+  margin: 0;
+  font-size: clamp(0.95rem, 1.65cqi, 1.18rem);
+}
+
+.setupCard > p {
+  margin: 0;
+  color: var(--master-muted);
+  font-size: clamp(0.74rem, 1.25cqi, 0.9rem);
+  line-height: 1.45;
+}
+
+.qrDropZone {
+  position: relative;
+  display: grid;
+  width: min(13.5rem, 82%);
+  aspect-ratio: 1;
+  place-items: center;
+  justify-self: center;
+  margin-top: var(--space-2);
+  padding: var(--space-3);
+  border: 0.16rem dashed color-mix(in srgb, var(--master-blue) 55%, var(--master-border));
+  border-radius: var(--radius-medium);
+  background: white;
+  transition:
+    border-color var(--motion-standard) var(--motion-ease-out),
+    box-shadow var(--motion-standard) var(--motion-ease-out);
+}
+
+.qrDropZone[data-scanned] {
+  border-style: solid;
+  border-color: var(--color-positive);
+  box-shadow: 0 0 0 0.28rem color-mix(in srgb, var(--color-positive) 13%, transparent);
+}
+
+.qrCode {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.scannedMark {
+  position: absolute;
+  right: -0.7rem;
+  bottom: -0.7rem;
+  display: grid;
+  width: 2.2rem;
+  height: 2.2rem;
+  place-items: center;
+  border: 0.2rem solid white;
+  border-radius: var(--radius-round);
+  color: white;
+  background: var(--color-positive);
+  font-weight: var(--font-weight-heavy);
+}
+
+.codeBoxes {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(1.9rem, 1fr));
+  gap: clamp(var(--space-1), 0.9cqi, var(--space-2));
+  margin: var(--space-3) 0;
+}
+
+.codeBoxes > span {
+  display: grid;
+  min-width: 0;
+  aspect-ratio: 0.9;
+  place-items: center;
+  border: var(--border-width-thin) solid var(--master-border);
+  border-radius: var(--radius-small);
+  color: var(--master-navy);
+  background: #fff;
+  font-size: clamp(1rem, 2.1cqi, 1.45rem);
+  font-weight: var(--font-weight-heavy);
+}
+
+.codeBoxes > span[data-filled] {
+  border-color: var(--master-blue);
+  background: #f5faff;
+  box-shadow: 0 0 0 0.14rem color-mix(in srgb, var(--master-blue) 14%, transparent);
+  animation: s14-code-digit-in 220ms var(--motion-ease-out) both;
+}
+
+.primaryAction {
+  display: inline-flex;
+  min-height: 3.25rem;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-3) var(--space-5);
+  border: 0;
+  border-radius: var(--radius-small);
+  color: white;
+  background: linear-gradient(135deg, #0872df, #0758bd);
+  box-shadow: 0 0.7rem 1.4rem rgb(7 95 200 / 15%);
+  font: inherit;
+  font-weight: var(--font-weight-heavy);
+  cursor: pointer;
+}
+
+.primaryAction:disabled {
+  cursor: default;
+  opacity: 0.42;
+  box-shadow: none;
+}
+
+.activationNotice {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: start;
+  gap: var(--space-3);
+  padding-top: var(--space-3);
+  border-top: var(--border-width-thin) solid #e2e9f0;
+}
+
+.activationNotice svg {
+  width: 1.45rem;
+  height: 1.45rem;
+  color: var(--master-blue);
+}
+
+.phoneDock,
+.loginPhoneDock {
+  position: absolute;
+  z-index: 7;
+  right: clamp(-1.4rem, -1.5cqi, -0.4rem);
+  bottom: clamp(-1.5rem, -2cqb, -0.4rem);
+  width: clamp(9.5rem, 16cqi, 13rem);
+}
+
+.phone {
+  display: block;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  color: #0a1c33;
+  background: transparent;
+  font: inherit;
+}
+
+.scannablePhone {
+  cursor: grab;
+  filter: drop-shadow(0 1.2rem 1.35rem rgb(7 32 56 / 23%));
+  animation: s14-phone-arrive 430ms var(--motion-ease-out) both;
+}
+
+.scannablePhone:active {
+  cursor: grabbing;
+}
+
+.phoneFrame {
+  position: relative;
+  display: block;
+  width: 100%;
+  aspect-ratio: 0.51;
+  padding: 0.65rem;
+  border: 0.22rem solid #20262d;
+  border-radius: clamp(1.5rem, 3.2cqi, 2.2rem);
+  background: #07090c;
+  box-shadow:
+    inset 0 0 0 0.12rem #737981,
+    0 1.3rem 2.2rem rgb(8 28 50 / 25%);
+}
+
+.phoneSpeaker {
+  position: absolute;
+  z-index: 5;
+  top: 0.8rem;
+  left: 50%;
+  width: 38%;
+  height: 0.75rem;
+  border-radius: var(--radius-round);
+  background: #050609;
+  transform: translateX(-50%);
+}
+
+.phoneStatus {
+  position: absolute;
+  z-index: 4;
+  top: 0.78rem;
+  right: 1rem;
+  left: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  color: #172234;
+  font-size: clamp(0.42rem, 0.72cqi, 0.6rem);
+}
+
+.phoneStatus i {
+  font-style: normal;
+  letter-spacing: -0.08em;
+}
+
+.phoneScreen {
+  display: block;
+  height: 100%;
+  overflow: hidden;
+  border-radius: clamp(1rem, 2.7cqi, 1.65rem);
+  background: #f7f9fc;
+}
+
+.phoneHome {
+  position: absolute;
+  z-index: 4;
+  bottom: 0.9rem;
+  left: 50%;
+  width: 36%;
+  height: 0.22rem;
+  border-radius: var(--radius-round);
+  background: #172234;
+  transform: translateX(-50%);
+}
+
+.scannerScreen,
+.authenticatorScreen {
+  display: flex;
+  height: 100%;
+  flex-direction: column;
+}
+
+.scannerScreen {
+  align-items: center;
+  color: white;
+  background: linear-gradient(180deg, #202733, #3a414b 32%, #171b20);
+}
+
+.scannerScreen > strong {
+  display: flex;
+  width: 100%;
+  min-height: 3.25rem;
+  align-items: flex-end;
+  justify-content: space-between;
+  padding: 0.8rem;
+  background: rgb(0 0 0 / 28%);
+  font-size: clamp(0.48rem, 0.85cqi, 0.7rem);
+}
+
+.scannerScreen > strong span {
+  margin-inline: auto;
+}
+
+.scannerScreen > small {
+  width: 80%;
+  margin: auto 0 var(--space-4);
+  font-size: clamp(0.45rem, 0.75cqi, 0.63rem);
+  line-height: 1.4;
+  text-align: center;
+}
+
+.scannerFrame {
+  position: relative;
+  display: grid;
+  width: 78%;
+  aspect-ratio: 1;
+  place-items: center;
+  margin-bottom: auto;
+  padding: 0.55rem;
+  border: 0.18rem solid #62dcff;
+  border-radius: var(--radius-small);
+  background: rgb(255 255 255 / 13%);
+  box-shadow: 0 0 1rem rgb(55 205 255 / 32%);
+}
+
+.miniQrCode {
+  width: 100%;
+  height: 100%;
+}
+
+.authenticatorScreen {
+  padding-top: 2.1rem;
+  background: linear-gradient(180deg, #f8fbff, #eef3f8);
+}
+
+.authenticatorTitle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 var(--space-3) var(--space-3);
+  color: #18344f;
+  font-size: clamp(0.48rem, 0.8cqi, 0.67rem);
+}
+
+.authenticatorEntry {
+  display: grid;
+  width: calc(100% - 1rem);
+  gap: var(--space-3);
+  margin: 0 0.5rem;
+  padding: var(--space-3);
+  border: 0;
+  border-radius: var(--radius-medium);
+  color: #18344f;
+  background: white;
+  box-shadow: 0 0.55rem 1.2rem rgb(24 52 79 / 10%);
+  font: inherit;
+  text-align: left;
+}
+
+button.authenticatorEntry {
+  cursor: pointer;
+}
+
+button.authenticatorEntry:hover {
+  box-shadow: 0 0.75rem 1.6rem rgb(7 95 200 / 18%);
+}
+
+.authenticatorAccount {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.authenticatorAccount > svg {
+  width: 1.25rem;
+  height: 1.25rem;
+  color: var(--master-burgundy);
+}
+
+.authenticatorAccount > span {
+  display: grid;
+  min-width: 0;
+}
+
+.authenticatorAccount strong {
+  overflow: hidden;
+  font-size: clamp(0.5rem, 0.85cqi, 0.7rem);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.authenticatorAccount small {
+  overflow: hidden;
+  color: #6b7b8b;
+  font-size: clamp(0.38rem, 0.65cqi, 0.54rem);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.authenticatorCodeRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+
+.authenticatorCodeRow > strong {
+  color: #0767ce;
+  font-size: clamp(1rem, 2.2cqi, 1.55rem);
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  animation: s14-code-change 260ms var(--motion-ease-out) both;
+}
+
+.authenticatorCodeRow > i {
+  display: grid;
+  width: 1.75rem;
+  aspect-ratio: 1;
+  place-items: center;
+  border: 0.12rem solid #0874df;
+  border-radius: var(--radius-round);
+  color: #0767ce;
+  font-style: normal;
+  font-size: clamp(0.42rem, 0.72cqi, 0.6rem);
+  animation: s14-code-countdown 10s linear infinite;
+}
+
+.authenticatorNav {
+  margin-top: auto;
+  padding: var(--space-3) var(--space-2) 1.15rem;
+  border-top: var(--border-width-thin) solid #dce4ec;
+  color: #526b83;
+  font-size: clamp(0.45rem, 0.74cqi, 0.62rem);
+  text-align: center;
+}
+
+.publicPage {
+  display: flex;
+  min-height: 100%;
+  flex-direction: column;
+  background:
+    radial-gradient(circle at 50% 5%, white, transparent 38rem),
+    #f1f6fb;
+}
+
+.publicHeader {
+  display: flex;
+  min-height: 4.5rem;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-3) clamp(var(--space-5), 4cqi, var(--space-8));
+  border-bottom: var(--border-width-thin) solid #dce5ee;
+  background: rgb(255 255 255 / 88%);
+}
+
+.publicHeader > span {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.publicHeader > span svg {
+  width: 2rem;
+  height: 2rem;
+  color: var(--master-burgundy);
+}
+
+.publicHeader nav {
+  display: flex;
+  gap: var(--space-5);
+  color: var(--master-navy);
+  font-size: var(--font-size-small);
+  font-weight: var(--font-weight-semibold);
+}
+
+.loginLayout,
+.secondFactorLayout {
+  position: relative;
+  display: grid;
+  min-height: 0;
+  flex: 1;
+  place-items: center;
+  padding: clamp(var(--space-5), 5cqi, var(--space-9));
+}
+
+.loginCard {
+  display: grid;
+  width: min(33rem, 68cqi);
+  justify-items: stretch;
+  gap: var(--space-3);
+  padding: clamp(var(--space-5), 3.6cqi, var(--space-8));
+  border: var(--border-width-thin) solid var(--master-border);
+  border-radius: var(--radius-large);
+  background: rgb(255 255 255 / 94%);
+  box-shadow: 0 1.25rem 3.2rem rgb(7 59 112 / 10%);
+}
+
+.loginShield {
+  display: grid;
+  width: 4.2rem;
+  aspect-ratio: 1;
+  place-items: center;
+  justify-self: center;
+  border-radius: var(--radius-round);
+  color: var(--master-blue);
+  background: var(--master-soft);
+}
+
+.loginShield svg {
+  width: 58%;
+  height: 58%;
+}
+
+.loginCard h1 {
+  margin: var(--space-2) 0 0;
+  color: var(--master-navy);
+  font-size: clamp(1.45rem, 2.7cqi, 2.1rem);
+  text-align: center;
+}
+
+.loginCard > p {
+  margin: 0 0 var(--space-2);
+  color: var(--master-muted);
+  line-height: 1.45;
+  text-align: center;
+}
+
+.loginCard label {
+  display: grid;
+  gap: var(--space-1);
+  color: var(--master-navy);
+  font-size: var(--font-size-small);
+  font-weight: var(--font-weight-bold);
+}
+
+.loginCard label output {
+  display: flex;
+  min-height: 3rem;
+  align-items: center;
+  padding: 0 var(--space-3);
+  overflow: hidden;
+  border: var(--border-width-thin) solid color-mix(in srgb, var(--master-blue) 45%, var(--master-border));
+  border-radius: var(--radius-small);
+  color: var(--master-navy);
+  background: #f4f9fe;
+  font: inherit;
+  font-weight: var(--font-weight-medium);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.loginCard[data-autofilling] label output {
+  animation: s14-autofill-field 720ms var(--motion-ease-out) both;
+}
+
+.loginCard[data-autofilling] label:nth-of-type(2) output {
+  animation-delay: 320ms;
+}
+
+.autofillStatus {
+  display: inline-flex;
+  align-items: center;
+  justify-self: center;
+  gap: var(--space-2);
+  margin-top: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-round);
+  color: #23623e;
+  background: #e8f6ed;
+  font-size: var(--font-size-x-small);
+  font-weight: var(--font-weight-bold);
+}
+
+.autofillStatus i {
+  display: grid;
+  width: 1.3rem;
+  height: 1.3rem;
+  place-items: center;
+  border-radius: var(--radius-round);
+  color: white;
+  background: var(--color-positive);
+  font-style: normal;
+}
+
+.secondFactorLayout {
+  padding-right: clamp(15rem, 23cqi, 22rem);
+}
+
+.secondFactorLayout .loginCard {
+  width: min(35rem, 72cqi);
+}
+
+.loginPhoneDock {
+  right: clamp(var(--space-5), 4cqi, var(--space-8));
+  bottom: clamp(var(--space-4), 3cqb, var(--space-7));
+  width: clamp(11rem, 18cqi, 15rem);
+}
+
+.backHint {
+  justify-self: center;
+  color: var(--master-muted);
+  font-size: var(--font-size-small);
+  font-weight: var(--font-weight-semibold);
+}
+
+@keyframes s14-phone-arrive {
+  from { opacity: 0; transform: translate(1.5rem, 2rem) scale(0.94); }
+}
+
+@keyframes s14-code-digit-in {
+  from { opacity: 0; transform: translateY(-0.25rem); }
+}
+
+@keyframes s14-code-change {
+  from { opacity: 0.2; transform: translateY(-0.18rem); }
+}
+
+@keyframes s14-code-countdown {
+  from { border-top-color: transparent; }
+  to { border-color: #c9d7e5; }
+}
+
+@keyframes s14-autofill-field {
+  from {
+    color: transparent;
+    background: #fff7d8;
+    box-shadow: 0 0 0 0.42rem rgb(255 205 58 / 18%);
+    transform: translateY(-0.15rem);
+  }
+}
+
+@container (max-width: 950px) {
+  .portalPage[data-phone-visible] {
+    padding-right: 0;
+    padding-bottom: 18rem;
+  }
+
+  .portalHeading {
+    display: grid;
+  }
+
+  .utilityBar {
+    justify-self: end;
+  }
+
+  .setupGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .phoneDock {
+    right: var(--space-4);
+    bottom: 0;
+    width: 10.5rem;
+  }
+}
+
+@container (max-width: 700px) {
+  .utilityBar {
+    display: none;
+  }
+
+  .settingsCard {
+    min-height: 0;
+    padding: var(--space-3);
+  }
+
+  .cardCopy > span {
+    display: none;
+  }
+
+  .statusBanner {
+    padding: var(--space-3);
+  }
+
+  .setupCard {
+    padding: var(--space-4);
+  }
+
+  .secondFactorLayout {
+    align-content: start;
+    padding: var(--space-4);
+    padding-bottom: 21rem;
+  }
+
+  .loginCard,
+  .secondFactorLayout .loginCard {
+    width: min(100%, 35rem);
+  }
+
+  .loginPhoneDock {
+    right: 50%;
+    bottom: var(--space-3);
+    width: 10.5rem;
+    transform: translateX(50%);
+  }
+}
+
+@container (max-width: 480px) {
+  .portalPage[data-phone-visible] {
+    padding-bottom: 16rem;
+  }
+
+  .portalHeading h1 {
+    overflow-wrap: anywhere;
+  }
+
+  .breadcrumbs {
+    display: none;
+  }
+
+  .settingsCard {
+    grid-template-columns: auto minmax(0, 1fr) auto;
+  }
+
+  .cardIcon {
+    width: 2.7rem;
+  }
+
+  .statusBanner {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+
+  .statusBanner > b {
+    display: none;
+  }
+
+  .statusBanner small,
+  .activationNotice {
+    display: none;
+  }
+
+  .codeBoxes {
+    grid-template-columns: repeat(6, minmax(1.55rem, 1fr));
+  }
+
+  .publicHeader {
+    min-height: 3.7rem;
+    padding-inline: var(--space-4);
+  }
+
+  .publicHeader nav span:first-child {
+    display: none;
+  }
+
+  .loginLayout {
+    padding: var(--space-3);
+  }
+
+  .loginCard {
+    padding: var(--space-4);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .qrDropZone,
+  .codeBoxes > span,
+  .scannablePhone,
+  .authenticatorCodeRow > strong,
+  .authenticatorCodeRow > i,
+  .loginCard label output {
+    transition: none;
+    animation: none;
+  }
+}

@@ -3,6 +3,15 @@ import type { TrainingSectionId } from '@passwo/contracts';
 export const s01AccountIds = ['master-campus', 'campus-email', 'campusgram'] as const;
 export type S01AccountId = (typeof s01AccountIds)[number];
 
+export const masterCampusDashboardNavigation = [
+  { id: 'overview', label: 'Übersicht' },
+  { id: 'workspace', label: 'Campus Workspace' },
+  { id: 'services', label: 'Campus Services' },
+  { id: 'cloud', label: 'Campus Cloud' },
+  { id: 'profile', label: 'Profil' },
+  { id: 'settings', label: 'Einstellungen' },
+] as const;
+
 export interface S01SegmentContent {
   readonly version: string;
   readonly trainingAriaLabel: string;
@@ -119,7 +128,7 @@ export interface S01SegmentContent {
   };
 }
 
-export const S01_CONTENT_VERSION = '2.16.4';
+export const S01_CONTENT_VERSION = '2.16.5';
 
 const readyToContinueMessage =
   'Die drei Konten sind eingerichtet. Schließe jetzt das simulierte Browserfenster. Bevor du dich wieder anmeldest, schauen wir uns kurz an, was hinter den Konten steckt.';
@@ -132,7 +141,7 @@ export const s01Content: S01SegmentContent = {
     internalPage: 3,
     uxReference: 'Vom Nutzer bereitgestellte UX-Konzeptboards, 2026-07-31',
     copyReference:
-      'docs/design/S00-S05-COPY-AUDIT.md#copy-delta-s01-simuliertes-browserfenster-8-august-2026',
+      'docs/design/S00-S05-COPY-AUDIT.md#copy-delta-s01-einheitliche-master-campus-navigation-26-august-2026',
   },
   segment: {
     id: 'S01',
@@ -173,14 +182,7 @@ export const s01Content: S01SegmentContent = {
           loginLabel: 'Anmelden',
         },
         dashboard: {
-          navigation: [
-            'Übersicht',
-            'Campus Workspace',
-            'Campus Services',
-            'Campus Cloud',
-            'Sicherheit',
-            'Profil',
-          ],
+          navigation: masterCampusDashboardNavigation.map(({ label }) => label),
           summaryCards: [
             {
               title: 'Campus Workspace',

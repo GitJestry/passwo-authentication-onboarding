@@ -15,6 +15,12 @@ export interface CampusWebsiteAction {
   readonly disabledReason?: string | undefined;
 }
 
+export interface CampusWebsiteDashboardNavigationItem {
+  readonly label: string;
+  readonly active?: boolean | undefined;
+  readonly onClick?: (() => void) | undefined;
+}
+
 export interface CampusWebsiteBackdropProps {
   readonly accountId: S01AccountId;
   readonly interactionLabel: string;
@@ -27,6 +33,9 @@ export interface CampusWebsiteBackdropProps {
   readonly onBack?: (() => void) | undefined;
   readonly dashboardHeadingRef?: Ref<HTMLHeadingElement> | undefined;
   readonly dashboardNotice?: ReactNode | undefined;
+  readonly dashboardNavigationItems?:
+    | readonly CampusWebsiteDashboardNavigationItem[]
+    | undefined;
   readonly rootRef?: Ref<HTMLElement> | undefined;
   readonly timeLapseActive?: boolean | undefined;
 }
@@ -217,6 +226,12 @@ function DashboardHeading({
   );
 }
 
+export function campusDisplayNameInitial(displayName: string | undefined): string {
+  const [firstCharacter] = Array.from(displayName?.trim() ?? '');
+  if (firstCharacter === undefined) return 'C';
+  return Array.from(firstCharacter.toLocaleUpperCase('de-DE'))[0] ?? 'C';
+}
+
 function SidebarNavigationIconFrame({ children }: { readonly children: ReactNode }) {
   return (
     <svg
@@ -263,15 +278,15 @@ function DashboardNavigationIcon({ index }: { readonly index: number }) {
   }
 }
 
-function MasterNavigationIcon({ index }: { readonly index: number }) {
-  switch (index) {
-    case 0:
+function MasterNavigationIcon({ label }: { readonly label: string }) {
+  switch (label) {
+    case 'Übersicht':
       return (
         <SidebarNavigationIconFrame>
           <path d="m3.8 10.8 8.2-7 8.2 7v8.4H14.8v-5.4H9.2v5.4H3.8z" />
         </SidebarNavigationIconFrame>
       );
-    case 1:
+    case 'Campus Workspace':
       return (
         <SidebarNavigationIconFrame>
           <circle cx="8.2" cy="8.2" r="2.8" />
@@ -279,31 +294,45 @@ function MasterNavigationIcon({ index }: { readonly index: number }) {
           <path d="M3.5 19c.3-3.5 1.9-5.2 4.8-5.2 2.8 0 4.5 1.7 4.8 5.2M13.6 14.2c3.6-.8 5.8.8 6.2 4" />
         </SidebarNavigationIconFrame>
       );
-    case 2:
+    case 'Campus Services':
       return (
         <SidebarNavigationIconFrame>
           <rect x="4" y="5.5" width="16" height="14" rx="2" />
           <path d="M8 3.5v4M16 3.5v4M4 9.5h16M8 13h3M14 13h2M8 16h2" />
         </SidebarNavigationIconFrame>
       );
-    case 3:
+    case 'Campus Cloud':
       return (
         <SidebarNavigationIconFrame>
           <path d="M6.2 18.5h11.3a3.3 3.3 0 0 0 .3-6.6A5.7 5.7 0 0 0 7 10.5a4.1 4.1 0 0 0-.8 8Z" />
         </SidebarNavigationIconFrame>
       );
-    case 4:
+    case 'Sicherheit':
       return (
         <SidebarNavigationIconFrame>
           <path d="M12 3.5 19 6v5.5c0 4.1-2.3 7.1-7 9-4.7-1.9-7-4.9-7-9V6z" />
           <path d="m9.2 12 1.8 1.8 3.9-4" />
         </SidebarNavigationIconFrame>
       );
-    default:
+    case 'Einstellungen':
+      return (
+        <SidebarNavigationIconFrame>
+          <path d="M12.2 2h-.4a2 2 0 0 0-2 2v.2a2 2 0 0 1-1 1.7l-.4.3a2 2 0 0 1-2 0l-.2-.1a2 2 0 0 0-2.7.7l-.2.4A2 2 0 0 0 4 9.9l.2.1a2 2 0 0 1 1 1.7v.5a2 2 0 0 1-1 1.8l-.2.1a2 2 0 0 0-.7 2.7l.2.4a2 2 0 0 0 2.7.7l.2-.1a2 2 0 0 1 2 0l.4.3a2 2 0 0 1 1 1.7v.2a2 2 0 0 0 2 2h.4a2 2 0 0 0 2-2v-.2a2 2 0 0 1 1-1.7l.4-.3a2 2 0 0 1 2 0l.2.1a2 2 0 0 0 2.7-.7l.2-.4a2 2 0 0 0-.7-2.7l-.2-.1a2 2 0 0 1-1-1.8v-.5a2 2 0 0 1 1-1.7l.2-.1a2 2 0 0 0 .7-2.7l-.2-.4a2 2 0 0 0-2.7-.7l-.2.1a2 2 0 0 1-2 0l-.4-.3a2 2 0 0 1-1-1.7V4a2 2 0 0 0-2-2Z" />
+          <circle cx="12" cy="12" r="3" />
+        </SidebarNavigationIconFrame>
+      );
+    case 'Profil':
       return (
         <SidebarNavigationIconFrame>
           <circle cx="12" cy="8" r="3.2" />
           <path d="M5.2 20c.4-4.3 2.7-6.5 6.8-6.5s6.4 2.2 6.8 6.5" />
+        </SidebarNavigationIconFrame>
+      );
+    default:
+      return (
+        <SidebarNavigationIconFrame>
+          <circle cx="12" cy="12" r="7.5" />
+          <path d="M8.5 12h7M12 8.5v7" />
         </SidebarNavigationIconFrame>
       );
   }
@@ -352,13 +381,21 @@ function MailNavigationIcon({ index }: { readonly index: number }) {
 
 function DashboardSidebar({
   definition,
+  navigationItems,
   showNavigationIcons = false,
 }: {
   readonly definition: CampusWebsiteDefinition;
+  readonly navigationItems?: readonly CampusWebsiteDashboardNavigationItem[] | undefined;
   readonly showNavigationIcons?: boolean | undefined;
 }) {
   const { account, kind } = definition;
   const storageCard = account.dashboard.lowerCards.find(({ title }) => title === 'Speicherplatz');
+  const resolvedNavigationItems: readonly CampusWebsiteDashboardNavigationItem[] =
+    navigationItems ??
+    account.dashboard.navigation.map((label, index) => ({
+      label,
+      active: index === 0,
+    }));
   return (
     <aside className={styles.dashboardSidebar} aria-label={`${account.label}-Bereiche`}>
       {kind === 'campus-email' ? (
@@ -370,20 +407,42 @@ function DashboardSidebar({
         </div>
       )}
       <nav>
-        {account.dashboard.navigation.map((item, index) => (
-          <span className={index === 0 ? styles.sidebarActive : undefined} key={item}>
+        {resolvedNavigationItems.map((item, index) => {
+          const itemContent = (
+            <>
             {showNavigationIcons && kind === 'campusgram' ? (
               <DashboardNavigationIcon index={index} />
             ) : showNavigationIcons && kind === 'master-campus' ? (
-              <MasterNavigationIcon index={index} />
+              <MasterNavigationIcon label={item.label} />
             ) : showNavigationIcons && kind === 'campus-email' ? (
               <MailNavigationIcon index={index} />
             ) : (
               <i aria-hidden="true" />
             )}
-            {item}
-          </span>
-        ))}
+              {item.label}
+            </>
+          );
+          const className = item.active === true ? styles.sidebarActive : undefined;
+          return item.onClick === undefined ? (
+            <span
+              className={className}
+              aria-current={item.active === true ? 'page' : undefined}
+              key={item.label}
+            >
+              {itemContent}
+            </span>
+          ) : (
+            <button
+              type="button"
+              className={className}
+              aria-current={item.active === true ? 'page' : undefined}
+              key={item.label}
+              onClick={item.onClick}
+            >
+              {itemContent}
+            </button>
+          );
+        })}
       </nav>
       {kind === 'campus-email' && storageCard !== undefined ? (
         <div className={styles.sidebarStorage}>
@@ -409,7 +468,7 @@ function masterServiceSymbolId(title: string): string | undefined {
   }
 }
 
-function MasterUtilityBar() {
+function MasterUtilityBar({ displayName }: { readonly displayName?: string | undefined }) {
   return (
     <div className={styles.masterUtilityBar} aria-hidden="true">
       <span className={styles.masterSearchControl}>
@@ -424,7 +483,7 @@ function MasterUtilityBar() {
           <path d="M6 17.5h12l-1.7-2.4v-4.2a4.3 4.3 0 0 0-8.6 0v4.2zM10 19.5c.5.7 1.2 1 2 1s1.5-.3 2-1" />
         </svg>
       </span>
-      <span className={styles.masterAvatar}>P</span>
+      <span className={styles.masterAvatar}>{campusDisplayNameInitial(displayName)}</span>
     </div>
   );
 }
@@ -474,21 +533,29 @@ function MailStatusIcon({ index }: { readonly index: number }) {
 
 function MasterDashboard(props: {
   readonly definition: CampusWebsiteDefinition;
+  readonly children?: ReactNode | undefined;
   readonly displayName?: string | undefined;
   readonly dashboardHeadingRef?: Ref<HTMLHeadingElement> | undefined;
+  readonly navigationItems?: readonly CampusWebsiteDashboardNavigationItem[] | undefined;
 }) {
   const { account } = props.definition;
   return (
     <main className={styles.dashboard} data-master-refined="true">
-      <DashboardSidebar definition={props.definition} showNavigationIcons />
+      <DashboardSidebar
+        definition={props.definition}
+        navigationItems={props.navigationItems}
+        showNavigationIcons
+      />
       <div className={styles.dashboardContent}>
+        {props.children ?? (
+          <>
         <div className={styles.masterHeadingRow}>
           <DashboardHeading
             account={account}
             displayName={props.displayName}
             dashboardHeadingRef={props.dashboardHeadingRef}
           />
-          <MasterUtilityBar />
+          <MasterUtilityBar displayName={props.displayName} />
         </div>
         <section className={styles.masterSummary} aria-label={s01Content.siteUi.summaryAriaLabel}>
           {account.dashboard.summaryCards.map((card) => {
@@ -552,6 +619,8 @@ function MasterDashboard(props: {
             </header>
             <p>{account.dashboard.lowerCards[3].detail}</p>
           </section>
+        )}
+          </>
         )}
       </div>
     </main>
@@ -737,9 +806,11 @@ function CommunityDashboard(props: {
 
 function DashboardView(props: {
   readonly definition: CampusWebsiteDefinition;
+  readonly children?: ReactNode | undefined;
   readonly displayName?: string | undefined;
   readonly dashboardHeadingRef?: Ref<HTMLHeadingElement> | undefined;
   readonly dashboardNotice?: ReactNode | undefined;
+  readonly navigationItems?: readonly CampusWebsiteDashboardNavigationItem[] | undefined;
 }) {
   switch (props.definition.kind) {
     case 'master-campus':
@@ -767,6 +838,7 @@ export function CampusWebsiteBackdrop({
   onBack,
   dashboardHeadingRef,
   dashboardNotice,
+  dashboardNavigationItems,
   rootRef,
   timeLapseActive = false,
 }: CampusWebsiteBackdropProps) {
@@ -806,9 +878,11 @@ export function CampusWebsiteBackdrop({
       ) : (
         <DashboardView
           definition={definition}
+          children={children}
           displayName={displayName}
           dashboardHeadingRef={dashboardHeadingRef}
           dashboardNotice={dashboardNotice}
+          navigationItems={dashboardNavigationItems}
         />
       )}
     </article>

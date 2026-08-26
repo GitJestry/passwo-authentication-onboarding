@@ -336,6 +336,15 @@ const emphasisBySpeechId: Readonly<Record<string, readonly PassWoSpeechEmphasis[
     { phrase: 'Finde zuerst heraus', tone: 'action' },
   ],
   's14-help-found': [{ phrase: 'Master Campus', tone: 'action' }],
+  's14-mfa-configured': [
+    {
+      phrase: 'Zwei-Faktor-Authentifizierung für Master Campus eingerichtet',
+      tone: 'positive',
+    },
+  ],
+  's14-close-after-login': [
+    { phrase: 'Schließe den Browser noch einmal', tone: 'action' },
+  ],
 };
 
 export function passWoSpeechEmphasisFor(

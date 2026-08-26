@@ -1170,6 +1170,21 @@ export function createS13MfaIncidentNetwork(
   };
 }
 
+export function createS14MfaProtectedNetwork(
+  source: NetworkSceneSnapshot,
+): NetworkSceneSnapshot {
+  const incidentNetwork = createS13MfaIncidentNetwork(source);
+  return {
+    ...incidentNetwork,
+    id: `${source.id}-mfa-protected`,
+    nodes: incidentNetwork.nodes.map((node): SceneNode =>
+      node.id === 'master-campus' ? { ...node, status: 'protected' } : node,
+    ),
+    accessibleSummary:
+      'Das geordnete Kontonetzwerk ist wieder sichtbar. Master Campus trägt nach der Einrichtung der Zwei-Faktor-Authentifizierung einen blauen Schutzschild; die zusätzliche Hürde blockiert die zuvor gezeigten direkten Wege zu den anderen Konten.',
+  };
+}
+
 export function staticNetworkPresentation(
   snapshot: NetworkSceneSnapshot,
 ): NetworkPresentationSnapshot {

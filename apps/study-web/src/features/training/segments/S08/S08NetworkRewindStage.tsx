@@ -4,6 +4,7 @@ import {
   s09PasswordSummaryContent,
   s12PasswordManagerContent,
   s13PasswordManagerPracticeContent,
+  s14MfaContent,
 } from '@passwo/training-content';
 import type { DesktopPlatform } from '@passwo/ui';
 import { DesktopSurface } from '@passwo/ui';
@@ -62,6 +63,7 @@ import {
   createS13MfaIncidentNetwork,
   createS13MyShopNetwork,
   createS13PasswordRepairNetwork,
+  createS14MfaProtectedNetwork,
   s08AccountHasOpenActionNeed,
   s08HasOpenActionNeed,
   type S08ProtectionRiskModel,
@@ -117,6 +119,7 @@ type S08Event =
     }
   | { readonly type: 'S13_REPAIR_ALL_PASSWORDS' }
   | { readonly type: 'S13_FINISH' }
+  | { readonly type: 'S14_BROWSER_CLOSED' }
   | { readonly type: 'NEXT' };
 
 const s08Machine = setup({
@@ -459,6 +462,10 @@ const s08Machine = setup({
     },
     s14: {
       tags: ['s14'],
+      on: { S14_BROWSER_CLOSED: { target: 's14NetworkReturn' } },
+    },
+    s14NetworkReturn: {
+      tags: ['manager', 'expanded', 's14-network-return'],
     },
     complete: {
       tags: ['manager', 'expanded', 's13-network', 's13-mfa', 's13-mfa-preview'],
@@ -877,6 +884,10 @@ export function S08NetworkRewindStage({
     () => createS13MfaIncidentNetwork(fullyProtectedNetwork),
     [fullyProtectedNetwork],
   );
+  const mfaProtectedNetwork = useMemo(
+    () => createS14MfaProtectedNetwork(fullyProtectedNetwork),
+    [fullyProtectedNetwork],
+  );
   const scalingFindingNodeDelayMs = useMemo(
     () =>
       Object.values(scalingRiskNetwork.edgeRevealDelaysMs).reduce<number>(
@@ -901,6 +912,9 @@ export function S08NetworkRewindStage({
       }
       if (state.matches('managerPracticeBankProtectionReveal')) {
         return bankShieldedNetwork;
+      }
+      if (state.matches('s14NetworkReturn')) {
+        return mfaProtectedNetwork;
       }
       if (state.hasTag('s13-mfa-preview') || state.matches('complete')) {
         return mfaIncidentNetwork;
@@ -967,6 +981,7 @@ export function S08NetworkRewindStage({
       fullyProtectedNetwork,
       managerPracticeNetwork,
       mfaIncidentNetwork,
+      mfaProtectedNetwork,
       passwordRepairNetwork,
       newAccountRevealedNetwork,
       newAccountShieldedNetwork,
@@ -1219,9 +1234,11 @@ export function S08NetworkRewindStage({
                                   ? 'all-accounts-protected'
                                   : state.hasTag('s13-mfa-preview')
                                     ? 'mfa-incident'
-                                    : state.matches('conclusionMfaIncidentFocus')
-                                      ? 'all-accounts-protected'
-                                      : undefined;
+                                    : state.matches('s14NetworkReturn')
+                                      ? 'mfa-protected'
+                                      : state.matches('conclusionMfaIncidentFocus')
+                                        ? 'all-accounts-protected'
+                                        : undefined;
   const s13FocusTarget = state.hasTag('s13-new-account')
     ? 'my-shop'
     : mfaFocusVisible
@@ -1242,7 +1259,8 @@ export function S08NetworkRewindStage({
     state.matches('conclusionNetworkRepaired') ||
     state.matches('conclusionVariantReturn') ||
     state.matches('conclusionNetworkFade') ||
-    state.hasTag('s13-mfa');
+    state.hasTag('s13-mfa') ||
+    state.matches('s14NetworkReturn');
   const celebratesMyShop =
     state.matches('managerPracticeNewAccountShield') ||
     state.matches('managerPracticeNewAccountConnections');
@@ -1329,7 +1347,9 @@ export function S08NetworkRewindStage({
           undefined
         }
         aria-label={
-          state.hasTag('s13-network')
+          state.hasTag('s14-network-return')
+            ? s14MfaContent.trainingAriaLabel
+            : state.hasTag('s13-network')
             ? s13PasswordManagerPracticeContent.trainingAriaLabel
             : state.hasTag('manager') || state.hasTag('manager-transition')
               ? s12PasswordManagerContent.trainingAriaLabel
@@ -1758,7 +1778,11 @@ export function S08NetworkRewindStage({
       ) : null}
       {s14Visible ? (
         <div className={styles.stageOverlay}>
-          <S14MfaIntroduction displayName={displayName} platform={platform} />
+          <S14MfaIntroduction
+            displayName={displayName}
+            platform={platform}
+            onComplete={() => send({ type: 'S14_BROWSER_CLOSED' })}
+          />
         </div>
       ) : null}
       {conclusionOverlayPhase === null ? null : (
