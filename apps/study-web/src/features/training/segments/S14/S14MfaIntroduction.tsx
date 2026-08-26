@@ -678,12 +678,12 @@ function BrowserLesson({
 }: {
   readonly activeTabId: S14BrowserTabId;
   readonly authenticatorCode: string;
-  readonly authenticatorCodeInput: string;
+  readonly authenticatorCodeInput: readonly string[];
   readonly authenticatorSecondsRemaining: number;
   readonly displayName: string;
   readonly masterCampusPassword: string;
   readonly onActivateMfa: () => void;
-  readonly onAuthenticatorCodeInputChange: (value: string) => void;
+  readonly onAuthenticatorCodeInputChange: (value: readonly string[]) => void;
   readonly onBrowserClosed: () => void;
   readonly onConfirmSecondFactor: () => void;
   readonly onNext: () => void;
@@ -750,10 +750,7 @@ function BrowserLesson({
     masterCampusPhase === 'login-success' ||
     masterCampusPhase === 'signed-in';
   const guideVisible = speech !== null || masterCampusPhase !== null;
-  const dimmed =
-    phase === 'service-variation' ||
-    phase === 'mfa-activated' ||
-    phase === 'signed-in';
+  const dimmed = phase === 'signed-in';
   const snapshot: BrowserShellSnapshot = {
     tabs: [
       {
@@ -814,6 +811,9 @@ function BrowserLesson({
       : masterCampusPhase === 'setup-scan-confirmed'
         ? 'confirmed'
         : 'codes';
+  const phonePositionPhase = masterCampusPhase === 'mfa-activated' || loginPhase
+    ? 'login'
+    : 'setup';
 
   return (
     <BrowserShell
@@ -833,6 +833,7 @@ function BrowserLesson({
         screen: phoneVisible ? (
           <div className={styles.phoneScreenLayer} data-s14-phone-boundary>
             <S14AuthenticatorPhone
+              key={phonePositionPhase}
               code={authenticatorCode}
               countdownDuration={s14MfaContent.timings.authenticatorCodeDurationSeconds}
               mode={phoneMode}

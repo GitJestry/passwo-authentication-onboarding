@@ -798,14 +798,29 @@ button.settingsCard:focus-visible,
 }
 
 .loginPasswordGroup.loginPasswordGroup {
-  grid-template-columns: minmax(0, 1fr) 2.2rem;
+  display: block;
+}
+
+.loginPasswordGroup.loginPasswordGroup input {
+  width: 100%;
+  padding-right: 3.2rem;
 }
 
 .compactRevealButton.compactRevealButton {
+  position: absolute;
+  top: 50%;
+  right: 0.45rem;
   width: 2.2rem;
   min-width: 2.2rem;
   min-height: 2.2rem;
-  align-self: center;
+  border: 0;
+  border-radius: var(--radius-round);
+  background: transparent;
+  transform: translateY(-50%);
+}
+
+.compactRevealButton.compactRevealButton:hover {
+  background: rgb(7 59 112 / 8%);
 }
 
 .compactRevealIcon {

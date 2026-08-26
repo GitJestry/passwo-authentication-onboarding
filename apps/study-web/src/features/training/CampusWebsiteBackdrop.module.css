@@ -446,15 +446,22 @@
 .masterNotices header span { color: var(--site-accent); font-size: var(--font-size-x-small); font-weight: var(--font-weight-heavy); }
 
 .dashboard[data-master-refined] {
-  grid-template-columns: minmax(13.5rem, 15rem) minmax(0, 1fr);
-  background: radial-gradient(circle at 52% 4%, #fff, transparent 32rem), #f3f7fa;
+  --master-sidebar-width: 15rem;
+
+  flex: 1;
+  grid-template-columns: var(--master-sidebar-width) minmax(0, 1fr);
+  background:
+    linear-gradient(155deg, #073768 0%, #06315e 52%, #05294f 100%) left top /
+      var(--master-sidebar-width) 100% no-repeat,
+    radial-gradient(circle at 52% 4%, #fff, transparent 32rem),
+    #f3f7fa;
 }
 
 .dashboard[data-master-refined] .dashboardSidebar {
   position: relative;
   padding: var(--space-7) var(--space-4);
   overflow: hidden;
-  background: linear-gradient(155deg, #073768 0%, #06315e 52%, #05294f 100%);
+  background: transparent;
   box-shadow: 0.7rem 0 2rem rgb(7 39 74 / 7%);
 }
 
@@ -918,7 +925,9 @@
   }
   .authInteraction { justify-items: center; }
   .dashboard { grid-template-columns: 12rem minmax(0, 1fr); }
-  .dashboard[data-master-refined] { grid-template-columns: 12rem minmax(0, 1fr); }
+  .dashboard[data-master-refined] {
+    --master-sidebar-width: 12rem;
+  }
   .masterHeadingRow { gap: var(--space-4); }
   .masterUtilityBar { gap: var(--space-2); }
   .masterSearchControl { width: 8rem; }
@@ -948,10 +957,16 @@
   .authIntro { gap: var(--space-6); }
   .authInteraction { justify-items: center; }
   .dashboard { display: block; }
-  .dashboard[data-master-refined] { display: block; }
+  .dashboard[data-master-refined] {
+    display: block;
+    background: radial-gradient(circle at 52% 4%, #fff, transparent 32rem), #f3f7fa;
+  }
   .dashboardSidebar { height: auto; min-height: 0; }
   .dashboardSidebar nav { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .dashboard[data-master-refined] .dashboardSidebar { padding-block: var(--space-5); }
+  .dashboard[data-master-refined] .dashboardSidebar {
+    padding-block: var(--space-5);
+    background: linear-gradient(155deg, #073768 0%, #06315e 52%, #05294f 100%);
+  }
   .dashboard[data-master-refined] .sidebarIdentity { margin-bottom: var(--space-4); }
   .masterHeadingRow { display: grid; }
   .masterUtilityBar { justify-content: flex-end; padding-top: 0; }

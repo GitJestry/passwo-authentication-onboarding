@@ -5,7 +5,7 @@ export type S14BrowserTabId = 'master-campus' | 'mfa-search';
 interface S14MfaIntroductionContext {
   readonly activeTabId: S14BrowserTabId;
   readonly authenticatorCodeIndex: number;
-  readonly authenticatorCodeInput: string;
+  readonly authenticatorCodeInput: readonly string[];
   readonly authenticatorCodes: readonly string[];
   readonly authenticatorCodeDurationSeconds: number;
   readonly authenticatorCodeTickMs: number;
@@ -36,7 +36,7 @@ type S14MfaIntroductionEvent =
   | { readonly type: 'OPEN_SECURITY' }
   | { readonly type: 'OPEN_TWO_FACTOR' }
   | { readonly type: 'SCAN_QR_CODE' }
-  | { readonly type: 'ENTER_AUTHENTICATOR_CODE'; readonly value: string }
+  | { readonly type: 'ENTER_AUTHENTICATOR_CODE'; readonly value: readonly string[] }
   | { readonly type: 'ACTIVATE_MFA' }
   | { readonly type: 'SUBMIT_LOGIN' }
   | { readonly type: 'CONFIRM_SECOND_FACTOR' }
@@ -81,7 +81,7 @@ export const s14MfaIntroductionMachine = setup({
       event.type === 'SELECT_TAB' && event.tabId === 'master-campus',
     authenticatorCodeMatches: ({ context, event }) =>
       event.type === 'ENTER_AUTHENTICATOR_CODE' &&
-      event.value === context.authenticatorCodes[context.authenticatorCodeIndex],
+      event.value.join('') === context.authenticatorCodes[context.authenticatorCodeIndex],
     authenticatorCountdownFinished: ({ context }) =>
       context.authenticatorSecondsRemaining === 0,
   },
@@ -98,7 +98,7 @@ export const s14MfaIntroductionMachine = setup({
           : context.authenticatorCodeInput,
     }),
     clearAuthenticatorCodeInput: assign({
-      authenticatorCodeInput: () => '',
+      authenticatorCodeInput: () => Array.from({ length: 6 }, () => ''),
     }),
     decrementAuthenticatorCountdown: assign({
       authenticatorSecondsRemaining: ({ context }) =>
@@ -107,7 +107,7 @@ export const s14MfaIntroductionMachine = setup({
     refreshAuthenticatorCode: assign({
       authenticatorCodeIndex: ({ context }) =>
         (context.authenticatorCodeIndex + 1) % context.authenticatorCodes.length,
-      authenticatorCodeInput: () => '',
+      authenticatorCodeInput: () => Array.from({ length: 6 }, () => ''),
       authenticatorSecondsRemaining: ({ context }) =>
         context.authenticatorCodeDurationSeconds,
     }),
@@ -119,7 +119,7 @@ export const s14MfaIntroductionMachine = setup({
     ...input,
     activeTabId: 'mfa-search',
     authenticatorCodeIndex: 0,
-    authenticatorCodeInput: '',
+    authenticatorCodeInput: Array.from({ length: 6 }, () => ''),
     authenticatorSecondsRemaining: input.authenticatorCodeDurationSeconds,
   }),
   on: {

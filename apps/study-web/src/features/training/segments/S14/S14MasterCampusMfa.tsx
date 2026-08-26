@@ -249,14 +249,23 @@ function VerificationCodeInput({
   readonly disabled?: boolean;
   readonly idPrefix: string;
   readonly label: string;
-  readonly value: string;
-  readonly onChange: (value: string) => void;
+  readonly value: readonly string[];
+  readonly onChange: (value: readonly string[]) => void;
 }) {
   const inputRefs = useRef<Array<HTMLInputElement | null>>([]);
-  const digits = Array.from({ length: 6 }, (_, index) => value[index] ?? '');
+  const digits = Array.from({ length: 6 }, (_, index) => {
+    const digit = value[index];
+    return digit !== undefined && /^[0-9]$/u.test(digit) ? digit : '';
+  });
 
   function focusDigit(index: number): void {
     inputRefs.current[Math.min(5, Math.max(0, index))]?.focus();
+  }
+
+  function updateDigit(index: number, digit: string): void {
+    const nextDigits = [...digits];
+    nextDigits[index] = digit;
+    onChange(nextDigits);
   }
 
   return (
@@ -285,33 +294,37 @@ function VerificationCodeInput({
           aria-describedby={descriptionId}
           disabled={disabled}
           onFocus={(event) => {
-            if (index > value.length) {
-              focusDigit(value.length);
-              return;
-            }
-            event.currentTarget.select();
+            if (digit !== '') event.currentTarget.select();
           }}
           onPaste={(event) => event.preventDefault()}
           onDrop={(event) => event.preventDefault()}
           onKeyDown={(event) => {
-            if (event.key === 'ArrowLeft') {
+            if (/^[0-9]$/u.test(event.key)) {
+              event.preventDefault();
+              updateDigit(index, event.key);
+              if (index < 5) focusDigit(index + 1);
+            } else if (event.key === 'ArrowLeft') {
               event.preventDefault();
               focusDigit(index - 1);
             } else if (event.key === 'ArrowRight') {
               event.preventDefault();
               focusDigit(index + 1);
-            } else if (event.key === 'Backspace' && digit === '' && index > 0) {
+            } else if (event.key === 'Backspace') {
               event.preventDefault();
-              onChange(`${value.slice(0, index - 1)}${value.slice(index)}`);
-              focusDigit(index - 1);
+              if (digit !== '') {
+                updateDigit(index, '');
+              } else if (index > 0) {
+                updateDigit(index - 1, '');
+                focusDigit(index - 1);
+              }
+            } else if (event.key === 'Delete') {
+              event.preventDefault();
+              updateDigit(index, '');
             }
           }}
           onChange={(event) => {
             const nextDigit = event.currentTarget.value.replace(/\D/gu, '').slice(-1);
-            const nextValue = nextDigit === ''
-              ? `${value.slice(0, index)}${value.slice(index + 1)}`
-              : `${value.slice(0, index)}${nextDigit}${value.slice(index + 1)}`.slice(0, 6);
-            onChange(nextValue);
+            updateDigit(index, nextDigit);
             if (nextDigit !== '' && index < 5) focusDigit(index + 1);
           }}
         />
@@ -622,10 +635,10 @@ function TwoFactorSetup({
 }: {
   readonly activated: boolean;
   readonly codeEntered: boolean;
-  readonly codeInput: string;
+  readonly codeInput: readonly string[];
   readonly displayName: string;
   readonly onActivate: () => void;
-  readonly onCodeInputChange: (value: string) => void;
+  readonly onCodeInputChange: (value: readonly string[]) => void;
   readonly qrTargetRef: RefObject<HTMLDivElement | null>;
   readonly scanMode: 'scanner' | 'recognizing' | 'confirmed' | 'codes';
 }) {
@@ -810,9 +823,9 @@ function SecondFactorLogin({
   onCodeInputChange,
 }: {
   readonly codeEntered: boolean;
-  readonly codeInput: string;
+  readonly codeInput: readonly string[];
   readonly onConfirm: () => void;
-  readonly onCodeInputChange: (value: string) => void;
+  readonly onCodeInputChange: (value: readonly string[]) => void;
 }) {
   const content = s14MfaContent.browser.masterCampus.login;
   return (
@@ -867,11 +880,11 @@ export function S14MasterCampusMfa({
   phase,
   qrTargetRef,
 }: {
-  readonly authenticatorCodeInput: string;
+  readonly authenticatorCodeInput: readonly string[];
   readonly displayName: string;
   readonly masterCampusPassword: string;
   readonly onActivateMfa: () => void;
-  readonly onAuthenticatorCodeInputChange: (value: string) => void;
+  readonly onAuthenticatorCodeInputChange: (value: readonly string[]) => void;
   readonly onConfirmSecondFactor: () => void;
   readonly onOpenOverview: () => void;
   readonly onOpenSecurity: () => void;
