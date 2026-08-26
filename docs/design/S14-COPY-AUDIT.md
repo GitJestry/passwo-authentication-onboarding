@@ -236,3 +236,93 @@ Zwei-Faktor-Einrichtungsseite über die vollständige scrollbare Seitenhöhe. De
 Master-Campus-Kopfleiste zeigt statt des festen Platzhalters `P` nur noch die erste Initiale des
 flüchtigen Übungsbenutzernamens; ohne Namen wird neutral `C` angezeigt. Persistenz, Interaktion und
 Forschungsdaten bleiben unverändert.
+
+## S14.5 — Authenticator bedienen und Codes manuell eingeben, 26. August 2026
+
+### Umfang und Quelle
+
+Der ausdrückliche Nutzerauftrag vom 26. August 2026 ersetzt die verkürzten Klick- und
+Autofill-Interaktionen der S14.4-Einrichtung durch die tatsächlich auszuführenden Handlungen:
+Das Handy wird über den QR-Code bewegt, beide Bestätigungscodes werden abgetippt und die Anmeldung
+wird ausdrücklich abgesendet. Die Ergänzung desselben Auftrags hebt das Handy aus dem
+Browserinhalt auf die Desktop-Screen-Ebene. `S14_MFA_CONTENT_VERSION` steigt von `1.5.0` auf
+`1.6.0`, die Supportive-Artifact-Version von `supportive-s00-s14-1.17.0` auf
+`supportive-s00-s14-1.18.0`. Geschützter Wortlaut bleibt unverändert.
+
+### Copy-Delta
+
+| Text-ID | Bisher | Implementiert | Primäre Rolle | Interaktionsziel | Hervorhebung | Grund und Bedeutungsänderung |
+|---|---|---|---|---|---|---|
+| `S14.browser.masterCampus.twoFactor.codeDescription` | `Übernimm den sechsstelligen Code aus der Authenticator-App.` | `Tippe den sechsstelligen Code aus der Authenticator-App in das Feld ein.` | Navigation | sichtbares sechsstelliges Eingabefeld | geführter Feldrahmen | benennt die nun verpflichtende manuelle Eingabe statt einer automatischen Übernahme; begrenzt |
+| `S14.browser.masterCampus.authenticator.movePhoneAction` | nicht vorhanden | `Handy mit den Pfeiltasten oder durch Ziehen bewegen` | Navigation / Barrierefreiheit | Handy auf der Desktop-Screen-Ebene | sichtbare Griffmarken und Tastaturfokus | beschreibt die gleichwertige Zeiger- und Tastaturbedienung; freigegeben |
+| `S14.browser.masterCampus.authenticator.countdownLabel` | feste, nicht zutreffende Zahl `23` ohne dynamische Bezeichnung | `{Sekunden} Sekunden bis zum nächsten Bestätigungscode` | Orientierung / Barrierefreiheit | kein | Kreisfortschritt plus sichtbarer Zahlenwert | macht den echten 30-bis-0-Verlauf und Codewechsel zugänglich; freigegeben |
+| `S14.browser.masterCampus.login.backAction` | `Zurück zur Anmeldung` als nicht bedienbarer Texthinweis | entfällt | Navigation | kein | keine | entfernt eine scheinbare, aber funktionslose Aktion bei der Angleichung an das S03-Anmeldefenster; nein |
+
+### Interaktions- und Darstellungsdelta
+
+- Die Authenticator-Anzeige zählt statechartgesteuert jede Sekunde von `30` bis `0`. Erst nach
+  dem sichtbaren Nullzustand wechselt sie deterministisch zum nächsten der drei lokalen Codes und
+  startet wieder bei `30`; der Ablauf läuft während Einrichtung und Anmeldung durchgehend weiter.
+- Der Authenticator-Eintrag ist keine Schaltfläche mehr. Einrichtung und Anmeldung verwenden
+  jeweils ein echtes numerisches Eingabefeld; nur die vollständige Übereinstimmung mit dem aktuell
+  sichtbaren Code schaltet die zugehörige Seitenaktion frei. Ein Codewechsel leert eine noch
+  nicht bestätigte Eingabe.
+- Das Handy besitzt sichtbare Griffindikatoren, ist per Pointer oder Pfeiltasten beweglich und
+  wird über `BrowserShell.layers.screen` oberhalb des Browserfensters gerendert. Es bleibt damit
+  frei über Browser-Chrome und Seiteninhalt beweglich, wird aber an den äußeren Desktopgrenzen
+  gehalten.
+- Der QR-Scan entsteht ausschließlich, wenn der Kamerabereich des bewegten Handys den sichtbaren
+  QR-Code erreicht. Ein Klick auf Handy oder QR-Code löst keinen Scan aus; die Pfeiltasten bilden
+  die barrierefreie gleichwertige Bewegung ab.
+- Die Master-Campus-Anmeldung verwendet nach der Einrichtung dieselbe Seiten- und Kartenstruktur
+  wie S03. Benutzername und maskiertes Passwort sind nicht editierbar und wie beim bestehenden
+  Passwortmanager gelb markiert. Nach dem Autofill bleibt `Anmelden` als notwendige ausdrückliche
+  Handlung stehen; erst diese Schaltfläche öffnet den Bestätigungscode-Schritt.
+- Alle Werte und Bewegungszustände bleiben flüchtig. Es entstehen keine Forschungswrites oder
+  neuen persistierbaren Datenklassen.
+
+## S14.6 — Scanbestätigung, sechs Codefelder und Passphrasen-Anmeldung, 26. August 2026
+
+### Umfang und Quelle
+
+Der ausdrückliche Nutzerauftrag vom 26. August 2026 ergänzt den QR-Scan um eine sichtbare
+Erkennungs- und Bestätigungsphase, stellt die frühere Sechs-Felder-Darstellung für beide
+Codeeingaben wieder her und korrigiert die Master-Campus-Anmeldung. Die S14-Content-Version steigt
+von `1.6.0` auf `1.7.0`, die Supportive-Artifact-Version von
+`supportive-s00-s14-1.18.0` auf `supportive-s00-s14-1.19.0`. Der geschützte PassWo-Wortlaut bleibt
+unverändert.
+
+### Copy-Delta
+
+| Text-ID | Bisher | Implementiert | Primäre Rolle | Interaktionsziel | Hervorhebung | Grund und Bedeutungsänderung |
+|---|---|---|---|---|---|---|
+| `S14.browser.masterCampus.twoFactor.codeDescription` | `Tippe den sechsstelligen Code aus der Authenticator-App in das Feld ein.` | `Tippe den sechsstelligen Code aus der Authenticator-App in die sechs Felder ein.` | Navigation | sechs einzeln editierbare Ziffernfelder | geführter Feldrahmen | gleicht die Anleitung an die ausdrücklich wiederhergestellte Feldstruktur an; nein |
+| `S14.browser.masterCampus.authenticator.recognizingStatus` | nicht vorhanden | `QR-Code wird erkannt …` | Prozessfeedback | kein | Ladesymbol im Kamerarahmen | macht die verlangte kurze Erkennungszeit sichtbar; freigegeben |
+| `S14.browser.masterCampus.authenticator.scanConfirmedStatus` | sofortiger Wechsel zur Codeansicht | `QR-Code erkannt` | Ergebnisfeedback | kein | Häkchen im Kamerarahmen | bestätigt den erfolgreichen Scan vor dem Wechsel zur Codeansicht; freigegeben |
+| `S14.browser.masterCampus.login.filledStatus` | `automatisch ausgefüllt` | entfällt | Orientierung | kein | keine | entfernt den ausdrücklich abgelehnten Autofill-Hinweis; nein |
+| `S14.browser.masterCampus.login.showPasswordLabel` / `hidePasswordLabel` | nicht vorhanden | `Passwort anzeigen` / `Passwort verbergen` | Navigation / Barrierefreiheit | verkleinerte Augen-Schaltfläche | Tastaturfokus und gedrückter Zustand | macht die ausdrücklich verlangte Sichtbarkeitsumschaltung zugänglich; freigegeben |
+| `S14.browser.masterCampus.login.codeDigitLabel` | ein gemeinsames Codefeld | `Bestätigungscode, Stelle {Position} von 6` | Orientierung / Barrierefreiheit | jeweiliges Ziffernfeld | Fokusrahmen | bezeichnet die sechs einzeln editierbaren Felder eindeutig; freigegeben |
+| `S14.browser.masterCampus.tasks.progressLabel` | `2FA-Aufgabe: {aktuell}/{gesamt} Schritte abgeschlossen` | entfällt | Fortschrittsorientierung | kein | keine | der zugehörige abgeschnittene S14-Aufgabenbalken wird ausdrücklich entfernt; begrenzt |
+
+### Interaktions- und Darstellungsdelta
+
+- Nach geometrischer Überdeckung des QR-Codes bleibt die Kamera zunächst 750 Millisekunden in
+  einem Erkennungszustand. Anschließend erscheint 1.100 Millisekunden lang die Bestätigung
+  `QR-Code erkannt`; erst danach wird der lokale Authenticator-Code sichtbar.
+- Der Kamerabereich des Handys ist transparent getönt und zeigt den tatsächlich darunterliegenden
+  Desktop-, Browser- und Seiteninhalt. Rahmen, Statusleiste und Griffindikatoren bleiben als
+  Bedienhinweis sichtbar; das Handy liegt weiterhin in `BrowserShell.layers.screen` oberhalb des
+  Browserfensters.
+- Einrichtung und Anmeldung verwenden je sechs echte numerische Einzelfelder. Einfügen und
+  Ablegen sind deaktiviert; Eingabe, Löschen und Wechsel zwischen den Feldern erfolgen
+  ausschließlich lokal. Der Authenticator-Code selbst bleibt nicht anklickbar.
+- Der zweite Bestätigungsschritt verwendet wieder die eigenständige frühere Master-Campus-Karte.
+  Die vorgeschaltete S03-Anmeldung bleibt erhalten, zeigt keinen Autofill-Hinweis mehr und besitzt
+  eine verkleinerte bedienbare Augen-Schaltfläche.
+- S14 erhält nur die bereits serverseitig bestätigte, nicht rekonstruierende S08-Passphrasen-ID.
+  Der bestehende lokale Content-Resolver bildet daraus flüchtig die Master-Campus-Passphrase für
+  die sichtbare Anmeldung. Weder die Passphrase noch Teile davon werden gesendet, persistiert oder
+  geloggt.
+- Der S14-spezifische PassWo-Aufgabenstatus wird nicht mehr gerendert. Dadurch entfällt der am
+  unteren linken Browserrand abgeschnittene Fortschrittsbalken; Figur und Sprechblasen bleiben
+  unverändert sichtbar.

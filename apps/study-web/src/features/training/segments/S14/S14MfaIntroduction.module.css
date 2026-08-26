@@ -26,6 +26,13 @@
     0 0 1rem var(--browser-guided-glow-strong);
 }
 
+.phoneScreenLayer {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
 .lessonViewport {
   position: absolute;
   z-index: 1;

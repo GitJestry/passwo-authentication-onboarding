@@ -3,7 +3,7 @@ import { s14MfaContent } from './s14.js';
 
 describe('S14 MFA introduction traceability', () => {
   it('keeps MFA, 2FA and the three factor categories together', () => {
-    expect(s14MfaContent.version).toBe('1.5.0');
+    expect(s14MfaContent.version).toBe('1.7.0');
     expect(s14MfaContent.segment).toMatchObject({
       id: 'S14',
       sectionId: 'mfa',
@@ -128,6 +128,19 @@ describe('S14 MFA introduction traceability', () => {
       interactive: true,
     });
     expect(s14MfaContent.browser.masterCampus.authenticator.codes).toHaveLength(3);
+    expect(s14MfaContent.timings).toMatchObject({
+      authenticatorCodeTickMs: 1_000,
+      authenticatorCodeDurationSeconds: 30,
+      scanRecognitionDurationMs: 750,
+      scanConfirmationDurationMs: 1_100,
+    });
+    expect(s14MfaContent.browser.masterCampus.twoFactor.codeDescription).toBe(
+      'Tippe den sechsstelligen Code aus der Authenticator-App in die sechs Felder ein.',
+    );
+    expect(s14MfaContent.browser.masterCampus.authenticator).toMatchObject({
+      recognizingStatus: 'QR-Code wird erkannt …',
+      scanConfirmedStatus: 'QR-Code erkannt',
+    });
     expect(s14MfaContent.guide.configured).toEqual([
       'Damit ist die Zwei-Faktor-Authentifizierung für Master Campus eingerichtet.',
       'Probier jetzt aus, was sich beim Anmelden verändert.',

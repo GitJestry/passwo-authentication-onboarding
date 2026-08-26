@@ -1,7 +1,7 @@
 import type { TrainingSectionId } from '@passwo/contracts';
 import { masterCampusDashboardNavigation } from './s01.js';
 
-export const S14_MFA_CONTENT_VERSION = '1.5.0';
+export const S14_MFA_CONTENT_VERSION = '1.7.0';
 
 export type S14FactorId = 'knowledge' | 'possession' | 'biometrics';
 
@@ -17,7 +17,7 @@ export const s14MfaContent = {
   version: S14_MFA_CONTENT_VERSION,
   source: {
     revision:
-      'Nutzerauftrag vom 2026-08-26 · S14.4 2FA bei Master Campus einrichten und anwenden',
+      'Nutzerauftrag vom 2026-08-26 · S14.6 Scanbestätigung und sechs Codefelder',
     scriptPages: '66-67',
     copyReference: 'docs/design/S14-COPY-AUDIT.md',
   },
@@ -32,7 +32,10 @@ export const s14MfaContent = {
     combinationRevealDurationMs: 620,
     searchResultsDelayMs: 900,
     loginAutofillDurationMs: 1_250,
-    authenticatorCodeRefreshMs: 10_000,
+    scanRecognitionDurationMs: 750,
+    scanConfirmationDurationMs: 1_100,
+    authenticatorCodeTickMs: 1_000,
+    authenticatorCodeDurationSeconds: 30,
   },
   concepts: {
     mfa: {
@@ -334,7 +337,8 @@ export const s14MfaContent = {
         qrDropLabel: 'Handy hierher ziehen, um den QR-Code zu scannen',
         qrScannedLabel: 'QR-Code gescannt',
         codeTitle: '2. Bestätigungscode eingeben',
-        codeDescription: 'Übernimm den sechsstelligen Code aus der Authenticator-App.',
+        codeDescription:
+          'Tippe den sechsstelligen Code aus der Authenticator-App in die sechs Felder ein.',
         activateAction: '2FA aktivieren',
         activatedNotice:
           'Bei der nächsten Anmeldung fragt Master Campus zusätzlich nach einem Code aus der Authenticator-App.',
@@ -344,10 +348,15 @@ export const s14MfaContent = {
         scannerTitle: 'QR-Code scannen',
         scannerInstruction: 'Positioniere den QR-Code im Rahmen',
         scanAction: 'Handy auf den QR-Code ziehen',
-        phoneAriaLabel: 'Handy mit geöffneter Authenticator-App',
+        recognizingStatus: 'QR-Code wird erkannt …',
+        scanConfirmedStatus: 'QR-Code erkannt',
+        movePhoneAction: 'Handy mit den Pfeiltasten oder durch Ziehen bewegen',
         accountLabel: 'Master Campus',
         accountIdentifier: 'campus-konto',
-        useCodeAction: 'Code für Master Campus übernehmen',
+        countdownLabel: (seconds: number) =>
+          seconds === 1
+            ? '1 Sekunde bis zum nächsten Bestätigungscode'
+            : `${seconds} Sekunden bis zum nächsten Bestätigungscode`,
         codes: ['382714', '604291', '157830'],
       },
       login: {
@@ -359,25 +368,20 @@ export const s14MfaContent = {
         helpLabel: 'Hilfe',
         languageLabel: 'DE',
         usernameLabel: 'Benutzername',
-        usernameFallback: 'Campus-Konto',
         passwordLabel: 'Passwort',
-        automaticStatus: 'Passwortmanager füllt automatisch aus',
-        filledStatus: 'automatisch ausgefüllt',
-        maskedPassword: '••••••••••••',
+        showPasswordLabel: 'Passwort anzeigen',
+        hidePasswordLabel: 'Passwort verbergen',
         secondFactorTitle: 'Bestätigungscode eingeben',
         secondFactorDescription:
           'Gib den sechsstelligen Code ein, der in deiner Authenticator-App angezeigt wird.',
-        emptyCodeLabel: 'Bestätigungscode noch nicht übernommen',
-        codeLabel: (code: string) => `Bestätigungscode ${code}`,
+        codeDigitLabel: (position: number) =>
+          `Bestätigungscode, Stelle ${position} von 6`,
         confirmAction: 'Code bestätigen',
-        backAction: 'Zurück zur Anmeldung',
         successStatus: 'Angemeldet',
       },
       tasks: {
         setupLabel: 'Einrichten',
         loginLabel: 'Anmelden',
-        progressLabel: (current: number, total: number) =>
-          `2FA-Aufgabe: ${current}/${total} Schritte abgeschlossen`,
       },
     },
   },

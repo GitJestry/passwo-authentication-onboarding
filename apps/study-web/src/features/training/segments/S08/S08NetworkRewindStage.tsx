@@ -1780,6 +1780,9 @@ export function S08NetworkRewindStage({
         <div className={styles.stageOverlay}>
           <S14MfaIntroduction
             displayName={displayName}
+            {...(resumeState === undefined
+              ? {}
+              : { masterCampusPassphraseId: resumeState.passphraseIds.masterCampus })}
             platform={platform}
             onComplete={() => send({ type: 'S14_BROWSER_CLOSED' })}
           />

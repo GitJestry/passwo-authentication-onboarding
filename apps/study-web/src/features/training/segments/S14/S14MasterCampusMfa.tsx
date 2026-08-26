@@ -1,11 +1,23 @@
 import { s14MfaContent } from '@passwo/training-content';
-import type { DragEvent, KeyboardEvent, ReactNode, SVGProps } from 'react';
+import { deriveCampusIdentity } from '@passwo/training-engine';
+import {
+  useRef,
+  useState,
+  type KeyboardEvent,
+  type PointerEvent,
+  type ReactNode,
+  type RefObject,
+  type SVGProps,
+} from 'react';
 import { NetworkSymbol } from '../../../../adapters/network/NetworkSymbolRegistry.js';
 import {
   campusDisplayNameInitial,
   CampusWebsiteBackdrop,
   type CampusWebsiteDashboardNavigationItem,
 } from '../../CampusWebsiteBackdrop.js';
+import { PasswordVisibilityIcon } from '../../PasswordVisibilityIcon.js';
+import { SimulatedPasswordInput } from '../../SimulatedPasswordInput.js';
+import s03Styles from '../S03/S03RetrievalTraining.module.css';
 import styles from './S14MasterCampusMfa.module.css';
 
 export type S14MasterCampusPhase =
@@ -13,10 +25,13 @@ export type S14MasterCampusPhase =
   | 'settings'
   | 'security'
   | 'setup-awaiting-scan'
+  | 'setup-recognizing'
+  | 'setup-scan-confirmed'
   | 'setup-scanned'
   | 'setup-code-entered'
   | 'mfa-activated'
   | 'login-autofilling'
+  | 'login-ready'
   | 'second-factor'
   | 'second-factor-code-entered'
   | 'login-success'
@@ -193,7 +208,7 @@ function isFinderArea(x: number, y: number): boolean {
   );
 }
 
-function FictionalQrCode({ compact = false }: { readonly compact?: boolean }) {
+function FictionalQrCode() {
   const modules: ReactNode[] = [];
   for (let y = 0; y < 29; y += 1) {
     for (let x = 0; x < 29; x += 1) {
@@ -210,12 +225,11 @@ function FictionalQrCode({ compact = false }: { readonly compact?: boolean }) {
   }
   return (
     <svg
-      className={compact ? styles.miniQrCode : styles.qrCode}
+      className={styles.qrCode}
       viewBox="-2 -2 33 33"
       shapeRendering="crispEdges"
-      role={compact ? undefined : 'img'}
-      aria-label={compact ? undefined : s14MfaContent.browser.masterCampus.twoFactor.qrCodeLabel}
-      aria-hidden={compact || undefined}
+      role="img"
+      aria-label={s14MfaContent.browser.masterCampus.twoFactor.qrCodeLabel}
     >
       <rect width="33" height="33" x="-2" y="-2" fill="white" />
       <g fill="black">{modules}</g>
@@ -223,24 +237,98 @@ function FictionalQrCode({ compact = false }: { readonly compact?: boolean }) {
   );
 }
 
-function CodeBoxes({ code }: { readonly code: string | null }) {
-  const content = s14MfaContent.browser.masterCampus.login;
-  const digits = code === null ? Array.from({ length: 6 }, () => '') : Array.from(code);
+function VerificationCodeInput({
+  descriptionId,
+  disabled = false,
+  idPrefix,
+  label,
+  value,
+  onChange,
+}: {
+  readonly descriptionId?: string;
+  readonly disabled?: boolean;
+  readonly idPrefix: string;
+  readonly label: string;
+  readonly value: string;
+  readonly onChange: (value: string) => void;
+}) {
+  const inputRefs = useRef<Array<HTMLInputElement | null>>([]);
+  const digits = Array.from({ length: 6 }, (_, index) => value[index] ?? '');
+
+  function focusDigit(index: number): void {
+    inputRefs.current[Math.min(5, Math.max(0, index))]?.focus();
+  }
+
   return (
-    <output
+    <div
       className={styles.codeBoxes}
-      aria-label={code === null ? content.emptyCodeLabel : content.codeLabel(code)}
+      role="group"
+      aria-label={label}
+      aria-describedby={descriptionId}
+      data-guided-highlight={!disabled || undefined}
     >
       {digits.map((digit, index) => (
-        <span data-filled={digit !== '' || undefined} key={index}>{digit}</span>
+        <input
+          key={index}
+          ref={(element) => {
+            inputRefs.current[index] = element;
+          }}
+          id={`${idPrefix}-${index + 1}`}
+          type="text"
+          inputMode="numeric"
+          autoComplete="off"
+          spellCheck={false}
+          maxLength={1}
+          value={digit}
+          data-filled={digit !== '' || undefined}
+          aria-label={s14MfaContent.browser.masterCampus.login.codeDigitLabel(index + 1)}
+          aria-describedby={descriptionId}
+          disabled={disabled}
+          onFocus={(event) => {
+            if (index > value.length) {
+              focusDigit(value.length);
+              return;
+            }
+            event.currentTarget.select();
+          }}
+          onPaste={(event) => event.preventDefault()}
+          onDrop={(event) => event.preventDefault()}
+          onKeyDown={(event) => {
+            if (event.key === 'ArrowLeft') {
+              event.preventDefault();
+              focusDigit(index - 1);
+            } else if (event.key === 'ArrowRight') {
+              event.preventDefault();
+              focusDigit(index + 1);
+            } else if (event.key === 'Backspace' && digit === '' && index > 0) {
+              event.preventDefault();
+              onChange(`${value.slice(0, index - 1)}${value.slice(index)}`);
+              focusDigit(index - 1);
+            }
+          }}
+          onChange={(event) => {
+            const nextDigit = event.currentTarget.value.replace(/\D/gu, '').slice(-1);
+            const nextValue = nextDigit === ''
+              ? `${value.slice(0, index)}${value.slice(index + 1)}`
+              : `${value.slice(0, index)}${nextDigit}${value.slice(index + 1)}`.slice(0, 6);
+            onChange(nextValue);
+            if (nextDigit !== '' && index < 5) focusDigit(index + 1);
+          }}
+        />
       ))}
-    </output>
+    </div>
   );
 }
 
-function PhoneFrame({ children }: { readonly children: ReactNode }) {
+function PhoneFrame({
+  cameraActive,
+  children,
+}: {
+  readonly cameraActive: boolean;
+  readonly children: ReactNode;
+}) {
   return (
-    <div className={styles.phoneFrame}>
+    <div className={styles.phoneFrame} data-camera-active={cameraActive || undefined}>
       <span className={styles.phoneSpeaker} aria-hidden="true" />
       <span className={styles.phoneStatus} aria-hidden="true">
         <b>9:41</b><i>● ● ▰</i>
@@ -251,123 +339,300 @@ function PhoneFrame({ children }: { readonly children: ReactNode }) {
   );
 }
 
-function ScannerScreen() {
+type ScannerStatus = 'scanner' | 'recognizing' | 'confirmed';
+
+function ScannerScreen({ status }: { readonly status: ScannerStatus }) {
   const content = s14MfaContent.browser.masterCampus.authenticator;
   return (
-    <div className={styles.scannerScreen}>
+    <div className={styles.scannerScreen} data-status={status}>
       <strong>‹ <span>{content.scannerTitle}</span></strong>
       <small>{content.scannerInstruction}</small>
-      <span className={styles.scannerFrame}><FictionalQrCode compact /></span>
+      <span className={styles.scannerFrame} aria-hidden="true">
+        {status === 'scanner' ? null : (
+          <span className={styles.scannerFeedback} data-confirmed={status === 'confirmed' || undefined}>
+            <i>{status === 'confirmed' ? '✓' : ''}</i>
+            <b>
+              {status === 'confirmed'
+                ? content.scanConfirmedStatus
+                : content.recognizingStatus}
+            </b>
+          </span>
+        )}
+      </span>
+      {status === 'scanner' ? null : (
+        <span className={styles.scannerLiveStatus} role="status">
+          {status === 'confirmed'
+            ? content.scanConfirmedStatus
+            : content.recognizingStatus}
+        </span>
+      )}
     </div>
   );
 }
 
 function AuthenticatorScreen({
   code,
-  onUseCode,
+  countdownDuration,
+  secondsRemaining,
 }: {
   readonly code: string;
-  readonly onUseCode?: (() => void) | undefined;
+  readonly countdownDuration: number;
+  readonly secondsRemaining: number;
 }) {
   const content = s14MfaContent.browser.masterCampus.authenticator;
-  const codeContent = (
-    <>
-      <span className={styles.authenticatorAccount}>
-        <NetworkSymbol symbolId="master-campus" />
-        <span><strong>{content.accountLabel}</strong><small>{content.accountIdentifier}</small></span>
-      </span>
-      <span className={styles.authenticatorCodeRow}>
-        <strong key={code}>{code.slice(0, 3)} {code.slice(3)}</strong>
-        <i aria-hidden="true">23</i>
-      </span>
-    </>
-  );
+  const countdownCircumference = 2 * Math.PI * 8;
+  const countdownProgress = countdownDuration === 0
+    ? 0
+    : secondsRemaining / countdownDuration;
   return (
     <div className={styles.authenticatorScreen}>
       <span className={styles.authenticatorTitle}>☰ <strong>{content.appTitle}</strong> ＋</span>
-      {onUseCode === undefined ? (
-        <div className={styles.authenticatorEntry}>{codeContent}</div>
-      ) : (
-        <button
-          type="button"
-          className={styles.authenticatorEntry}
-          aria-label={content.useCodeAction}
-          data-guided-highlight="true"
-          onClick={onUseCode}
-        >
-          {codeContent}
-        </button>
-      )}
+      <div className={styles.authenticatorEntry}>
+        <span className={styles.authenticatorAccount}>
+          <NetworkSymbol symbolId="master-campus" />
+          <span>
+            <strong>{content.accountLabel}</strong>
+            <small>{content.accountIdentifier}</small>
+          </span>
+        </span>
+        <span className={styles.authenticatorCodeRow}>
+          <strong key={code}>{code.slice(0, 3)} {code.slice(3)}</strong>
+          <output aria-label={content.countdownLabel(secondsRemaining)}>
+            <svg aria-hidden="true" viewBox="0 0 20 20">
+              <circle className={styles.countdownTrack} cx="10" cy="10" r="8" />
+              <circle
+                className={styles.countdownProgress}
+                cx="10"
+                cy="10"
+                r="8"
+                strokeDasharray={countdownCircumference}
+                strokeDashoffset={countdownCircumference * (1 - countdownProgress)}
+              />
+            </svg>
+            <span>{secondsRemaining}</span>
+          </output>
+        </span>
+      </div>
       <span className={styles.authenticatorNav} aria-hidden="true">▦　◷　⚙</span>
     </div>
   );
 }
 
-function AuthenticatorPhone({
+interface PhoneOffset {
+  readonly x: number;
+  readonly y: number;
+}
+
+interface PhoneDragSession {
+  readonly boundaryRect: DOMRect;
+  readonly phoneRect: DOMRect;
+  readonly pointerId: number;
+  readonly pointerX: number;
+  readonly pointerY: number;
+  readonly startOffset: PhoneOffset;
+}
+
+function boundedDragOffset(
+  session: PhoneDragSession,
+  pointerX: number,
+  pointerY: number,
+): PhoneOffset {
+  const horizontalDelta = Math.min(
+    session.boundaryRect.right - session.phoneRect.right,
+    Math.max(
+      session.boundaryRect.left - session.phoneRect.left,
+      pointerX - session.pointerX,
+    ),
+  );
+  const verticalDelta = Math.min(
+    session.boundaryRect.bottom - session.phoneRect.bottom,
+    Math.max(
+      session.boundaryRect.top - session.phoneRect.top,
+      pointerY - session.pointerY,
+    ),
+  );
+  return {
+    x: session.startOffset.x + horizontalDelta,
+    y: session.startOffset.y + verticalDelta,
+  };
+}
+
+function phoneCameraIntersectsTarget(
+  phoneRect: DOMRect,
+  offsetDelta: PhoneOffset,
+  target: HTMLElement,
+): boolean {
+  const targetRect = target.getBoundingClientRect();
+  const cameraX = phoneRect.left + offsetDelta.x + phoneRect.width * 0.5;
+  const cameraY = phoneRect.top + offsetDelta.y + phoneRect.height * 0.58;
+  return (
+    cameraX >= targetRect.left &&
+    cameraX <= targetRect.right &&
+    cameraY >= targetRect.top &&
+    cameraY <= targetRect.bottom
+  );
+}
+
+function PhoneMoveHandles() {
+  return (
+    <span className={styles.phoneMoveHandles} aria-hidden="true">
+      <i data-side="left">☝</i>
+      <i data-side="right">☝</i>
+    </span>
+  );
+}
+
+export function S14AuthenticatorPhone({
   code,
+  countdownDuration,
+  mode,
   onScan,
-  onUseCode,
-  scanned,
+  qrTargetRef,
+  secondsRemaining,
 }: {
   readonly code: string;
+  readonly countdownDuration: number;
+  readonly mode: 'scanner' | 'recognizing' | 'confirmed' | 'codes';
   readonly onScan?: (() => void) | undefined;
-  readonly onUseCode?: (() => void) | undefined;
-  readonly scanned: boolean;
+  readonly qrTargetRef?: RefObject<HTMLDivElement | null> | undefined;
+  readonly secondsRemaining: number;
 }) {
   const content = s14MfaContent.browser.masterCampus.authenticator;
-  if (!scanned && onScan !== undefined) {
-    return (
-      <div
-        className={`${styles.phone} ${styles.scannablePhone}`}
-        draggable
-        role="button"
-        tabIndex={0}
-        aria-label={content.scanAction}
-        title={content.scanAction}
-        onClick={onScan}
-        onKeyDown={(event: KeyboardEvent<HTMLDivElement>) => {
-          if (event.key !== 'Enter' && event.key !== ' ') return;
-          event.preventDefault();
-          onScan();
-        }}
-        onDragStart={(event: DragEvent<HTMLDivElement>) => {
-          event.dataTransfer.effectAllowed = 'move';
-          event.dataTransfer.setData('text/plain', 's14-authenticator-phone');
-        }}
-      >
-        <PhoneFrame><ScannerScreen /></PhoneFrame>
-      </div>
-    );
+  const dragSessionRef = useRef<PhoneDragSession | null>(null);
+  const scanTriggeredRef = useRef(false);
+  const [offset, setOffset] = useState<PhoneOffset>({ x: 0, y: 0 });
+
+  function scanAtOffset(phoneRect: DOMRect, offsetDelta: PhoneOffset): void {
+    const target = qrTargetRef?.current;
+    if (mode !== 'scanner' || scanTriggeredRef.current || target === null || target === undefined) {
+      return;
+    }
+    if (!phoneCameraIntersectsTarget(phoneRect, offsetDelta, target)) return;
+    scanTriggeredRef.current = true;
+    onScan?.();
   }
+
+  function handlePointerDown(event: PointerEvent<HTMLElement>): void {
+    const boundary = event.currentTarget.closest<HTMLElement>('[data-s14-phone-boundary]');
+    if (boundary === null) return;
+    event.preventDefault();
+    event.currentTarget.setPointerCapture(event.pointerId);
+    dragSessionRef.current = {
+      boundaryRect: boundary.getBoundingClientRect(),
+      phoneRect: event.currentTarget.getBoundingClientRect(),
+      pointerId: event.pointerId,
+      pointerX: event.clientX,
+      pointerY: event.clientY,
+      startOffset: offset,
+    };
+  }
+
+  function handlePointerMove(event: PointerEvent<HTMLElement>): void {
+    const session = dragSessionRef.current;
+    if (session === null || session.pointerId !== event.pointerId) return;
+    const nextOffset = boundedDragOffset(session, event.clientX, event.clientY);
+    setOffset(nextOffset);
+    scanAtOffset(session.phoneRect, {
+      x: nextOffset.x - session.startOffset.x,
+      y: nextOffset.y - session.startOffset.y,
+    });
+  }
+
+  function finishPointerMove(event: PointerEvent<HTMLElement>): void {
+    if (dragSessionRef.current?.pointerId !== event.pointerId) return;
+    dragSessionRef.current = null;
+    if (event.currentTarget.hasPointerCapture(event.pointerId)) {
+      event.currentTarget.releasePointerCapture(event.pointerId);
+    }
+  }
+
+  function handleKeyboardMove(event: KeyboardEvent<HTMLElement>): void {
+    const step = event.shiftKey ? 48 : 24;
+    const delta = event.key === 'ArrowLeft'
+      ? { x: -step, y: 0 }
+      : event.key === 'ArrowRight'
+        ? { x: step, y: 0 }
+        : event.key === 'ArrowUp'
+          ? { x: 0, y: -step }
+          : event.key === 'ArrowDown'
+            ? { x: 0, y: step }
+            : null;
+    if (delta === null) return;
+    const boundary = event.currentTarget.closest<HTMLElement>('[data-s14-phone-boundary]');
+    if (boundary === null) return;
+    event.preventDefault();
+    const phoneRect = event.currentTarget.getBoundingClientRect();
+    const boundaryRect = boundary.getBoundingClientRect();
+    const boundedDelta = {
+      x: Math.min(
+        boundaryRect.right - phoneRect.right,
+        Math.max(boundaryRect.left - phoneRect.left, delta.x),
+      ),
+      y: Math.min(
+        boundaryRect.bottom - phoneRect.bottom,
+        Math.max(boundaryRect.top - phoneRect.top, delta.y),
+      ),
+    };
+    setOffset((current) => ({
+      x: current.x + boundedDelta.x,
+      y: current.y + boundedDelta.y,
+    }));
+    scanAtOffset(phoneRect, boundedDelta);
+  }
+
   return (
-    <section className={styles.phone} aria-label={content.phoneAriaLabel}>
-      <PhoneFrame><AuthenticatorScreen code={code} onUseCode={onUseCode} /></PhoneFrame>
+    <section
+      className={`${styles.phone} ${styles.floatingPhone}`}
+      role="group"
+      tabIndex={0}
+      aria-label={mode === 'scanner' ? content.scanAction : content.movePhoneAction}
+      title={mode === 'scanner' ? content.scanAction : content.movePhoneAction}
+      style={{ transform: `translate3d(${offset.x}px, ${offset.y}px, 0)` }}
+      onKeyDown={handleKeyboardMove}
+      onPointerDown={handlePointerDown}
+      onPointerMove={handlePointerMove}
+      onPointerUp={finishPointerMove}
+      onPointerCancel={finishPointerMove}
+    >
+      <PhoneMoveHandles />
+      <PhoneFrame cameraActive={mode !== 'codes'}>
+        {mode === 'codes' ? (
+          <AuthenticatorScreen
+            code={code}
+            countdownDuration={countdownDuration}
+            secondsRemaining={secondsRemaining}
+          />
+        ) : (
+          <ScannerScreen status={mode} />
+        )}
+      </PhoneFrame>
     </section>
   );
 }
 
 function TwoFactorSetup({
   activated,
-  code,
   codeEntered,
+  codeInput,
   displayName,
   onActivate,
-  onScan,
-  onUseCode,
-  scanned,
+  onCodeInputChange,
+  qrTargetRef,
+  scanMode,
 }: {
   readonly activated: boolean;
-  readonly code: string;
   readonly codeEntered: boolean;
+  readonly codeInput: string;
   readonly displayName: string;
   readonly onActivate: () => void;
-  readonly onScan: () => void;
-  readonly onUseCode: () => void;
-  readonly scanned: boolean;
+  readonly onCodeInputChange: (value: string) => void;
+  readonly qrTargetRef: RefObject<HTMLDivElement | null>;
+  readonly scanMode: 'scanner' | 'recognizing' | 'confirmed' | 'codes';
 }) {
   const content = s14MfaContent.browser.masterCampus.twoFactor;
+  const scanned = scanMode === 'confirmed' || scanMode === 'codes';
   return (
-    <div className={styles.portalPage} data-phone-visible={!activated || undefined}>
+    <div className={styles.portalPage}>
       <PortalHeading
         breadcrumbs={content.breadcrumbs}
         title={content.title}
@@ -392,18 +657,12 @@ function TwoFactorSetup({
             <h2>{content.setupTitle}</h2>
             <p>{content.setupDescription}</p>
             <div
+              ref={qrTargetRef}
               className={styles.qrDropZone}
-              data-guided-highlight={!scanned || undefined}
+              data-guided-highlight={scanMode === 'scanner' || undefined}
+              data-recognizing={scanMode === 'recognizing' || undefined}
               data-scanned={scanned || undefined}
               aria-label={content.qrDropLabel}
-              onDragOver={(event) => {
-                event.preventDefault();
-                event.dataTransfer.dropEffect = 'move';
-              }}
-              onDrop={(event) => {
-                event.preventDefault();
-                if (event.dataTransfer.getData('text/plain') === 's14-authenticator-phone') onScan();
-              }}
             >
               <FictionalQrCode />
               {scanned ? (
@@ -415,8 +674,15 @@ function TwoFactorSetup({
           </article>
           <article className={styles.setupCard}>
             <h2>{content.codeTitle}</h2>
-            <p>{content.codeDescription}</p>
-            <CodeBoxes code={codeEntered ? code : null} />
+            <p id="s14-setup-code-description">{content.codeDescription}</p>
+            <VerificationCodeInput
+              descriptionId="s14-setup-code-description"
+              disabled={scanMode !== 'codes'}
+              idPrefix="s14-setup-code"
+              label={content.codeTitle}
+              value={codeInput}
+              onChange={onCodeInputChange}
+            />
             <button
               type="button"
               className={styles.primaryAction}
@@ -429,17 +695,95 @@ function TwoFactorSetup({
           </article>
         </section>
       )}
-      {activated ? null : (
-        <div className={styles.phoneDock}>
-          <AuthenticatorPhone
-            code={code}
-            scanned={scanned}
-            onScan={onScan}
-            {...(scanned && !codeEntered ? { onUseCode } : {})}
-          />
-        </div>
-      )}
     </div>
+  );
+}
+
+function LoginAutofill({
+  autofilling,
+  displayName,
+  masterCampusPassword,
+  onSubmit,
+}: {
+  readonly autofilling: boolean;
+  readonly displayName: string;
+  readonly masterCampusPassword: string;
+  readonly onSubmit: () => void;
+}) {
+  const content = s14MfaContent.browser.masterCampus.login;
+  const username = deriveCampusIdentity(displayName).masterCampus;
+  const [passwordRevealed, setPasswordRevealed] = useState(false);
+  return (
+    <CampusWebsiteBackdrop
+      accountId="master-campus"
+      interactionLabel={content.description}
+      view="authentication"
+      authenticationTitle={content.title}
+    >
+      <div className={`${s03Styles.relationshipStage} ${styles.authenticationStage}`}>
+        <form
+          className={s03Styles.authCard}
+          data-assisted="true"
+          onSubmit={(event) => {
+            event.preventDefault();
+            if (!autofilling) onSubmit();
+          }}
+        >
+          <label className={s03Styles.usernameLabel} htmlFor="s14-login-username">
+            {content.usernameLabel}
+          </label>
+          <input
+            id="s14-login-username"
+            className={`${s03Styles.usernameInput} ${styles.autofilledInput}`}
+            type="text"
+            autoComplete="off"
+            value={username}
+            readOnly
+            aria-readonly="true"
+          />
+          <label className={s03Styles.passwordLabel} htmlFor="s14-login-password">
+            {content.passwordLabel}
+          </label>
+          <span
+            className={`${s03Styles.passwordInputGroup} ${styles.loginPasswordGroup}`}
+            data-autofill={autofilling ? 'running' : 'ready'}
+          >
+            <SimulatedPasswordInput
+              id="s14-login-password"
+              masked={!passwordRevealed}
+              value={masterCampusPassword}
+              readOnly
+              aria-readonly="true"
+            />
+            <button
+              type="button"
+              className={`${s03Styles.revealButton} ${styles.compactRevealButton}`}
+              aria-label={
+                passwordRevealed
+                  ? content.hidePasswordLabel
+                  : content.showPasswordLabel
+              }
+              aria-pressed={passwordRevealed}
+              onClick={() => setPasswordRevealed((revealed) => !revealed)}
+            >
+              <PasswordVisibilityIcon
+                className={styles.compactRevealIcon}
+                revealed={passwordRevealed}
+              />
+            </button>
+          </span>
+          <div className={s03Styles.buttonRow}>
+            <button
+              type="submit"
+              className={s03Styles.primaryButton}
+              disabled={autofilling}
+            >
+              {content.title}
+            </button>
+          </div>
+        </form>
+      </div>
+    </CampusWebsiteBackdrop>
   );
 }
 
@@ -449,7 +793,7 @@ function MasterCampusPublicHeader() {
     <header className={styles.publicHeader}>
       <span>
         <NetworkSymbol symbolId="master-campus" />
-        <strong>{s14MfaContent.browser.masterCampus.authenticator.accountLabel}</strong>
+        <strong>{content.authenticator.accountLabel}</strong>
       </span>
       <nav aria-label={content.login.publicNavigationAriaLabel}>
         <span>{content.login.helpLabel}</span>
@@ -459,103 +803,102 @@ function MasterCampusPublicHeader() {
   );
 }
 
-function LoginAutofill({ displayName }: { readonly displayName: string }) {
-  const content = s14MfaContent.browser.masterCampus.login;
-  const username = displayName.trim() || content.usernameFallback;
-  return (
-    <div className={styles.publicPage}>
-      <MasterCampusPublicHeader />
-      <main className={styles.loginLayout}>
-        <section className={styles.loginCard} data-autofilling="true" aria-label={content.title}>
-          <span className={styles.loginShield}><PortalIcon kind="shield-lock" /></span>
-          <h1>{content.title}</h1>
-          <p>{content.description}</p>
-          <label><span>{content.usernameLabel}</span><output>{username}</output></label>
-          <label><span>{content.passwordLabel}</span><output>{content.maskedPassword}</output></label>
-          <span className={styles.autofillStatus}><i aria-hidden="true">⌁</i>{content.automaticStatus}</span>
-        </section>
-      </main>
-    </div>
-  );
-}
-
 function SecondFactorLogin({
-  code,
   codeEntered,
+  codeInput,
   onConfirm,
-  onUseCode,
+  onCodeInputChange,
 }: {
-  readonly code: string;
   readonly codeEntered: boolean;
+  readonly codeInput: string;
   readonly onConfirm: () => void;
-  readonly onUseCode: () => void;
+  readonly onCodeInputChange: (value: string) => void;
 }) {
   const content = s14MfaContent.browser.masterCampus.login;
   return (
     <div className={styles.publicPage}>
       <MasterCampusPublicHeader />
       <main className={styles.secondFactorLayout}>
-        <section className={styles.loginCard} aria-label={content.secondFactorTitle}>
+        <form
+          className={styles.loginCard}
+          aria-label={content.secondFactorTitle}
+          onSubmit={(event) => {
+            event.preventDefault();
+            if (codeEntered) onConfirm();
+          }}
+        >
           <span className={styles.loginShield}><PortalIcon kind="shield-lock" /></span>
           <h1>{content.secondFactorTitle}</h1>
-          <p>{content.secondFactorDescription}</p>
-          <CodeBoxes code={codeEntered ? code : null} />
+          <p id="s14-login-code-description" className={styles.secondFactorDescription}>
+            {content.secondFactorDescription}
+          </p>
+          <VerificationCodeInput
+            descriptionId="s14-login-code-description"
+            idPrefix="s14-login-code"
+            label={content.secondFactorTitle}
+            value={codeInput}
+            onChange={onCodeInputChange}
+          />
           <button
-            type="button"
+            type="submit"
             className={styles.primaryAction}
             disabled={!codeEntered}
-            onClick={onConfirm}
           >
             {content.confirmAction}
           </button>
-          <span className={styles.backHint}>← {content.backAction}</span>
-        </section>
-        <div className={styles.loginPhoneDock}>
-          <AuthenticatorPhone
-            code={code}
-            scanned
-            {...(!codeEntered ? { onUseCode } : {})}
-          />
-        </div>
+        </form>
       </main>
     </div>
   );
 }
 
 export function S14MasterCampusMfa({
-  authenticatorCode,
+  authenticatorCodeInput,
   displayName,
+  masterCampusPassword,
   onActivateMfa,
+  onAuthenticatorCodeInputChange,
   onConfirmSecondFactor,
   onOpenOverview,
   onOpenSecurity,
   onOpenSettings,
   onOpenTwoFactor,
-  onScanQrCode,
-  onUseAuthenticatorCode,
+  onSubmitLogin,
   phase,
+  qrTargetRef,
 }: {
-  readonly authenticatorCode: string;
+  readonly authenticatorCodeInput: string;
   readonly displayName: string;
+  readonly masterCampusPassword: string;
   readonly onActivateMfa: () => void;
+  readonly onAuthenticatorCodeInputChange: (value: string) => void;
   readonly onConfirmSecondFactor: () => void;
   readonly onOpenOverview: () => void;
   readonly onOpenSecurity: () => void;
   readonly onOpenSettings: () => void;
   readonly onOpenTwoFactor: () => void;
-  readonly onScanQrCode: () => void;
-  readonly onUseAuthenticatorCode: () => void;
+  readonly onSubmitLogin: () => void;
   readonly phase: S14MasterCampusPhase;
+  readonly qrTargetRef: RefObject<HTMLDivElement | null>;
 }) {
   const content = s14MfaContent.browser.masterCampus;
-  if (phase === 'login-autofilling') return <LoginAutofill displayName={displayName} />;
+  if (phase === 'login-autofilling' || phase === 'login-ready') {
+    return (
+      <LoginAutofill
+        autofilling={phase === 'login-autofilling'}
+        displayName={displayName}
+        masterCampusPassword={masterCampusPassword}
+        onSubmit={onSubmitLogin}
+      />
+    );
+  }
   if (phase === 'second-factor' || phase === 'second-factor-code-entered') {
     return (
       <SecondFactorLogin
-        code={authenticatorCode}
         codeEntered={phase === 'second-factor-code-entered'}
+        codeInput={authenticatorCodeInput}
         onConfirm={onConfirmSecondFactor}
-        onUseCode={onUseAuthenticatorCode}
+        onCodeInputChange={onAuthenticatorCodeInputChange}
       />
     );
   }
@@ -618,13 +961,21 @@ export function S14MasterCampusMfa({
     <CampusWebsiteBackdrop {...sharedBackdropProps}>
       <TwoFactorSetup
         activated={phase === 'mfa-activated'}
-        code={authenticatorCode}
         codeEntered={phase === 'setup-code-entered' || phase === 'mfa-activated'}
+        codeInput={authenticatorCodeInput}
         displayName={displayName}
         onActivate={onActivateMfa}
-        onScan={onScanQrCode}
-        onUseCode={onUseAuthenticatorCode}
-        scanned={phase !== 'setup-awaiting-scan'}
+        onCodeInputChange={onAuthenticatorCodeInputChange}
+        qrTargetRef={qrTargetRef}
+        scanMode={
+          phase === 'setup-awaiting-scan'
+            ? 'scanner'
+            : phase === 'setup-recognizing'
+              ? 'recognizing'
+              : phase === 'setup-scan-confirmed'
+                ? 'confirmed'
+                : 'codes'
+        }
       />
     </CampusWebsiteBackdrop>
   );

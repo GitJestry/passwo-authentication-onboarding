@@ -1,11 +1,13 @@
 import {
+  resolvePredefinedPassphrase,
   s01Content,
   s14MfaContent,
   type S14FactorIconId,
   type S14FactorId,
 } from '@passwo/training-content';
+import type { PredefinedPassphraseId } from '@passwo/contracts';
 import { useMachine } from '@xstate/react';
-import type { SVGProps } from 'react';
+import { useRef, type SVGProps } from 'react';
 import {
   BrowserShell,
   type BrowserShellSnapshot,
@@ -22,6 +24,7 @@ import {
   s14MfaIntroductionMachine,
 } from './S14MfaIntroductionMachine.js';
 import {
+  S14AuthenticatorPhone,
   S14MasterCampusMfa,
   type S14MasterCampusPhase,
 } from './S14MasterCampusMfa.js';
@@ -600,10 +603,13 @@ function masterCampusPhaseFor(
     case 'settings':
     case 'security':
     case 'setup-awaiting-scan':
+    case 'setup-recognizing':
+    case 'setup-scan-confirmed':
     case 'setup-scanned':
     case 'setup-code-entered':
     case 'mfa-activated':
     case 'login-autofilling':
+    case 'login-ready':
     case 'second-factor':
     case 'second-factor-code-entered':
     case 'login-success':
@@ -630,11 +636,14 @@ function masterCampusAddress(phase: S14MasterCampusPhase, dashboardAddress: stri
     case 'security':
       return `${dashboardAddress}/settings/security`;
     case 'setup-awaiting-scan':
+    case 'setup-recognizing':
+    case 'setup-scan-confirmed':
     case 'setup-scanned':
     case 'setup-code-entered':
     case 'mfa-activated':
       return `${dashboardAddress}/settings/security/2fa`;
     case 'login-autofilling':
+    case 'login-ready':
       return content.login.address;
     case 'second-factor':
     case 'second-factor-code-entered':
@@ -645,8 +654,12 @@ function masterCampusAddress(phase: S14MasterCampusPhase, dashboardAddress: stri
 function BrowserLesson({
   activeTabId,
   authenticatorCode,
+  authenticatorCodeInput,
+  authenticatorSecondsRemaining,
   displayName,
+  masterCampusPassword,
   onActivateMfa,
+  onAuthenticatorCodeInputChange,
   onBrowserClosed,
   onConfirmSecondFactor,
   onNext,
@@ -656,17 +669,21 @@ function BrowserLesson({
   onOpenSettings,
   onOpenTwoFactor,
   onScanQrCode,
+  onSubmitLogin,
   onSubmitSearch,
   onTabSelect,
-  onUseAuthenticatorCode,
   onSuccessOverlayComplete,
   phase,
   platform,
 }: {
   readonly activeTabId: S14BrowserTabId;
   readonly authenticatorCode: string;
+  readonly authenticatorCodeInput: string;
+  readonly authenticatorSecondsRemaining: number;
   readonly displayName: string;
+  readonly masterCampusPassword: string;
   readonly onActivateMfa: () => void;
+  readonly onAuthenticatorCodeInputChange: (value: string) => void;
   readonly onBrowserClosed: () => void;
   readonly onConfirmSecondFactor: () => void;
   readonly onNext: () => void;
@@ -676,13 +693,14 @@ function BrowserLesson({
   readonly onOpenSettings: () => void;
   readonly onOpenTwoFactor: () => void;
   readonly onScanQrCode: () => void;
+  readonly onSubmitLogin: () => void;
   readonly onSubmitSearch: () => void;
   readonly onTabSelect: (tabId: S14BrowserTabId) => void;
-  readonly onUseAuthenticatorCode: () => void;
   readonly onSuccessOverlayComplete: () => void;
   readonly phase: S14BrowserPhase;
   readonly platform: DesktopPlatform;
 }) {
+  const qrTargetRef = useRef<HTMLDivElement | null>(null);
   const browser = s14MfaContent.browser;
   const masterCampusContent = browser.masterCampus;
   const masterCampus = s01Content.browser.accounts.find(
@@ -726,23 +744,9 @@ function BrowserLesson({
             : null;
   const loginPhase =
     masterCampusPhase === 'login-autofilling' ||
+    masterCampusPhase === 'login-ready' ||
     masterCampusPhase === 'second-factor' ||
     masterCampusPhase === 'second-factor-code-entered' ||
-    masterCampusPhase === 'login-success' ||
-    masterCampusPhase === 'signed-in';
-  const progressCurrent = masterCampusPhase === null
-    ? null
-    : masterCampusPhase === 'dashboard'
-      ? 0
-      : masterCampusPhase === 'settings' || masterCampusPhase === 'login-autofilling'
-        ? 1
-        : masterCampusPhase === 'security' ||
-            masterCampusPhase === 'second-factor' ||
-            masterCampusPhase === 'second-factor-code-entered'
-          ? 2
-          : 3;
-  const taskComplete =
-    masterCampusPhase === 'mfa-activated' ||
     masterCampusPhase === 'login-success' ||
     masterCampusPhase === 'signed-in';
   const guideVisible = speech !== null || masterCampusPhase !== null;
@@ -791,18 +795,25 @@ function BrowserLesson({
       ? { highlightedTabId: browser.masterCampusTab.id }
       : {}),
     ...(displayName.trim() === '' ? {} : { accountIdentifier: displayName }),
-    ...(phase === 'login-autofilling'
-      ? {
-          passwordManager: {
-            label: masterCampusContent.login.automaticStatus,
-            active: true,
-            interactionEnabled: false,
-            icon: 'key' as const,
-            statusLabel: masterCampusContent.login.filledStatus,
-          },
-        }
-      : {}),
   };
+  const phoneVisible =
+    masterCampusPhase === 'setup-awaiting-scan' ||
+    masterCampusPhase === 'setup-recognizing' ||
+    masterCampusPhase === 'setup-scan-confirmed' ||
+    masterCampusPhase === 'setup-scanned' ||
+    masterCampusPhase === 'setup-code-entered' ||
+    masterCampusPhase === 'mfa-activated' ||
+    masterCampusPhase === 'login-autofilling' ||
+    masterCampusPhase === 'login-ready' ||
+    masterCampusPhase === 'second-factor' ||
+    masterCampusPhase === 'second-factor-code-entered';
+  const phoneMode = masterCampusPhase === 'setup-awaiting-scan'
+    ? 'scanner'
+    : masterCampusPhase === 'setup-recognizing'
+      ? 'recognizing'
+      : masterCampusPhase === 'setup-scan-confirmed'
+        ? 'confirmed'
+        : 'codes';
 
   return (
     <BrowserShell
@@ -819,6 +830,18 @@ function BrowserLesson({
         onTabSelect(tabId);
       }}
       layers={{
+        screen: phoneVisible ? (
+          <div className={styles.phoneScreenLayer} data-s14-phone-boundary>
+            <S14AuthenticatorPhone
+              code={authenticatorCode}
+              countdownDuration={s14MfaContent.timings.authenticatorCodeDurationSeconds}
+              mode={phoneMode}
+              secondsRemaining={authenticatorSecondsRemaining}
+              onScan={onScanQrCode}
+              qrTargetRef={qrTargetRef}
+            />
+          </div>
+        ) : undefined,
         passWo: !guideVisible && phase !== 'login-success' ? undefined : (
           <>
             {phase === 'login-success' ? (
@@ -837,19 +860,6 @@ function BrowserLesson({
                       ? masterCampusContent.tasks.loginLabel
                       : masterCampusContent.tasks.setupLabel
                 }
-                {...(progressCurrent === null
-                  ? {}
-                  : {
-                      progress: {
-                        current: progressCurrent,
-                        total: 3,
-                        label: masterCampusContent.tasks.progressLabel(
-                          progressCurrent,
-                          3,
-                        ),
-                      },
-                    })}
-                taskComplete={taskComplete}
                 helpOpen={speech !== null}
                 helpId="s14-browser-passwo-speech"
                 openHelpLabel={s14MfaContent.guide.openHelpLabel}
@@ -861,7 +871,7 @@ function BrowserLesson({
                   : {})}
                 placement="bottom-left"
                 speechPlacement="right"
-                showTaskStatusWhenSpeaking={masterCampusPhase !== null}
+                showTaskStatus={false}
                 showHelpButton={false}
               />
             )}
@@ -872,17 +882,19 @@ function BrowserLesson({
       {activeTabId === browser.masterCampusTab.id ? (
         masterCampusPhase === null ? null : (
           <S14MasterCampusMfa
-            authenticatorCode={authenticatorCode}
+            authenticatorCodeInput={authenticatorCodeInput}
             displayName={displayName}
+            masterCampusPassword={masterCampusPassword}
             phase={masterCampusPhase}
             onActivateMfa={onActivateMfa}
+            onAuthenticatorCodeInputChange={onAuthenticatorCodeInputChange}
             onConfirmSecondFactor={onConfirmSecondFactor}
             onOpenOverview={onOpenOverview}
             onOpenSecurity={onOpenSecurity}
             onOpenSettings={onOpenSettings}
             onOpenTwoFactor={onOpenTwoFactor}
-            onScanQrCode={onScanQrCode}
-            onUseAuthenticatorCode={onUseAuthenticatorCode}
+            onSubmitLogin={onSubmitLogin}
+            qrTargetRef={qrTargetRef}
           />
         )
       ) : helpVisible ? (
@@ -1062,8 +1074,7 @@ function motionDurations() {
   const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   return {
     ...s14MfaContent.timings,
-    authenticatorCodeCount:
-      s14MfaContent.browser.masterCampus.authenticator.codes.length,
+    authenticatorCodes: s14MfaContent.browser.masterCampus.authenticator.codes,
     ...(reducedMotion
       ? {
           cleanDesktopDurationMs: 0,
@@ -1077,16 +1088,19 @@ function motionDurations() {
 
 export function S14MfaIntroduction({
   displayName = '',
+  masterCampusPassphraseId = 'passphrase-02-hyphen',
   onComplete,
   platform = 'mac',
 }: {
   readonly displayName?: string;
+  readonly masterCampusPassphraseId?: PredefinedPassphraseId;
   readonly onComplete?: (() => void) | undefined;
   readonly platform?: DesktopPlatform;
 }) {
   const [state, send] = useMachine(s14MfaIntroductionMachine, {
     input: motionDurations(),
   });
+  const masterCampusPassword = resolvePredefinedPassphrase(masterCampusPassphraseId);
   const browserPhase: S14BrowserPhase | null = state.matches(
     'browserServiceVariation',
   )
@@ -1107,23 +1121,29 @@ export function S14MfaIntroduction({
                   ? 'security'
                   : state.matches('mfaSetupAwaitingScan')
                     ? 'setup-awaiting-scan'
-                    : state.matches('mfaSetupScanned')
-                      ? 'setup-scanned'
-                      : state.matches('mfaSetupCodeEntered')
-                        ? 'setup-code-entered'
-                        : state.matches('mfaActivated')
-                          ? 'mfa-activated'
-                          : state.matches('loginAutofilling')
-                            ? 'login-autofilling'
-                            : state.matches('secondFactor')
-                              ? 'second-factor'
-                              : state.matches('secondFactorCodeEntered')
-                                ? 'second-factor-code-entered'
-                                : state.matches('loginSuccess')
-                                  ? 'login-success'
-                                  : state.matches('signedIn')
-                                    ? 'signed-in'
-                                    : null;
+                    : state.matches('mfaSetupRecognizing')
+                      ? 'setup-recognizing'
+                      : state.matches('mfaSetupScanConfirmed')
+                        ? 'setup-scan-confirmed'
+                        : state.matches('mfaSetupScanned')
+                          ? 'setup-scanned'
+                          : state.matches('mfaSetupCodeEntered')
+                            ? 'setup-code-entered'
+                            : state.matches('mfaActivated')
+                              ? 'mfa-activated'
+                              : state.matches('loginAutofilling')
+                                ? 'login-autofilling'
+                                : state.matches('loginReady')
+                                  ? 'login-ready'
+                                  : state.matches('secondFactor')
+                                    ? 'second-factor'
+                                    : state.matches('secondFactorCodeEntered')
+                                      ? 'second-factor-code-entered'
+                                      : state.matches('loginSuccess')
+                                        ? 'login-success'
+                                        : state.matches('signedIn')
+                                          ? 'signed-in'
+                                          : null;
   const browserVisible = browserPhase !== null;
   const mfaVisible =
     state.matches('mfa') ||
@@ -1188,7 +1208,10 @@ export function S14MfaIntroduction({
         <BrowserLesson
           activeTabId={state.context.activeTabId}
           authenticatorCode={authenticatorCode}
+          authenticatorCodeInput={state.context.authenticatorCodeInput}
+          authenticatorSecondsRemaining={state.context.authenticatorSecondsRemaining}
           displayName={displayName}
+          masterCampusPassword={masterCampusPassword}
           phase={browserPhase}
           platform={platform}
           onNext={() => send({ type: 'NEXT' })}
@@ -1198,8 +1221,11 @@ export function S14MfaIntroduction({
           onOpenSecurity={() => send({ type: 'OPEN_SECURITY' })}
           onOpenTwoFactor={() => send({ type: 'OPEN_TWO_FACTOR' })}
           onScanQrCode={() => send({ type: 'SCAN_QR_CODE' })}
-          onUseAuthenticatorCode={() => send({ type: 'USE_AUTHENTICATOR_CODE' })}
+          onAuthenticatorCodeInputChange={(value) =>
+            send({ type: 'ENTER_AUTHENTICATOR_CODE', value })
+          }
           onActivateMfa={() => send({ type: 'ACTIVATE_MFA' })}
+          onSubmitLogin={() => send({ type: 'SUBMIT_LOGIN' })}
           onConfirmSecondFactor={() => send({ type: 'CONFIRM_SECOND_FACTOR' })}
           onSuccessOverlayComplete={() => send({ type: 'SUCCESS_OVERLAY_COMPLETE' })}
           onBrowserClosed={() => {
