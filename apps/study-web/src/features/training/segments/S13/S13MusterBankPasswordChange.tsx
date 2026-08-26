@@ -19,6 +19,7 @@ import { AccountSuccessOverlay } from '../../AccountSuccessOverlay.js';
 import { PassWoGuide } from '../../PassWoGuide.js';
 import { passWoSpeechEmphasisFor } from '../../PassWoSpeechEmphasis.js';
 import { PasswordVisibilityIcon } from '../../PasswordVisibilityIcon.js';
+import { SimulatedPasswordInput } from '../../SimulatedPasswordInput.js';
 import sharedStyles from './S13PasswordManagerPractice.module.css';
 import {
   MyShopAppIcon,
@@ -127,11 +128,10 @@ function PasswordControl({
   const visibilityContent = s13PasswordManagerPracticeContent.website;
   return (
     <span className={styles.passwordControl} data-assisted={assisted || undefined}>
-      <input
+      <SimulatedPasswordInput
         id={id}
-        type={revealed ? 'text' : 'password'}
+        masked={!revealed}
         value={value}
-        autoComplete="off"
         spellCheck={false}
         readOnly={readOnly}
         aria-label={label}
@@ -925,10 +925,9 @@ function PasswordUpdatePrompt({
       <div className={sharedStyles.savePromptField}>
         <label htmlFor="s13-bank-update-password">{content.passwordLabel}</label>
         <span className={sharedStyles.savePromptPasswordInput}>
-          <input
+          <SimulatedPasswordInput
             id="s13-bank-update-password"
-            type={passwordRevealed ? 'text' : 'password'}
-            autoComplete="off"
+            masked={!passwordRevealed}
             spellCheck={false}
             readOnly
             value={password}

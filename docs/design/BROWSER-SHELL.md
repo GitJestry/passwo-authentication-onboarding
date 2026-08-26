@@ -100,6 +100,10 @@ fokussierbare Hinweis-Markierung erreicht werden.
   Benutzername oder Passwort darf die lokale Tresorliste unabhängig von der bereits vorhandenen
   Zeichenzahl erneut öffnen; das bloße Verlassen eines vollständig gefüllten Feldes sperrt die
   Anmeldung nicht.
+- Fiktive Passwortwerte verwenden ausschließlich das vorhandene simulierte Eingabefeld. Es
+  maskiert ein normales Textfeld selbst und kennzeichnet es für externe Passwortmanager als
+  nicht zu verwaltenden Trainingswert; native Passwortfelder dürfen die lokalen Übungseinträge
+  nicht als Zugangsdaten des Study-Origins anbieten oder speichern lassen.
 - Der Muster-Bank-Status `Passwort aktualisiert` ist ein zweisekündiger
   Statechart-Zwischenstatus. Der aktualisierte lokale Tresoreintrag bleibt danach für den
   weiteren Übungsablauf wirksam, ohne Eingabewerte zu persistieren.

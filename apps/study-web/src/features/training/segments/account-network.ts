@@ -20,8 +20,14 @@ import type { NetworkPresentationSnapshot } from '../../../adapters/network/Netw
 
 const s02Accounts = s02Content.scene.accounts;
 
+function s02AccountForNodeId(
+  nodeId: string,
+): (typeof s02Accounts)[number] | undefined {
+  return s02Accounts.find(({ id }) => nodeId === id || nodeId.startsWith(`${id}-`));
+}
+
 function s02NodeFor(node: SceneNode): SceneNode | null {
-  const account = s02Accounts.find(({ id }) => node.id === id || node.id.startsWith(`${id}-`));
+  const account = s02AccountForNodeId(node.id);
   if (account === undefined) return null;
   if (node.id === account.id) {
     return { ...node, symbolId: account.symbolId, position: account.position };
@@ -402,16 +408,7 @@ export function createS08ProtectionRiskModelFromResumeState(
 }
 
 function s08AccountIdForNode(nodeId: string): S06AccountId | null {
-  if (nodeId === 'master-campus' || nodeId.startsWith('master-campus-detail-')) {
-    return 'master-campus';
-  }
-  if (nodeId === 'campus-email' || nodeId.startsWith('campus-email-detail-')) {
-    return 'campus-email';
-  }
-  if (nodeId === 'campusgram' || nodeId.startsWith('campusgram-detail-')) {
-    return 'campusgram';
-  }
-  return null;
+  return s02AccountForNodeId(nodeId)?.id ?? null;
 }
 
 export function createS08ProtectionNetwork(

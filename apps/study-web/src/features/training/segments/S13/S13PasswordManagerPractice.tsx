@@ -17,6 +17,7 @@ import { AccountSuccessOverlay } from '../../AccountSuccessOverlay.js';
 import { PassWoGuide } from '../../PassWoGuide.js';
 import { passWoSpeechEmphasisFor } from '../../PassWoSpeechEmphasis.js';
 import { PasswordVisibilityIcon } from '../../PasswordVisibilityIcon.js';
+import { SimulatedPasswordInput } from '../../SimulatedPasswordInput.js';
 import {
   type S13AutofillEntryId,
   s13PasswordManagerPracticeMachine,
@@ -152,10 +153,9 @@ function PasswordField({
       data-filled={assisted || undefined}
       data-autofilling={autofilling || undefined}
     >
-      <input
+      <SimulatedPasswordInput
         id={id}
-        type={revealed ? 'text' : 'password'}
-        autoComplete="off"
+        masked={!revealed}
         spellCheck={false}
         readOnly={onChange === undefined}
         value={value}
@@ -437,10 +437,9 @@ function PasswordSavePrompt({
       <div className={styles.savePromptField}>
         <label htmlFor="s13-save-password">{content.passwordManager.passwordLabel}</label>
         <span className={styles.savePromptPasswordInput}>
-          <input
+          <SimulatedPasswordInput
             id="s13-save-password"
-            type={passwordRevealed ? 'text' : 'password'}
-            autoComplete="off"
+            masked={!passwordRevealed}
             spellCheck={false}
             readOnly
             value={password}

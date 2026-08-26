@@ -75,16 +75,17 @@ Statechart-Schritt auf. Kontopaare ohne aktive Risikobeziehung zeigen bereits ei
 durch ein Schutzschild unterbrochene Verbindung. Wird eine Risikobeziehung durch die
 Passphrasenaktion aufgelöst, nimmt die entsprechende grüne Schutzverbindung ihren Platz ein.
 Beim Start des erneuten Angriffs werden diese grünen Verbindungen kurz ausgeblendet, damit der
-bestehende Angriffsablauf sie anschließend erneut aufbauen kann. Nur lokal schwache Konten sind
-rot betroffen. Ein starkes Konto bleibt trotz einer Wiederverwendungs- oder Ähnlichkeitskante blau
-geschützt, zeigt aber weiterhin die Aktion `Einzigartige Passphrase verwenden`, bis seine Beziehung
-aufgelöst ist. Reduced Motion projiziert unmittelbar denselben fachlichen Endzustand. Campusgram
+bestehende Angriffsablauf sie anschließend erneut aufbauen kann. Eine aktive Passwortbeziehung von
+oder zu Campusgram stellt das andere Konto einschließlich seiner Unterknoten rot betroffen dar.
+Ein ausschließlich lokal leicht zu erratendes Passwort bleibt dagegen mit seinen Unterknoten
+neutral und trägt das Warnlogo auf dem Hauptkonto. Ein starkes Konto ohne aktive Beziehung bleibt
+blau geschützt. Reduced Motion projiziert unmittelbar denselben fachlichen Endzustand. Campusgram
 bleibt in S08 immer im blauen Schutzzustand, weil die sichtbaren Risikokanten ausdrücklich sein
-bereits ersetztes altes Passwort referenzieren. Aktionsknoten behalten unabhängig vom roten oder
-blauen Status dieselbe Hover- und Fokusrückmeldung.
+bereits ersetztes altes Passwort referenzieren. Aktionsknoten behalten unabhängig vom roten,
+neutralen oder blauen Status dieselbe Hover- und Fokusrückmeldung.
 
 Die direkten QA-Einstiege `s08-strong-relations` und `s08-weak-mixed-relations` decken gemeinsam
-starke blaue Beziehungsknoten, rote schwache Knoten, exakte Wiederverwendung, abgeleitete
+rote Beziehungsknoten, neutrale lokale Warnungen, exakte Wiederverwendung, abgeleitete
 Ähnlichkeit und den dauerhaft geschützten Campusgram-Knoten ab.
 
 ## S09-Skalierungsansicht
