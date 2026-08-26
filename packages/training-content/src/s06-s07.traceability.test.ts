@@ -12,19 +12,20 @@ import { S08_NETWORK_REPLAY_CONTENT_VERSION, s08NetworkReplayContent } from './s
 import { S09_PASSWORD_SUMMARY_CONTENT_VERSION, s09PasswordSummaryContent } from './s09.js';
 
 const s06AttackFlowCopyReference =
-  'docs/design/S06-S07-COPY-AUDIT.md#copy-und-ablaufdelta-s06-stabile-what-if-zustaende-und-getrennter-campus-e-mail-uebergang-24-august-2026';
+  'docs/design/S06-S07-COPY-AUDIT.md#copy-delta-s06-erlebnisnahe-konsequenzcopy-26-august-2026';
 const s07EntryCopyReference =
-  'docs/design/S06-S07-COPY-AUDIT.md#copy-delta-s06-s07-eigene-passwoerter-23-august-2026';
+  'docs/design/S06-S07-COPY-AUDIT.md#copy-delta-s07-direkter-abschluss-nach-campusgram-wechsel-26-august-2026';
 const s08CopyReference =
   'docs/design/S08-S09-COPY-AUDIT.md#copy-delta-s08-s09-eigene-passwoerter-23-august-2026';
 const s09CopyReference =
-  'docs/design/S12-COPY-AUDIT.md#folgeauftrag-visual-und-copy-präzisierung-25-august-2026';
+  'docs/design/S08-S09-COPY-AUDIT.md#copy-und-ablaufdelta-s09-dreiteilige-passwortmanager-roadmap-26-august-2026';
 
 describe('S06 transition and S07 passphrase-search copy traceability', () => {
   it('keeps S06 consequence wording aligned with bounded whole-password recognition', () => {
-    expect(S06_CONSEQUENCE_CONTENT_VERSION).toBe('2.49.0');
+    expect(S06_CONSEQUENCE_CONTENT_VERSION).toBe('2.51.0');
     expect(s06ConsequenceContent.source.copyReference).toBe(s06AttackFlowCopyReference);
     expect(s06ConsequenceContent.page.attackStart).toBe('Angriff starten');
+    expect(s06ConsequenceContent.page.connectionCheck).toBe('Verbindung prüfen');
     expect(s06ConsequenceContent.page.finish).toBe('Fertig');
     expect(s06ConsequenceContent.page.localReflection).toEqual({
       passwordLabel: 'Fiktives Passwort',
@@ -45,75 +46,86 @@ describe('S06 transition and S07 passphrase-search copy traceability', () => {
     expect(s06ConsequenceContent.page.replacePassword).toBe('Passwort ersetzen');
     expect(s06ConsequenceContent.modes.hypothetical.overlay).toBe('Was wäre, wenn?');
     expect(s06ConsequenceContent.narrations['s06.incident.campusgram-found'].body).toBe(
-      'Das Campusgram-Passwort ist nun bekannt. Der Angreifer kann dasselbe Passwort und leichte Abwandlungen jetzt auch bei den anderen Konten ausprobieren.',
+      'Beim Campusgram-Datenleck stand das Passwort nicht im Klartext. Unsere Übung konnte es trotzdem ermitteln. Jetzt prüfen wir, ob dasselbe Passwort oder leichte Abwandlungen auch zu den anderen Konten führen.',
     );
     expect(s06ConsequenceContent.narrations['s06.incident.campusgram-blocked'].body).toBe(
-      'Auch wenn das Passwort hier nicht erraten wurde, kann es durch ein Datenleck bekannt werden: etwa wenn es unmittelbar im Klartext offengelegt oder aus unzureichend geschützten Passwortdaten nachträglich ermittelt wird. Schauen wir deshalb, was dann bei den anderen Konten passieren würde.',
+      'Beim Campusgram-Datenleck stand das Passwort nicht im Klartext, und unsere Übung hat es nicht ermittelt. Mit den gestohlenen Passwortdaten kann aber weiter versucht werden, es zu ermitteln. Deshalb schauen wir kurz, was passiert, falls es später bekannt wird.',
     );
     expect(s06ConsequenceContent.narrations['s06.compare.exact-match'].body).toBe(
-      'Dasselbe Passwort kann beim Zielkonto ausprobiert werden.',
+      'Wird dieses Passwort bekannt, kann es auch beim anderen Konto ausprobiert werden.',
     );
+    expect(s06ConsequenceContent.narrations).toMatchObject({
+      's06.compare.derived-variant-match': {
+        body: 'Wird dieses Passwort bekannt, liegt die leichte Abwandlung beim anderen Konto nahe.',
+      },
+      's06.compare.no-derived-path-recognized': {
+        body: 'Die hier geprüften Varianten führen nicht zum anderen Passwort.',
+      },
+    });
     expect(s06ConsequenceContent.narrations['s06.local-reflection.marking-guide']).toEqual({
-      heading: 'Eigene Beobachtung',
-      body: 'Als Übung kannst du auch hier die Muster und persönlichen Angaben markieren die dir auffallen.',
+      heading: 'Master Campus für sich',
+      body: 'Markiere kurz Muster oder persönliche Angaben, die dir im Master-Campus-Passwort auffallen.',
     });
     expect(s06ConsequenceContent.narrations['s06.transition'].body).toBe(
-      'Ein Datenleck kann bei jedem Konto beginnen. Schauen wir deshalb noch von Master Campus aus.',
+      'Ein Datenleck kann bei jedem Konto passieren. Deshalb prüfen wir jetzt Master Campus für sich und seine Verbindung zur Campus E-Mail.',
     );
     expect(s06ConsequenceContent.narrations).toMatchObject({
       's06.perspective.master-campus-found': {
-        body: 'Das Master-Campus-Passwort gilt ebenfalls als gefunden. Prüfen wir, ob es bei Campus E-Mail weiterführt.',
+        body: 'Auch das Master-Campus-Passwort wird in unserer Übung gefunden. Unabhängig davon prüfen wir jetzt seine Verbindung zur Campus E-Mail.',
       },
       's06.perspective.master-campus-exhaustive-found': {
-        body: 'Das Durchprobieren liegt innerhalb der Grenze. Das Master-Campus-Passwort gilt hier als gefunden. Prüfen wir, ob es bei Campus E-Mail weiterführt.',
+        body: 'Das vollständige Durchprobieren findet auch das Master-Campus-Passwort. Jetzt prüfen wir noch seine Verbindung zur Campus E-Mail.',
       },
       's06.perspective.master-campus-blocked': {
-        body: 'Das Durchprobieren liegt außerhalb der Grenze. Das Master-Campus-Passwort gilt hier nicht als gefunden. Für den Vergleich nehmen wir kurz an, es wäre bekannt.',
+        body: 'Das Master-Campus-Passwort wurde hier nicht gefunden. Ob es mit der Campus E-Mail verbunden ist, prüfen wir trotzdem.',
       },
-      's06.transition.master-campus-email-match': {
-        body: 'Zwischen Master Campus und Campus E-Mail wurde dasselbe Passwort oder eine leichte Abwandlung erkannt. Dieser Weg könnte den Angriff auf Campus E-Mail ausweiten.',
+      's06.transition.master-campus-email-exact-match': {
+        body: 'Master Campus und Campus E-Mail verwenden dasselbe Passwort. Wird eines bekannt, kann es auch beim anderen ausprobiert werden.',
+      },
+      's06.transition.master-campus-email-derived-variant-match': {
+        body: 'Die beiden Passwörter sind leicht abgewandelt. Wird eines bekannt, liegt auch die andere Variante nahe.',
       },
       's06.transition.master-campus-email-no-match': {
-        body: 'Zwischen Master Campus und Campus E-Mail wurde hier keine solche Übereinstimmung erkannt. Dieser Weg führt in dieser Übung nicht weiter.',
+        body: 'Zwischen den beiden wurde keine leichte Abwandlung erkannt.',
       },
       's06.transition.campus-email-local-check': {
-        body: 'Schauen wir uns das Campus-E-Mail-Passwort jetzt noch für sich an.',
+        body: 'Zum Schluss prüfen wir das Campus-E-Mail-Passwort noch für sich.',
       },
       's06.local-check.campus-email-found': {
-        heading: 'Lokaler Einzelcheck von Campus E-Mail',
-        body: 'Auch dieses Passwort gilt hier als gefunden. Vom bekannten Passwort führte aber kein direkter Weg zu diesem Konto. Trotzdem sollte jedes Passwort auch für sich schwer zu erraten sein.',
+        heading: 'Campus E-Mail für sich',
+        body: 'Auch das Campus-E-Mail-Passwort wird in unserer Übung gefunden. Es sollte deshalb später ersetzt werden.',
       },
       's06.local-check.campus-email-exhaustive-found': {
-        heading: 'Lokaler Einzelcheck von Campus E-Mail',
-        body: 'Das Durchprobieren liegt innerhalb der Grenze. Auch dieses Passwort gilt hier als gefunden.',
+        heading: 'Campus E-Mail für sich',
+        body: 'Das vollständige Durchprobieren findet auch das Campus-E-Mail-Passwort. Es sollte deshalb später ersetzt werden.',
       },
       's06.local-check.campus-email-blocked': {
-        heading: 'Lokaler Einzelcheck von Campus E-Mail',
-        body: 'Das Durchprobieren liegt außerhalb der Grenze. Dieses Passwort gilt hier nicht als gefunden.',
+        heading: 'Campus E-Mail für sich',
+        body: 'Für sich wurde das Campus-E-Mail-Passwort in unserer Prüfung nicht gefunden.',
       },
     });
     expect(s06ConsequenceContent.narrations['s06.transition.s07']).toEqual({
-      heading: 'Betroffenes Passwort ersetzen',
-      body: 'Ein Datenleck lässt sich nicht immer verhindern. Wird ein Passwort dabei bekannt, sollte es zügig ersetzt werden. Wurde dasselbe oder leicht abgewandelt auch bei anderen Konten verwendet, sollten dort ebenfalls neue, jeweils eigene Passwörter eingesetzt werden. Genau damit beginnen wir jetzt bei Campusgram.',
+      heading: 'Campusgram-Passwort ersetzen',
+      body: 'Das Campusgram-Passwort ersetzen wir jetzt wegen des Datenlecks, unabhängig davon, wie schwer es hier zu erraten war. Die übrigen offenen Punkte beheben wir danach.',
     });
     expect(s06ConsequenceContent.narrations).toMatchObject({
       's06.summary.actual-none': {
-        body: 'Hier bleibt der Angriff auf Campusgram begrenzt. Bei den anderen Konten führen diese Versuche nicht weiter.',
+        body: 'Von Campusgram führt hier weder dasselbe Passwort noch eine leichte Abwandlung zu den anderen Konten.',
       },
       's06.summary.actual-one': {
-        body: 'Bei einem weiteren Konto kann dasselbe Passwort oder eine leichte Abwandlung den Angriff weiterführen. So kann aus einem betroffenen Konto ein zweites werden.',
+        body: 'Von Campusgram führt dasselbe Passwort oder eine leichte Abwandlung zu einem weiteren Konto.',
       },
       's06.summary.actual-both': {
-        body: 'Bei beiden anderen Konten können dasselbe Passwort oder leichte Abwandlungen den Angriff weiterführen. So kann sich ein Datenleck auf mehrere Konten ausweiten.',
+        body: 'Von Campusgram führen dasselbe Passwort oder leichte Abwandlungen zu beiden anderen Konten.',
       },
       's06.summary.hypothetical-none': {
-        body: 'Wäre das Campusgram-Passwort bekannt geworden, wäre der Angriff hier auf Campusgram begrenzt geblieben.',
+        body: 'Falls das Campusgram-Passwort später bekannt wird, bleibt dieser Weg auf Campusgram begrenzt.',
       },
       's06.summary.hypothetical-one': {
-        body: 'Wäre das Campusgram-Passwort bekannt geworden, hätte sich der Angriff auf ein weiteres Konto ausweiten können.',
+        body: 'Falls das Campusgram-Passwort später bekannt wird, ist über dasselbe Passwort oder eine leichte Abwandlung auch ein weiteres Konto gefährdet.',
       },
       's06.summary.hypothetical-both': {
-        body: 'Wäre das Campusgram-Passwort bekannt geworden, hätte sich der Angriff auf beide anderen Konten ausweiten können.',
+        body: 'Falls das Campusgram-Passwort später bekannt wird, sind über dasselbe Passwort oder leichte Abwandlungen auch beide anderen Konten gefährdet.',
       },
     });
     expect(s06ConsequenceContent.comparisonResultLabels).toEqual({
@@ -206,69 +218,34 @@ describe('S06 transition and S07 passphrase-search copy traceability', () => {
   });
 
   it('keeps S07 linked to the passphrase-search browser state', () => {
-    expect(S07_PASSPHRASE_SEARCH_CONTENT_VERSION).toBe('4.20.0');
+    expect(S07_PASSPHRASE_SEARCH_CONTENT_VERSION).toBe('4.23.0');
     expect(s07PassphraseSearchContent.source.copyReference).toBe(
       s07EntryCopyReference,
     );
     expect(s07PassphraseSearchContent.browser.passwordChangeTitle).toBe('Passwort ändern');
+    expect(s07PassphraseSearchContent.browser.campusgramIncidentNotice).toEqual({
+      title: 'Datenleck bei Campusgram',
+      body: 'Bei Campusgram ist eine alte Datei mit gespeicherten Passwortdaten abgeflossen. Das Passwort stand darin nicht im Klartext.',
+      advisory:
+        'Mit diesen Daten können Angreifer trotzdem weiter mögliche Passwörter prüfen. Ändere deshalb dein Campusgram-Passwort.',
+    });
     expect(s07PassphraseSearchContent.guide).toMatchObject({
       methodIntro:
-        'Für das neue Campusgram-Passwort nutzen wir jetzt sechs zufällige, voneinander unabhängige Wörter. Ein Passwort aus mehreren Wörtern nennt man Passphrase.',
+        'Jetzt nutzen wir die Idee von vorhin: sechs zufällige, voneinander unabhängige Wörter. Ein solches Passwort nennt man Passphrase.',
       searchIntro:
-        'Lass dir hier im eingeblendeten Browser eine solche Passphrase generieren und ersetze damit das betroffene Passwort.',
+        'Öffne den neuen Tab und lass dir dort eine Passphrase generieren. Danach setzt du sie bei Campusgram ein.',
       generating: 'Passphrase wird erstellt …',
       mnemonicIntro:
         'Für jetzt musst du sie dir nicht merken. Im Alltag kann eine kleine Geschichte das Erinnern erleichtern.',
       campusgramSuccess:
-        'Das Campusgram-Passwort ist jetzt ersetzt. Das alte Passwort aus dem Datenleck kann dort nicht mehr verwendet werden.',
+        'Das Campusgram-Passwort ist ersetzt. Selbst wenn das alte später aus den gestohlenen Passwortdaten ermittelt wird, funktioniert es dort nicht mehr.',
       remainingPlan:
-        'Du kannst die betroffenen Konten im Netzwerk jetzt direkt mit einer eigenen Passphrase absichern.',
+        'Die übrigen offenen Punkte siehst du gleich wieder im Netzwerk. Verwende dort bei jedem markierten Konto eine eigene Passphrase, bis alle offenen Punkte behoben sind.',
+      nothingOpen: 'Bei den anderen Konten ist hier nichts mehr offen.',
       finishAttack: 'Angriff abschließen',
-      continueAttack: 'Angriff fortsetzen',
+      continueAttack: 'Offene Punkte beheben',
     });
     expect(s07PassphraseSearchContent.guide.mnemonic('Merksatz')).toBe('Beispiel: Merksatz');
-    expect(
-      s07PassphraseSearchContent.guide.accountSummary({
-        masterCampusCampusgram: 'similar',
-        campusEmailCampusgram: 'similar',
-        masterCampusCampusEmail: 'similar',
-        masterCampusEasyToGuess: false,
-        campusEmailEasyToGuess: false,
-      }),
-    ).toBe(
-      'Bei den anderen Konten wird noch dasselbe Passwort oder eine leichte Abwandlung verwendet.',
-    );
-    expect(
-      s07PassphraseSearchContent.guide.accountSummary({
-        masterCampusCampusgram: 'none',
-        campusEmailCampusgram: 'none',
-        masterCampusCampusEmail: 'none',
-        masterCampusEasyToGuess: false,
-        campusEmailEasyToGuess: true,
-      }),
-    ).toBe(
-      'Die anderen Konten verwenden bereits jeweils ein eigenes Passwort. Mindestens eines lässt sich aber noch leicht erraten.',
-    );
-    expect(
-      s07PassphraseSearchContent.guide.accountSummary({
-        masterCampusCampusgram: 'similar',
-        campusEmailCampusgram: 'identical',
-        masterCampusCampusEmail: 'similar',
-        masterCampusEasyToGuess: true,
-        campusEmailEasyToGuess: true,
-      }),
-    ).toBe(
-      'Bei den anderen Konten wird noch dasselbe Passwort oder eine leichte Abwandlung verwendet. Mindestens eines lässt sich außerdem leicht erraten.',
-    );
-    expect(
-      s07PassphraseSearchContent.guide.accountSummary({
-        masterCampusCampusgram: 'none',
-        campusEmailCampusgram: 'none',
-        masterCampusCampusEmail: 'none',
-        masterCampusEasyToGuess: false,
-        campusEmailEasyToGuess: false,
-      }),
-    ).toBe('Die anderen Konten verwenden bereits eigene Passwörter, die sich schwer erraten lassen.');
     expect(s07PassphraseSearchContent.browser.campusgramPasswordChangeCompleted).toEqual({
       title: 'Campusgram-Passwort wurde erfolgreich ersetzt',
       shieldLabels: {
@@ -315,17 +292,17 @@ describe('S06 transition and S07 passphrase-search copy traceability', () => {
       {
         words: ['Plexiglas', 'Dorffest', 'Knirps', 'Monieren', 'Eistee', 'Bergbahn'],
         passWoMnemonic:
-          'Am Plexiglas beim Dorffest steht ein Knirps und beginnt zu monieren, weil sein Eistee in der Bergbahn verschüttet wurde.',
+          'Beim Dorffest moniert ein Knirps am Plexiglas, weil sein Eistee in der Bergbahn verschüttet wurde.',
       },
       {
         words: ['Infekt', 'Festbesuch', 'Textstellen', 'Gehirn', 'Korrumpiert', 'Physik'],
         passWoMnemonic:
-          'Es gab ein Infekt am Festbesuch. Ganz viele Textstellen im Gehirn wurden korrumpiert. Das ist alles Physik.',
+          'Nach dem Festbesuch korrumpiert ein Infekt Textstellen im Gehirn. Das ist offenbar Physik.',
       },
       {
         words: ['Haartracht', 'Sommer', 'Seiltanz', 'Kennwort', 'Mythisch', 'Verfiel'],
         passWoMnemonic:
-          'Eine riesige Haartracht schwankt im Sommer beim Seiltanz. Darin steht ein Kennwort, das mythisch leuchtet und plötzlich verfiel.',
+          'Im Sommer schwankt beim Seiltanz eine Haartracht. Ein Kennwort leuchtete darin mythisch und verfiel.',
       },
       {
         words: [
@@ -337,12 +314,12 @@ describe('S06 transition and S07 passphrase-search copy traceability', () => {
           'Knieprobleme',
         ],
         passWoMnemonic:
-          'Für die Popkultur-Ausstellung in der Wohnsiedlung mache ich Holzarbeiten. Nach einer Drohung werde ich streng ermahnt, wegen meiner Knieprobleme aufzuhören.',
+          'Für Popkultur entstehen Holzarbeiten in der Wohnsiedlung. Nach einer Drohung heißt es streng: Knieprobleme, Schluss.',
       },
       {
         words: ['Nirgendwo', 'Querkommen', 'Finster', 'Appell', 'Ersuchen', 'Bleistift'],
         passWoMnemonic:
-          'Im Nirgendwo versuche ich querzukommen, doch plötzlich wird es finster. Ich höre einen Appell, daraus wird ein Ersuchen, das ich mit einem Bleistift notiere.',
+          'Im Nirgendwo wird es beim Querkommen finster. Einen Appell und ein Ersuchen notiere ich mit Bleistift.',
       },
     ]);
     const selectedCampusgramId = predefinedPassphraseIdFor(0, '.');
@@ -387,7 +364,7 @@ describe('S06 transition and S07 passphrase-search copy traceability', () => {
   });
 
   it('keeps the S09 password summary linked to its password checklist', () => {
-    expect(S09_PASSWORD_SUMMARY_CONTENT_VERSION).toBe('4.8.0');
+    expect(S09_PASSWORD_SUMMARY_CONTENT_VERSION).toBe('4.9.0');
     expect(s09PasswordSummaryContent.source.copyReference).toBe(s09CopyReference);
     expect(s09PasswordSummaryContent.principles).toHaveLength(6);
     expect(
@@ -441,7 +418,11 @@ describe('S06 transition and S07 passphrase-search copy traceability', () => {
     expect(s09PasswordSummaryContent.passwordManagerTransition).toEqual({
       sectionLabel: 'Sektion 2 von 3',
       title: 'Passwortmanager',
-      parts: [{ id: 'password-vault', label: 'Ein Tresor für alle deine Passwörter' }],
+      parts: [
+        { id: 'understand-password-managers', label: 'Passwortmanager verstehen' },
+        { id: 'set-up-new-account', label: 'Neues Konto einrichten' },
+        { id: 'update-existing-account', label: 'Bestehendes Konto umstellen' },
+      ],
       holdDurationMs: 3500,
     });
   });

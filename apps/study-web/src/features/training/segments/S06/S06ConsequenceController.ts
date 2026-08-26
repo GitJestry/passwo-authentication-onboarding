@@ -2202,9 +2202,11 @@ export class S06ConsequenceController {
       const stepIndex = this.#plan.steps.findIndex(({ id }) => id === step.id);
       if (stepIndex < 0 || step.relation === null) return;
       const narrationId: S06NarrationId =
-        step.relation.kind === 'no-derived-path-recognized'
-          ? 's06.transition.master-campus-email-no-match'
-          : 's06.transition.master-campus-email-match';
+        step.relation.kind === 'exact-match'
+          ? 's06.transition.master-campus-email-exact-match'
+          : step.relation.kind === 'derived-variant-match'
+            ? 's06.transition.master-campus-email-derived-variant-match'
+            : 's06.transition.master-campus-email-no-match';
       this.#snapshot = {
         ...this.#snapshot,
         phase: 'awaiting-decision',

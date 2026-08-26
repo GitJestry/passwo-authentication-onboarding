@@ -1,5 +1,48 @@
 # S00--S05 Copy and Interaction Audit
 
+## Copy-Delta S05 Abschlusscopy weiter gestrafft, 26. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 26. August 2026. Die participant-facing Copy vom
+adaptiven Campusgram-Ergebnis bis zum Kontenvergleich wird weiter gekürzt. Die einmalige
+Safety Boundary im unmittelbar vorausgehenden `assessmentIntroduction` bleibt erhalten; die
+Nicht-Fund-Variante wiederholt sie deshalb nicht. Lokale Erratbarkeit und Passwortverbindungen
+bleiben als zwei getrennte Fragen formuliert. Ablauf, Analyse, Visualisierung, Persistenz, Export
+und Timing bleiben unverändert. `S05_CONTENT_VERSION` steigt von `2.135.0` auf `2.136.0`.
+
+| Segment und Text-ID | Quelle | Vorher | Nachher | Primäre Rolle | Grund und Bedeutungsänderung | Interaktionsziel | Hervorhebung |
+|---|---|---|---|---|---|---|---|
+| `S05.freeSearch.application.result.notRecognized` | ausdrücklicher Nutzerwortlaut vom 2026-08-26 | `Keiner der gezeigten Wege trifft das ganze Campusgram-Passwort innerhalb der Übungsgrenze. Deshalb gilt es hier als nicht gefunden, aber das ist kein Sicherheitsnachweis.` | `Keiner der gezeigten Wege trifft das ganze Campusgram-Passwort innerhalb der Übungsgrenze. Deshalb gilt es hier als nicht gefunden.` | Ergebnisfeedback | wiederholt die direkt zuvor erklärte Safety Boundary nicht; keine Bedeutungsänderung | bestehendes `Weiter` | bestehendes `gefunden` |
+| `S05.freeSearch.application.length.belowOrientation` | ausdrücklicher Nutzerwortlaut vom 2026-08-26 | `Zur Einordnung: Mit [Anzahl] Zeichen liegt das Campusgram-Passwort unter der Orientierung von mindestens 15 Zeichen für selbst gewählte Passwörter.` | `Mit [Anzahl] Zeichen liegt es unter der 15-Zeichen-Orientierung für selbst gewählte Passwörter.` | Ergebnisfeedback | entfernt Einleitungs- und Kontonamenwiederholung bei unveränderter Orientierung; nein | bestehendes `Weiter` | keine neue; Visualisierung unverändert |
+| `S05.freeSearch.application.length.reachesOrientation` | ausdrücklicher Nutzerwortlaut vom 2026-08-26 | `Zur Einordnung: Mit [Anzahl] Zeichen erreicht das Campusgram-Passwort die Orientierung von mindestens 15 Zeichen für selbst gewählte Passwörter.` | `Mit [Anzahl] Zeichen erreicht es die 15-Zeichen-Orientierung für selbst gewählte Passwörter.` | Ergebnisfeedback | entfernt Einleitungs- und Kontonamenwiederholung bei unveränderter Orientierung; nein | bestehendes `Weiter` | keine neue; Visualisierung unverändert |
+| `S05.freeSearch.application.reuseTakeaway` | ausdrücklicher Nutzerwortlaut vom 2026-08-26 | `Damit ist die Prüfung dieses Passworts abgeschlossen. Jetzt kommt eine zweite Frage: Wird dasselbe Passwort bei anderen Konten verwendet oder nur leicht abgewandelt?` | `Das Passwort selbst ist damit geprüft. Jetzt schauen wir, ob bei anderen Konten dasselbe Passwort oder eine leichte Abwandlung verwendet wird.` | Mechanismuserklärung | trennt die abgeschlossene lokale Frage natürlich von der folgenden Verbindungsfrage; begrenzt | bestehendes `Weiter` | keine neue; Relationsvisualisierung unverändert |
+
+`S05.freeSearch.application.assessmentIntroduction`, die vier Fundvarianten,
+`attackerTakeaway`, die Aktion `Andere Konten prüfen` und alle übrigen S05-Texte bleiben
+unverändert. Geschützte Formulierungen bleiben unverändert.
+
+## Copy-Delta S05 Abschluss zur Kontoprüfung, 26. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 26. August 2026 nach Abschluss des Trainings.
+Der Wortlaut am Ende von S05 wird gestrafft, ohne die bestehende Prüf- oder Szenenlogik zu
+ändern. Der zuvor angekündigte Passphrase-Schritt erhält vor der Abschlussbewertung eine kurze
+Brücke. Die Abschlussbewertung erklärt nur noch die für die Entscheidung nötige Übungsgrenze;
+die bereits praktisch gezeigten internen Kandidatenwege werden nicht erneut vollständig
+aufgezählt. Danach trennt der Text ausdrücklich zwei Fragen: erst die lokale Einordnung des
+Campusgram-Passworts, dann `dasselbe` beziehungsweise `leicht abgewandelt` zwischen Konten.
+Nicht-Erkennung bleibt ausdrücklich kein Sicherheitsnachweis. Persistenz, Analyse, Animation und
+Studienablauf bleiben unverändert. `S05_CONTENT_VERSION` steigt von `2.134.0` auf `2.135.0`.
+
+| Segment und Text-ID | Copy-Delta | Primäre Rolle | Interaktionsziel | Grund und Bedeutungsgrenze |
+|---|---|---|---|---|
+| `S05.freeSearch.lengthExamples.characterConclusion.passphraseOutlook` | `... schauen wir uns später praktisch an.` → `... probieren wir später praktisch aus.` | Orientierung | Weiter zur Abschlussbewertung | aktive Handlung ankündigen, ohne einen unmittelbaren Sprung zu versprechen |
+| `S05.freeSearch.application.assessmentIntroduction[0..1]` | neue Brücke `Bevor wir dazu kommen ...` plus kurze Definition von `gefunden` innerhalb der Übungsgrenze | Mechanismuserklärung / Safety Boundary | Ergebnis verstehen | verhindert den abrupten Sprung von der Passphrase-Ankündigung zu einer technischen Definition; `nicht gefunden` bleibt begrenzt |
+| `S05.freeSearch.application.result.recognizedValue`, `.recognizedGeneratedCandidate`, `.recognizedSingleAnchorResidual`, `.recognizedExhaustiveSearch`, `.notRecognized` | Ergebnisvarianten auf jeweils einen kurzen, sichtbaren Fundweg reduziert | Ergebnisfeedback | Ergebnis einordnen | wiederholt keine bereits gezeigte Angriffstechnik; technische Entscheidung bleibt unverändert |
+| `S05.freeSearch.application.length.belowOrientation`, `.reachesOrientation` | `Unabhängig davon:` → `Zur Einordnung:` | Orientierung | Längenhinweis einordnen | weniger harter Themenwechsel bei unveränderter 15-Zeichen-Orientierung |
+| `S05.freeSearch.application.reuseTakeaway` | lokale Prüfung wird ausdrücklich abgeschlossen; anschließend zweite Frage nach `dasselbe` oder `leicht abgewandelt` | Mechanismuserklärung | Kontenvergleich vorbereiten | trennt lokale Erratbarkeit von kontoübergreifender Verbindung |
+| `S05.freeSearch.application.attackerTakeaway` | `herausgefunden` → `bekannt` | Konsequenz | `Andere Konten prüfen` | umfasst sowohl Erraten als auch späteres Bekanntwerden durch einen Vorfall, ohne die Ursache vorwegzunehmen |
+
+Geschützte Formulierungen bleiben unverändert.
+
 ## Copy-Delta S04 direkter Campusgram-Passworthinweis, 24. August 2026
 
 Quelle ist der ausdrückliche Nutzerauftrag vom 24. August 2026. Der Beratungssatz im

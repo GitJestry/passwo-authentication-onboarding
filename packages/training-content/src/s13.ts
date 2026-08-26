@@ -1,13 +1,13 @@
 import type { TrainingSectionId } from '@passwo/contracts';
 import { s12PasswordManagerContent } from './s12.js';
 
-export const S13_PASSWORD_MANAGER_PRACTICE_CONTENT_VERSION = '4.6.0';
+export const S13_PASSWORD_MANAGER_PRACTICE_CONTENT_VERSION = '4.7.0';
 
 export const s13PasswordManagerPracticeContent = {
   version: S13_PASSWORD_MANAGER_PRACTICE_CONTENT_VERSION,
   source: {
     revision:
-      'Nutzerauftrag vom 2026-08-26 · gekürzte Systemwahleinordnung und statische Master-Campus-Unterkanten',
+      'Nutzerauftrag vom 2026-08-26 · zweiteilige MFA-Übergangsroadmap',
     copyReference: 'docs/design/S13-COPY-AUDIT.md',
   },
   segment: {
@@ -287,8 +287,12 @@ export const s13PasswordManagerPracticeContent = {
           title: 'Multi-Faktor-Authentifizierung',
           parts: [
             {
-              id: 'multi-factor-authentication',
-              label: 'Multi-Faktor-Authentifizierung',
+              id: 'distinguish-factors',
+              label: 'Faktoren unterscheiden',
+            },
+            {
+              id: 'set-up-two-factor-authentication',
+              label: '2FA einrichten',
             },
           ],
           holdDurationMs: 3500,

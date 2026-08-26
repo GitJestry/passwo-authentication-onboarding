@@ -242,7 +242,7 @@ const s08Machine = setup({
         { guard: 'startsAtS17', target: 's17HowTo' },
         { guard: 'startsAtS16', target: 's16Effort' },
         { guard: 'startsAtS15', target: 's15ResultCelebration' },
-        { guard: 'startsAtS14', target: 's14' },
+        { guard: 'startsAtS14', target: 'conclusionMfaSectionTransition' },
         {
           guard: 'startsAtS13Conclusion',
           target: 'conclusionRemainingAccountsIntro',
@@ -250,7 +250,7 @@ const s08Machine = setup({
         { guard: 'startsAtS13Campusgram', target: 'managerPracticeCampusgram' },
         { guard: 'startsAtS13Bank', target: 'managerPracticeBank' },
         { guard: 'startsAtS13Network', target: 'managerPracticeNetworkReturn' },
-        { guard: 'startsAtS13', target: 'managerPractice' },
+        { guard: 'startsAtS13', target: 'managerNewAccountTransition' },
         { guard: 'startsAtS12', target: 'managerTransition' },
         { guard: 'startsAtManager', target: 'managerTransition' },
         { guard: 'startsAtS11', target: 's09Expansion' },
@@ -319,7 +319,11 @@ const s08Machine = setup({
     },
     managerLesson: {
       tags: ['manager'],
-      on: { OPEN_BROWSER: { target: 'managerPractice' } },
+      on: { OPEN_BROWSER: { target: 'managerNewAccountTransition' } },
+    },
+    managerNewAccountTransition: {
+      tags: ['manager', 'expanded'],
+      on: { TRANSITION_COMPLETE: { target: 'managerPractice' } },
     },
     managerPractice: {
       tags: ['manager', 'expanded'],
@@ -357,7 +361,11 @@ const s08Machine = setup({
     },
     managerPracticeExistingAccountReplace: {
       tags: ['manager', 'expanded', 's13-network', 's13-existing-account'],
-      on: { OPEN_BROWSER: { target: 'managerPracticeBank' } },
+      on: { OPEN_BROWSER: { target: 'managerExistingAccountTransition' } },
+    },
+    managerExistingAccountTransition: {
+      tags: ['manager', 'expanded', 's13-network'],
+      on: { TRANSITION_COMPLETE: { target: 'managerPracticeBank' } },
     },
     managerPracticeBank: {
       tags: ['manager', 'expanded'],
@@ -794,9 +802,11 @@ export function S08NetworkRewindStage({
         ? 'S11'
         : state.matches('managerTransition') || state.matches('managerLesson')
           ? 'S12'
-          : state.matches('managerPractice')
+          : state.matches('managerNewAccountTransition') ||
+              state.matches('managerPractice') ||
+              state.matches('managerExistingAccountTransition')
             ? 'S13'
-            : state.matches('s14')
+            : state.matches('conclusionMfaSectionTransition') || state.matches('s14')
               ? 'S14'
               : state.matches('s15ResultCelebration') ||
                   state.matches('s15PasswordAlone') ||
@@ -1094,6 +1104,7 @@ export function S08NetworkRewindStage({
         state.matches('passWoSolution') ||
         state.matches('managerTransition') ||
         state.matches('managerLesson') ||
+        state.matches('managerNewAccountTransition') ||
         state.matches('managerPractice') ||
         state.matches('managerPracticeBank')
       ) {
@@ -1231,6 +1242,7 @@ export function S08NetworkRewindStage({
     state.matches('passWoSolution') ||
     state.matches('managerTransition') ||
     state.matches('managerLesson') ||
+    state.matches('managerNewAccountTransition') ||
     state.hasTag('s13-network');
   const scalingFindingTagsVisible =
     scalingFindingsVisible && !state.hasTag('s13-network');
@@ -1528,7 +1540,14 @@ export function S08NetworkRewindStage({
     onComplete?.();
   }, [onComplete, state]);
 
-  const managerTransitionVisible = state.matches('managerTransition');
+  const passwordManagerTransitionPart = state.matches('managerTransition')
+    ? 1
+    : state.matches('managerNewAccountTransition')
+      ? 2
+      : state.matches('managerExistingAccountTransition')
+        ? 3
+        : null;
+  const managerTransitionVisible = passwordManagerTransitionPart !== null;
   const managerPracticeVisible = state.matches('managerPractice');
   const bankPracticeVisible = state.matches('managerPracticeBank');
   const campusgramPracticeVisible = state.matches('managerPracticeCampusgram');
@@ -2051,7 +2070,7 @@ export function S08NetworkRewindStage({
         ) : null}
         </DesktopSurface>
       </section>
-      {managerTransitionVisible ? (
+      {passwordManagerTransitionPart !== null ? (
         <div className={styles.stageOverlay}>
           <SectionTransition
             sectionLabel={s09PasswordSummaryContent.passwordManagerTransition.sectionLabel}
@@ -2059,7 +2078,7 @@ export function S08NetworkRewindStage({
             currentSection={2}
             totalSections={3}
             parts={s09PasswordSummaryContent.passwordManagerTransition.parts}
-            currentPart={1}
+            currentPart={passwordManagerTransitionPart}
             holdDurationMs={s09PasswordSummaryContent.passwordManagerTransition.holdDurationMs}
             onComplete={() => send({ type: 'TRANSITION_COMPLETE' })}
           />

@@ -4,16 +4,16 @@ import { S05_CONTENT_VERSION, s05Content } from './s05.js';
 
 describe('S05 content traceability', () => {
   it('keeps the participant copy bounded and separate from internal terminology', () => {
-    expect(S05_CONTENT_VERSION).toBe('2.134.0');
+    expect(S05_CONTENT_VERSION).toBe('2.136.0');
     expect(s05Content.source).toMatchObject({
       document: 'research/private/training-script.pdf',
       internalPages: [
         12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34,
         35,
       ],
-      revision: 'Userauftrag vom 2026-08-24 · Passwortbeziehungen visuell gegenübergestellt',
+      revision: 'Userauftrag vom 2026-08-26 · Abschlusscopy weiter gestrafft',
       copyReference:
-        'docs/design/S00-S05-COPY-AUDIT.md#copy-und-darstellungsdelta-s05-zwei-passwortbeziehungen-24-august-2026',
+        'docs/design/S00-S05-COPY-AUDIT.md#copy-delta-s05-abschlusscopy-weiter-gestrafft-26-august-2026',
     });
     expect(s05Content.segment.id).toBe('S05');
     expect(s05Content.page.fixtureNotice).toBe(
@@ -459,34 +459,34 @@ describe('S05 content traceability', () => {
         predictability:
           'Zusätzliche Länge kann den Aufwand also stark erhöhen, ohne bestimmte Zeichentypen zu brauchen - aber nur, wenn die neuen Zeichen oder Wörter nicht vorhersehbar sind.',
         passphraseOutlook:
-          'Wie du mit sechs zufälligen Wörtern ein schwer zu erratendes und trotzdem merkbares Passwort erstellst, schauen wir uns später praktisch an.',
+          'Wie du mit sechs zufälligen Wörtern ein schwer zu erratendes und trotzdem merkbares Passwort erstellst, probieren wir später praktisch aus.',
       },
     });
     expect(s05Content.freeSearch.application).toMatchObject({
       assessmentIntroduction: [
-        'Gefunden heißt hier: Eine der gezeigten Strategien erzeugt genau das ganze Passwort innerhalb der Übungsgrenze.',
-        'Dazu werden frühe Kandidaten kombiniert oder typisch verändert. Bleibt neben genau einem Kandidaten ein kurzer Rest, wird nur dieser Rest frei durchprobiert; danach folgt noch das vollständige Durchprobieren. Das Ergebnis ist keine Sicherheitsgarantie.',
+        'Bevor wir dazu kommen, schließen wir erst ab, was die bisherigen Prüfungen für dein Campusgram-Passwort bedeuten.',
+        'Für diese Übung gilt es als gefunden, wenn einer dieser Wege das ganze Passwort innerhalb der Übungsgrenze erzeugt. Nicht gefunden ist kein Sicherheitsnachweis.',
       ],
       result: {
         recognizedValue:
-          'Ein früher Kandidat entspricht genau dem ganzen Campusgram-Passwort. Deshalb gilt es hier als gefunden.',
+          'Ein früher Kandidat trifft genau das ganze Campusgram-Passwort. Deshalb gilt es hier als gefunden.',
         recognizedGeneratedCandidate:
-          'Eine Kombination früher Kandidaten oder eine typische Änderung erzeugt genau das ganze Campusgram-Passwort innerhalb der Übungsgrenze. Deshalb gilt es hier als gefunden.',
+          'Eine Kombination oder typische Änderung trifft genau das ganze Campusgram-Passwort. Deshalb gilt es hier als gefunden.',
         recognizedSingleAnchorResidual:
-          'Ein früher Kandidat deckt einen Teil der Zeichenfolge ab. Der kurze übrige Teil lässt sich innerhalb der Übungsgrenze frei durchprobieren. Deshalb gilt dein Campusgram-Passwort hier als gefunden.',
+          'Ein früher Kandidat plus ein kurzer durchprobierter Rest trifft das ganze Passwort. Deshalb gilt es hier als gefunden.',
         recognizedExhaustiveSearch:
-          'Alle Zeichenfolgen dieses Zeichenraums und dieser Länge liegen innerhalb der Übungsgrenze. Deshalb gilt dein Campusgram-Passwort hier als gefunden.',
+          'Das vollständige Durchprobieren liegt für dieses Passwort innerhalb der Übungsgrenze. Deshalb gilt es hier als gefunden.',
         notRecognized:
-          'Keine der gezeigten Strategien erzeugt das ganze Campusgram-Passwort innerhalb der Übungsgrenze. Deshalb gilt es hier als nicht gefunden. Das ist kein Sicherheitsnachweis.',
+          'Keiner der gezeigten Wege trifft das ganze Campusgram-Passwort innerhalb der Übungsgrenze. Deshalb gilt es hier als nicht gefunden.',
       },
       length: {
         belowOrientation:
-          'Unabhängig davon: Mit [Anzahl] Zeichen liegt das Campusgram-Passwort unter der Orientierung von mindestens 15 Zeichen für selbst gewählte Passwörter.',
+          'Mit [Anzahl] Zeichen liegt es unter der 15-Zeichen-Orientierung für selbst gewählte Passwörter.',
         reachesOrientation:
-          'Unabhängig davon: Mit [Anzahl] Zeichen erreicht das Campusgram-Passwort die Orientierung von mindestens 15 Zeichen für selbst gewählte Passwörter.',
+          'Mit [Anzahl] Zeichen erreicht es die 15-Zeichen-Orientierung für selbst gewählte Passwörter.',
       },
       reuseTakeaway:
-        'Oft wird dasselbe selbst gewählte Passwort für mehrere Konten verwendet oder nur leicht abgewandelt, weil man sich so weniger merken muss.',
+        'Das Passwort selbst ist damit geprüft. Jetzt schauen wir, ob bei anderen Konten dasselbe Passwort oder eine leichte Abwandlung verwendet wird.',
       reuseExamples: [
         {
           id: 'same',
@@ -502,7 +502,7 @@ describe('S05 content traceability', () => {
         },
       ],
       attackerTakeaway:
-        'Wird eines davon herausgefunden, können Angreifer dasselbe Passwort und leichte Abwandlungen auch bei anderen Konten ausprobieren.',
+        'Wird eines davon bekannt, können Angreifer dasselbe Passwort und leichte Abwandlungen auch bei anderen Konten ausprobieren.',
       otherAccountsAction: 'Andere Konten prüfen',
     });
     expect(s05Content.freeSearch.estimate.options).toEqual([12, 13, 14, 15, 16, 17, 18, 19, 20]);

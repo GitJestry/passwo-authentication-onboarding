@@ -1,14 +1,14 @@
 import type { TrainingSectionId } from '@passwo/contracts';
 
-export const S09_PASSWORD_SUMMARY_CONTENT_VERSION = '4.8.0';
+export const S09_PASSWORD_SUMMARY_CONTENT_VERSION = '4.9.0';
 
 export const s09PasswordSummaryContent = {
   version: S09_PASSWORD_SUMMARY_CONTENT_VERSION,
   source: {
     revision:
-      'Userauftrag vom 2026-08-25 · Übergangskarte zum Passwortmanager wiederhergestellt',
+      'Nutzerauftrag vom 2026-08-26 · drei Übergangskarten im Passwortmanager',
     copyReference:
-      'docs/design/S12-COPY-AUDIT.md#folgeauftrag-visual-und-copy-präzisierung-25-august-2026',
+      'docs/design/S08-S09-COPY-AUDIT.md#copy-und-ablaufdelta-s09-dreiteilige-passwortmanager-roadmap-26-august-2026',
   },
   segment: {
     id: 'S09',
@@ -104,7 +104,11 @@ export const s09PasswordSummaryContent = {
   passwordManagerTransition: {
     sectionLabel: 'Sektion 2 von 3',
     title: 'Passwortmanager',
-    parts: [{ id: 'password-vault', label: 'Ein Tresor für alle deine Passwörter' }],
+    parts: [
+      { id: 'understand-password-managers', label: 'Passwortmanager verstehen' },
+      { id: 'set-up-new-account', label: 'Neues Konto einrichten' },
+      { id: 'update-existing-account', label: 'Bestehendes Konto umstellen' },
+    ],
     holdDurationMs: 3500,
   },
 } as const;

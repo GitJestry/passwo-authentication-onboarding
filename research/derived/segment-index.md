@@ -230,7 +230,7 @@ Seitenangaben beziehen sich auf die im Trainingsdokument ausgewiesene interne Pa
   deutsche Wortlistenstapel sichtbar. Länderkarte, Wortlisten-Schätzfrage und Zeichenraum-Analogie
   entfallen; danach folgt direkt die bestehende lokale Campusgram-Auswertung. Die Demonstration
   analysiert oder persistiert keine Eingabe.
-- Die S05-Simulationsdisposition (`S05_CONTENT_VERSION 2.134.0`, Analysekonfiguration
+- Die S05-Simulationsdisposition (`S05_CONTENT_VERSION 2.136.0`, Analysekonfiguration
   `passwo-bounded-whole-recognition-v21`) bleibt auf den vollständigen fiktiven Wert begrenzt:
   `whole-password-recognized` entsteht durch einen direkten Vollwert, eine quellengestützte
   generierte Kandidatenfamilie, genau einen belegten Anker mit frei durchprobiertem Rest oder das
@@ -282,8 +282,8 @@ Seitenangaben beziehen sich auf die im Trainingsdokument ausgewiesene interne Pa
   Campusgram prüft die Beziehungen zu beiden anderen Konten; Master Campus anschließend nur noch
   die im neuen Sprechablauf angekündigte Beziehung zu Campus E-Mail. Nach diesem Vergleich ordnet
   eine bedingte PassWo-Blase die erkannte Verbindung oder die begrenzte Nicht-Erkennung ein. Eine
-  zweite, nicht mehr hypothetisch markierte Blase führt danach mit `Schauen wir uns das
-  Campus-E-Mail-Passwort jetzt noch für sich an.` zum lokalen Campus-E-Mail-Check. Campus E-Mail
+  zweite, nicht mehr hypothetisch markierte Blase führt danach mit `Zum Schluss prüfen wir das
+  Campus-E-Mail-Passwort noch für sich.` zum lokalen Campus-E-Mail-Check. Campus E-Mail
   bildet am Ende ausschließlich
   einen lokalen Einzelcheck; bei einem Fund
   werden seine verbundenen Funktionen betroffen dargestellt, bei Schutz folgt kein
@@ -292,7 +292,8 @@ Seitenangaben beziehen sich auf die im Trainingsdokument ausgewiesene interne Pa
   Inhaltszuordnungen und werden nicht als SSO-Dienste modelliert.
 - Nach der Campus-E-Mail-Perspektive stellt der Controller ohne zusätzliche Rückkehr- oder
   Endübersichtsblase die tatsächliche Campusgram-Ausgangslage wieder her. PassWo führt direkt mit
-  dem neuen Folgenschutz-Satz zu S07.
+  dem wegen des Datenlecks begründeten Campusgram-Passwortwechsel zu S07 und fasst die später zu
+  behebenden lokalen Funde und Passwortverbindungen nur noch als übrige offene Punkte zusammen.
 - Beim Perspektivwechsel zu Master Campus und Campus E-Mail werden die übrigen Knoten zunächst
   ausgeblendet. Das jeweilige fiktive Passwort zeigt automatisch erkannte Kategorien und
   Wiederholungen und nimmt über `Gruppen` beziehungsweise `Struktur` ausschließlich flüchtige
@@ -351,7 +352,7 @@ Seitenangaben beziehen sich auf die im Trainingsdokument ausgewiesene interne Pa
   und schreibt den Kandidaten nach jedem Schritt fort. Erst nach dem vollständigen Zielkandidaten
   erscheinen Ergebnis und Angriffslinie. Ergänzungen und Entfernungen behalten einen sichtbaren
   leeren Gegenwert; Reduced Motion zeigt denselben Endzustand ohne zeitliche Staffelung.
-- `S06_CONSEQUENCE_CONTENT_VERSION 2.49.0` übernimmt die S05-Vollpasswort-Disposition ohne eigene
+- `S06_CONSEQUENCE_CONTENT_VERSION 2.51.0` übernimmt die S05-Vollpasswort-Disposition ohne eigene
   Guess-Schwelle und versioniert zusätzlich die neue Paarvergleichs- und Erklärungsdarstellung.
   Nur `whole-password-recognized` öffnet den tatsächlichen lokalen Vorfallspfad;
   `no-whole-password-recognized` bleibt eine begrenzte Nicht-Erkennung und kein Stärkeurteil.
@@ -394,17 +395,15 @@ Seitenangaben beziehen sich auf die im Trainingsdokument ausgewiesene interne Pa
   abgeleitet. Die in S07 berechnete minimale Kontomenge ist nur eine Empfehlung beziehungsweise
   ein Default und keine Einschränkung der S08-Auswahl. Schutzschild und kurzes Konfetti
   bestätigen jede ausgeführte Aktion, bevor der abschließende Angriffsrücklauf beginnt.
-- Nach dem Campusgram-Wechsel projiziert S07 die lokalen S06-Befunde für die beiden anderen
-  Konten in genau einer gemeinsamen PassWo-Rückmeldung. Sie unterscheidet nur noch, ob mindestens
-  eine erkannte Wiederverwendung oder Ähnlichkeit und ob mindestens ein lokal leicht erratbares
-  Passwort vorliegt. Konkrete Konten und Verbindungen bleiben im Netzwerk sichtbar. Ohne beide
-  Befunde folgt keine zweite Sprechblase; andernfalls verweist sie auf die direkte Absicherung
-  der betroffenen Konten im Netzwerk. Stark und einzigartig eingeordnete Konten bleiben ohne
-  kontoweise Einzelmeldung; nur offene Konten erhalten in S08 eine Schutzaktion. Sind beide
-  bereits stark und einzigartig, beginnt S08 danach unmittelbar mit dem Angriffsrücklauf.
-- `S07_PASSPHRASE_SEARCH_CONTENT_VERSION 4.20.0` beschreibt den zweistufigen
+- Nach dem Campusgram-Wechsel wiederholt S07 die lokalen S06-Befunde und Passwortverbindungen
+  nicht mehr in einer adaptiven Zusammenfassung. Bei weiterem Handlungsbedarf verweist PassWo
+  direkt auf die in S08 markierten Konten und die dort zu verwendenden eigenen Passphrasen. Ohne
+  Handlungsbedarf bestätigt eine kurze Abschlussblase, dass bei den anderen Konten nichts mehr
+  offen ist. Die konkreten Konten und Gründe bleiben im S08-Netzwerk sichtbar; Ermittlung,
+  Empfehlung und Auflösung der offenen Punkte bleiben unverändert.
+- `S07_PASSPHRASE_SEARCH_CONTENT_VERSION 4.23.0` beschreibt den zweistufigen
   Passphraseneinstieg, Datenleckhinweis, lokalen Passwortwechsel, Suchseite, Werkstatt und
-  die kompakte adaptive Kontenzusammenfassung;
+  den direkten adaptiven Abschluss;
   `S08_NETWORK_REPLAY_CONTENT_VERSION 3.8.0` beschreibt die Netzabkürzung und den anschließenden
   bedienbaren Angriffsrücklauf. S01 bis S07 bleiben vollständig flüchtig. Am Eintritt in S08
   werden Passwortwerte und semantische Detailbefunde verworfen; persistierbar ist danach nur der

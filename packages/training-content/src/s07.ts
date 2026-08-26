@@ -3,45 +3,16 @@ import type {
   TrainingSectionId,
 } from '@passwo/contracts';
 
-export const S07_PASSPHRASE_SEARCH_CONTENT_VERSION = '4.20.0';
+export const S07_PASSPHRASE_SEARCH_CONTENT_VERSION = '4.23.0';
 
 export type S07OpenConnectionKind = 'none' | 'similar' | 'identical';
-
-export interface S07AccountSituation {
-  readonly masterCampusCampusgram: S07OpenConnectionKind;
-  readonly campusEmailCampusgram: S07OpenConnectionKind;
-  readonly masterCampusCampusEmail: S07OpenConnectionKind;
-  readonly masterCampusEasyToGuess: boolean;
-  readonly campusEmailEasyToGuess: boolean;
-}
-
-export function summarizeS07AccountSituation(situation: S07AccountSituation): string {
-  const hasSimilarOrIdenticalPassword = [
-    situation.masterCampusCampusgram,
-    situation.campusEmailCampusgram,
-    situation.masterCampusCampusEmail,
-  ].some((connection) => connection !== 'none');
-  const hasEasyToGuessPassword =
-    situation.masterCampusEasyToGuess || situation.campusEmailEasyToGuess;
-
-  if (hasSimilarOrIdenticalPassword && hasEasyToGuessPassword) {
-    return 'Bei den anderen Konten wird noch dasselbe Passwort oder eine leichte Abwandlung verwendet. Mindestens eines lässt sich außerdem leicht erraten.';
-  }
-  if (hasSimilarOrIdenticalPassword) {
-    return 'Bei den anderen Konten wird noch dasselbe Passwort oder eine leichte Abwandlung verwendet.';
-  }
-  if (hasEasyToGuessPassword) {
-    return 'Die anderen Konten verwenden bereits jeweils ein eigenes Passwort. Mindestens eines lässt sich aber noch leicht erraten.';
-  }
-  return 'Die anderen Konten verwenden bereits eigene Passwörter, die sich schwer erraten lassen.';
-}
 
 export const s07PassphraseSearchContent = {
   version: S07_PASSPHRASE_SEARCH_CONTENT_VERSION,
   source: {
-    revision: 'Userauftrag vom 2026-08-23 · sichtbare Texte zu eigenen Passwörtern präzisiert',
+    revision: 'Userauftrag vom 2026-08-26 · direkter Abschluss nach Campusgram-Wechsel',
     copyReference:
-      'docs/design/S06-S07-COPY-AUDIT.md#copy-delta-s06-s07-eigene-passwoerter-23-august-2026',
+      'docs/design/S06-S07-COPY-AUDIT.md#copy-delta-s07-direkter-abschluss-nach-campusgram-wechsel-26-august-2026',
   },
   segment: {
     id: 'S07',
@@ -52,23 +23,29 @@ export const s07PassphraseSearchContent = {
   guide: {
     taskLabel: 'Passphrase erstellen',
     methodIntro:
-      'Für das neue Campusgram-Passwort nutzen wir jetzt sechs zufällige, voneinander unabhängige Wörter. Ein Passwort aus mehreren Wörtern nennt man Passphrase.',
+      'Jetzt nutzen wir die Idee von vorhin: sechs zufällige, voneinander unabhängige Wörter. Ein solches Passwort nennt man Passphrase.',
     searchIntro:
-      'Lass dir hier im eingeblendeten Browser eine solche Passphrase generieren und ersetze damit das betroffene Passwort.',
+      'Öffne den neuen Tab und lass dir dort eine Passphrase generieren. Danach setzt du sie bei Campusgram ein.',
     generating: 'Passphrase wird erstellt …',
     mnemonicIntro:
       'Für jetzt musst du sie dir nicht merken. Im Alltag kann eine kleine Geschichte das Erinnern erleichtern.',
     mnemonic: (sentence: string) => `Beispiel: ${sentence}`,
     campusgramSuccess:
-      'Das Campusgram-Passwort ist jetzt ersetzt. Das alte Passwort aus dem Datenleck kann dort nicht mehr verwendet werden.',
-    accountSummary: summarizeS07AccountSituation,
+      'Das Campusgram-Passwort ist ersetzt. Selbst wenn das alte später aus den gestohlenen Passwortdaten ermittelt wird, funktioniert es dort nicht mehr.',
     remainingPlan:
-      'Du kannst die betroffenen Konten im Netzwerk jetzt direkt mit einer eigenen Passphrase absichern.',
+      'Die übrigen offenen Punkte siehst du gleich wieder im Netzwerk. Verwende dort bei jedem markierten Konto eine eigene Passphrase, bis alle offenen Punkte behoben sind.',
+    nothingOpen: 'Bei den anderen Konten ist hier nichts mehr offen.',
     finishAttack: 'Angriff abschließen',
-    continueAttack: 'Angriff fortsetzen',
+    continueAttack: 'Offene Punkte beheben',
   },
   browser: {
     ariaLabel: 'Fiktive Browseranwendung, Segment S07, Passphrase erstellen',
+    campusgramIncidentNotice: {
+      title: 'Datenleck bei Campusgram',
+      body: 'Bei Campusgram ist eine alte Datei mit gespeicherten Passwortdaten abgeflossen. Das Passwort stand darin nicht im Klartext.',
+      advisory:
+        'Mit diesen Daten können Angreifer trotzdem weiter mögliche Passwörter prüfen. Ändere deshalb dein Campusgram-Passwort.',
+    },
     passwordChangeTitle: 'Passwort ändern',
     campusgramPasswordChangeCompleted: {
       title: 'Campusgram-Passwort wurde erfolgreich ersetzt',
@@ -114,7 +91,7 @@ export const s07PassphraseSearchContent = {
           },
           words: ['Plexiglas', 'Dorffest', 'Knirps', 'Monieren', 'Eistee', 'Bergbahn'],
           passWoMnemonic:
-            'Am Plexiglas beim Dorffest steht ein Knirps und beginnt zu monieren, weil sein Eistee in der Bergbahn verschüttet wurde.',
+            'Beim Dorffest moniert ein Knirps am Plexiglas, weil sein Eistee in der Bergbahn verschüttet wurde.',
         },
         {
           ids: {
@@ -125,7 +102,7 @@ export const s07PassphraseSearchContent = {
           },
           words: ['Infekt', 'Festbesuch', 'Textstellen', 'Gehirn', 'Korrumpiert', 'Physik'],
           passWoMnemonic:
-            'Es gab ein Infekt am Festbesuch. Ganz viele Textstellen im Gehirn wurden korrumpiert. Das ist alles Physik.',
+            'Nach dem Festbesuch korrumpiert ein Infekt Textstellen im Gehirn. Das ist offenbar Physik.',
         },
         {
           ids: {
@@ -136,7 +113,7 @@ export const s07PassphraseSearchContent = {
           },
           words: ['Haartracht', 'Sommer', 'Seiltanz', 'Kennwort', 'Mythisch', 'Verfiel'],
           passWoMnemonic:
-            'Eine riesige Haartracht schwankt im Sommer beim Seiltanz. Darin steht ein Kennwort, das mythisch leuchtet und plötzlich verfiel.',
+            'Im Sommer schwankt beim Seiltanz eine Haartracht. Ein Kennwort leuchtete darin mythisch und verfiel.',
         },
         {
           ids: {
@@ -154,7 +131,7 @@ export const s07PassphraseSearchContent = {
             'Knieprobleme',
           ],
           passWoMnemonic:
-            'Für die Popkultur-Ausstellung in der Wohnsiedlung mache ich Holzarbeiten. Nach einer Drohung werde ich streng ermahnt, wegen meiner Knieprobleme aufzuhören.',
+            'Für Popkultur entstehen Holzarbeiten in der Wohnsiedlung. Nach einer Drohung heißt es streng: Knieprobleme, Schluss.',
         },
         {
           ids: {
@@ -165,7 +142,7 @@ export const s07PassphraseSearchContent = {
           },
           words: ['Nirgendwo', 'Querkommen', 'Finster', 'Appell', 'Ersuchen', 'Bleistift'],
           passWoMnemonic:
-            'Im Nirgendwo versuche ich querzukommen, doch plötzlich wird es finster. Ich höre einen Appell, daraus wird ein Ersuchen, das ich mit einem Bleistift notiere.',
+            'Im Nirgendwo wird es beim Querkommen finster. Einen Appell und ein Ersuchen notiere ich mit Bleistift.',
         },
       ],
     },

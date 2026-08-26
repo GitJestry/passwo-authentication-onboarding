@@ -1,5 +1,18 @@
 # S14 Copy-Audit
 
+## Darstellungs- und Ablaufdelta zweite MFA-Wegmarke, 26. August 2026
+
+Der ausdrückliche Nutzerauftrag vom 26. August 2026 setzt die zweite, in S13 versionierte
+MFA-Wegmarke direkt hinter `S14.guide.distinct` und vor `S14.guide.serviceVariation`. Damit endet
+zuerst die Erklärung der unterschiedlichen Faktorarten; anschließend kündigt die Karte
+`2FA einrichten` die praktische Suche und Aktivierung bei Master Campus an.
+
+Der sichtbare Wortlaut und die Content-Version der Roadmap werden kanonisch in
+`s13PasswordManagerPracticeContent.conclusion.mfa.transition.sectionTransition` geführt. Deshalb
+bleibt `S14_MFA_CONTENT_VERSION 1.7.0` unverändert. Die neue Szene ist reiner flüchtiger
+Statechart-Zustand; Persistenz, Export und der inhaltsfreie S14-Wiederaufnahme-Checkpoint ändern
+sich nicht.
+
 ## S14.0 — MFA und ein zweiter Faktor, 26. August 2026
 
 ### Umfang und Quelle

@@ -79,6 +79,13 @@ export interface CampusgramIncidentNoticeProps {
     | undefined;
   readonly completedVisual?: ReactNode;
   readonly completedVisualClassName?: string | undefined;
+  readonly noticeCopy?:
+    | {
+        readonly title: string;
+        readonly body: string;
+        readonly advisory: string;
+      }
+    | undefined;
 }
 
 export function CampusgramIncidentNotice({
@@ -105,6 +112,7 @@ export function CampusgramIncidentNotice({
   completedCopy,
   completedVisual,
   completedVisualClassName,
+  noticeCopy,
 }: CampusgramIncidentNoticeProps) {
   const inputId = useId();
   const actionRef = useRef<HTMLButtonElement>(null);
@@ -121,6 +129,11 @@ export function CampusgramIncidentNotice({
   const [completed, setCompleted] = useState(false);
   const [usedSimulatedClipboard, setUsedSimulatedClipboard] = useState(false);
   const passwordChange = s04Content.notice.passwordChange;
+  const incidentCopy = noticeCopy ?? {
+    title: s04Content.notice.title,
+    body: s04Content.notice.paragraphs[0],
+    advisory: s04Content.notice.advisory,
+  };
 
   useEffect(() => {
     if (passwordChangeOpen) {
@@ -415,10 +428,10 @@ export function CampusgramIncidentNotice({
         <IncidentIcon />
       </span>
       <div>
-        <h2>{s04Content.notice.title}</h2>
-        <p>{s04Content.notice.paragraphs[0]}</p>
+        <h2>{incidentCopy.title}</h2>
+        <p>{incidentCopy.body}</p>
         {onPasswordChangeOpenChange === undefined ? null : (
-          <p className={styles.advisory}>{s04Content.notice.advisory}</p>
+          <p className={styles.advisory}>{incidentCopy.advisory}</p>
         )}
       </div>
       {onPasswordChangeOpenChange === undefined ? null : (

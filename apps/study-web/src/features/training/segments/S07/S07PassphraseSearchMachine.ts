@@ -244,15 +244,13 @@ export const s07PassphraseSearchMachine = setup({
       on: { NEXT: { target: 'postCampusgramRouting' } },
     },
     postCampusgramRouting: {
-      always: { target: 'remainingRisk' },
+      always: [
+        { guard: 'hasRemainingAccountRisk', target: 'remainingPlan' },
+        { target: 'nothingOpen' },
+      ],
     },
-    remainingRisk: {
-      on: {
-        NEXT: [
-          { guard: 'hasRemainingAccountRisk', target: 'remainingPlan' },
-          { target: 'complete' },
-        ],
-      },
+    nothingOpen: {
+      on: { NEXT: { target: 'complete' } },
     },
     remainingPlan: {
       on: { CONTINUE_ATTACK: { target: 'complete' } },

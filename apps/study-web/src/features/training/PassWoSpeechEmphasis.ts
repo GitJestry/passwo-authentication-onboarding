@@ -166,8 +166,8 @@ const emphasisBySpeechId: Readonly<Record<string, readonly PassWoSpeechEmphasis[
   's05-length-passphrase-outlook': [
     { phrase: 'sechs zufälligen Wörtern', tone: 'accent' },
   ],
-  's05-final-components': [{ phrase: 'gesamte Zeichenfolge', tone: 'accent' }],
-  's05-final-result': [{ phrase: 'gesamte Zeichenfolge', tone: 'warning' }],
+  's05-final-components': [{ phrase: 'ganze Passwort', tone: 'accent' }],
+  's05-final-result': [{ phrase: 'gefunden', tone: 'warning' }],
   's05-final-length': [{ phrase: 'mindestens 15 Zeichen', tone: 'accent' }],
   's05-final-spread': [
     {
@@ -184,11 +184,11 @@ const emphasisBySpeechId: Readonly<Record<string, readonly PassWoSpeechEmphasis[
     },
   ],
   's06.transition.s07': [
-    { phrase: 'zügig ersetzen und für jedes Konto ein eigenes Passwort verwenden', tone: 'accent' },
+    { phrase: 'Das Campusgram-Passwort ersetzen wir jetzt wegen des Datenlecks', tone: 'accent' },
   ],
   's07-campusgram-success': [
     {
-      phrase: 'Das alte Passwort aus dem Datenleck kann dort nicht mehr verwendet werden.',
+      phrase: 'Selbst wenn das alte später aus den gestohlenen Passwortdaten ermittelt wird, funktioniert es dort nicht mehr.',
       tone: 'positive',
     },
   ],

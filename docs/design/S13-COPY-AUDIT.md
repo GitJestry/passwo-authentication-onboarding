@@ -1,5 +1,25 @@
 # S13 Copy-Audit — Ein neues Konto
 
+## Copy- und Ablaufdelta zweiteilige MFA-Roadmap, 26. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 26. August 2026. Die bestehende Übergangskarte
+`Sektion 3 von 3` / `Multi-Faktor-Authentifizierung` erhält zwei Wegmarken. Teil 1 erscheint wie
+bisher vor S14 und kündigt die Unterscheidung der Faktorarten an. Teil 2 erscheint nach dem
+Kerngedanken zu unterschiedlichen Faktoren und vor der praktischen Suche und Einrichtung von 2FA
+bei Master Campus.
+
+Die Karten sind flüchtige Orientierung im Trainings-Statechart. Sie ergänzen weder einen
+Forschungswrite noch einen neuen Wiederaufnahme-Checkpoint; S14 bleibt der einzige inhaltsfreie
+Segment-Checkpoint an dieser Stelle. `S13_PASSWORD_MANAGER_PRACTICE_CONTENT_VERSION` steigt von
+`4.6.0` auf `4.7.0`. Die gemeinsame `SUPPORTIVE_ARTIFACT_VERSION` steigt zusammen mit der
+Passwortmanager-Roadmap von `supportive-s00-s17-1.23.0` auf
+`supportive-s00-s17-1.24.0`.
+
+| Text-ID | Bisher | Neu | Primäre Rolle | Interaktionsziel | Grund und Bedeutungsänderung | Hervorhebung |
+|---|---|---|---|---|---|---|
+| `S13.conclusion.mfa.transition.sectionTransition.parts[0]` | `Multi-Faktor-Authentifizierung` | `Faktoren unterscheiden` | Orientierung | automatischer Übergang zur MFA- und Faktor-Erklärung | benennt den tatsächlichen ersten Lernschritt; begrenzt | aktive Wegmarke |
+| `S13.conclusion.mfa.transition.sectionTransition.parts[1]` | nicht vorhanden | `2FA einrichten` | Orientierung | automatischer Übergang zur praktischen Master-Campus-Aufgabe | grenzt die Konzeptklärung von der Einrichtung ab; ausdrücklich freigegeben | aktive Wegmarke |
+
 ## Quelle und Geltung
 
 Quelle ist der ausdrückliche Nutzerauftrag vom 25. August 2026 für `12.3 – Ein neues Konto`.

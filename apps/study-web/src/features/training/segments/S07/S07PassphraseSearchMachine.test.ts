@@ -7,9 +7,11 @@ import type {
   S06LocalAccountAnalysis,
 } from '@passwo/visualization';
 import { describe, expect, it } from 'vitest';
+import { createActor } from 'xstate';
 import {
   deriveS07AccountFeedback,
   s07RecommendedResolutionAccountIds,
+  s07PassphraseSearchMachine,
 } from './S07PassphraseSearchMachine.js';
 
 type RemainingAccountId = Exclude<S06AccountId, 'campusgram'>;
@@ -86,6 +88,33 @@ function recommendedAccounts(
   return s07RecommendedResolutionAccountIds(deriveS07AccountFeedback(plan));
 }
 
+async function reachCampusgramSuccess(hasRemainingAccountRisk: boolean) {
+  const actor = createActor(s07PassphraseSearchMachine, {
+    input: {
+      generationDelayMs: 0,
+      hasRemainingAccountRisk,
+      passphraseOrder: [0],
+      resultsDelayMs: 0,
+    },
+  });
+  actor.start();
+  actor.send({ type: 'OPEN_CAMPUSGRAM_CHANGE' });
+  actor.send({ type: 'NEXT' });
+  actor.send({ type: 'OPEN_SEARCH_TAB' });
+  actor.send({ type: 'SUBMIT_SEARCH' });
+  await new Promise<void>((resolve) => setTimeout(resolve, 0));
+  actor.send({ type: 'OPEN_GENERATOR' });
+  actor.send({ type: 'GENERATE' });
+  await new Promise<void>((resolve) => setTimeout(resolve, 0));
+  actor.send({ type: 'NEXT' });
+  actor.send({ type: 'COPY', passphrase: 'fiktive-passphrase' });
+  actor.send({ type: 'SELECT_TAB', tabId: 'campusgram' });
+  actor.send({ type: 'PASTE_NEW' });
+  actor.send({ type: 'PASTE_CONFIRM' });
+  actor.send({ type: 'SUBMIT_PASSWORD_CHANGE' });
+  return actor;
+}
+
 describe('S07 password change routing', () => {
   it('recommends every non-Campusgram account connected to Campusgram', () => {
     const plan = routingPlan({
@@ -122,5 +151,25 @@ describe('S07 password change routing', () => {
     });
 
     expect(recommendedAccounts(plan)).toEqual(['campus-email']);
+  });
+
+  it('routes directly to the remaining plan when another account needs action', async () => {
+    const actor = await reachCampusgramSuccess(true);
+
+    actor.send({ type: 'NEXT' });
+
+    expect(actor.getSnapshot().matches('remainingPlan')).toBe(true);
+    actor.stop();
+  });
+
+  it('finishes from the positive completion feedback when nothing remains open', async () => {
+    const actor = await reachCampusgramSuccess(false);
+
+    actor.send({ type: 'NEXT' });
+
+    expect(actor.getSnapshot().matches('nothingOpen')).toBe(true);
+    actor.send({ type: 'NEXT' });
+    expect(actor.getSnapshot().status).toBe('done');
+    actor.stop();
   });
 });

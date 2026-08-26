@@ -29,6 +29,7 @@ type S14MfaIntroductionInput = Omit<
 type S14MfaIntroductionEvent =
   | { readonly type: 'AUTHENTICATOR_TICK' }
   | { readonly type: 'NEXT' }
+  | { readonly type: 'TRANSITION_COMPLETE' }
   | { readonly type: 'SUBMIT_SEARCH' }
   | { readonly type: 'OPEN_HELP' }
   | { readonly type: 'OPEN_OVERVIEW' }
@@ -160,7 +161,10 @@ export const s14MfaIntroductionMachine = setup({
       after: { combinationRevealDuration: { target: 'distinctFactors' } },
     },
     distinctFactors: {
-      on: { NEXT: { target: 'browserServiceVariation' } },
+      on: { NEXT: { target: 'setupTransition' } },
+    },
+    setupTransition: {
+      on: { TRANSITION_COMPLETE: { target: 'browserServiceVariation' } },
     },
     browserServiceVariation: {
       on: { NEXT: { target: 'browserSearchTask' } },

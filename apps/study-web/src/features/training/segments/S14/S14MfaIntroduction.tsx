@@ -1,6 +1,7 @@
 import {
   resolvePredefinedPassphrase,
   s01Content,
+  s13PasswordManagerPracticeContent,
   s14MfaContent,
   type S14FactorIconId,
   type S14FactorId,
@@ -18,6 +19,7 @@ import { NetworkSymbol } from '../../../../adapters/network/NetworkSymbolRegistr
 import { AccountSuccessOverlay } from '../../AccountSuccessOverlay.js';
 import { PassWoGuide } from '../../PassWoGuide.js';
 import { passWoSpeechEmphasisFor } from '../../PassWoSpeechEmphasis.js';
+import { SectionTransition } from '../../SectionTransition.js';
 import searchStyles from '../S07/S07PassphraseSearchTraining.module.css';
 import {
   type S14BrowserTabId,
@@ -1198,6 +1200,24 @@ export function S14MfaIntroduction({
     authenticatorCodes[state.context.authenticatorCodeIndex] ??
     authenticatorCodes[0] ??
     '000000';
+
+  if (state.matches('setupTransition')) {
+    const sectionTransition =
+      s13PasswordManagerPracticeContent.conclusion.mfa.transition.sectionTransition;
+
+    return (
+      <SectionTransition
+        sectionLabel={sectionTransition.sectionLabel}
+        title={sectionTransition.title}
+        currentSection={3}
+        totalSections={3}
+        parts={sectionTransition.parts}
+        currentPart={2}
+        holdDurationMs={sectionTransition.holdDurationMs}
+        onComplete={() => send({ type: 'TRANSITION_COMPLETE' })}
+      />
+    );
+  }
 
   if (browserVisible) {
     return (

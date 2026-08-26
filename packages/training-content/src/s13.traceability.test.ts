@@ -49,7 +49,7 @@ describe('S13 integrated password-manager practice traceability', () => {
   });
 
   it('keeps the rebuilt My Shop landing-page copy in versioned content', () => {
-    expect(s13PasswordManagerPracticeContent.version).toBe('4.6.0');
+    expect(s13PasswordManagerPracticeContent.version).toBe('4.7.0');
     expect(s13PasswordManagerPracticeContent.website.shop.hero).toMatchObject({
       eyebrow: 'Sommer-Sale',
       title: 'Bis zu 40% sparen!',
@@ -225,8 +225,12 @@ describe('S13 integrated password-manager practice traceability', () => {
           title: 'Multi-Faktor-Authentifizierung',
           parts: [
             {
-              id: 'multi-factor-authentication',
-              label: 'Multi-Faktor-Authentifizierung',
+              id: 'distinguish-factors',
+              label: 'Faktoren unterscheiden',
+            },
+            {
+              id: 'set-up-two-factor-authentication',
+              label: '2FA einrichten',
             },
           ],
           holdDurationMs: 3500,

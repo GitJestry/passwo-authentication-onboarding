@@ -1,5 +1,130 @@
 # S06--S07 Copy Audit
 
+## Copy-Delta S07 direkter Abschluss nach Campusgram-Wechsel, 26. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 26. August 2026. Die vier adaptiven
+`accountSummary`-Varianten entfallen als eigene PassWo-Sprechblase, weil S06 die Bedeutung von
+Passwortverbindungen und lokalen Funden bereits erklärt hat und S08 die konkreten offenen Konten
+und Gründe sichtbar markiert. Besteht weiterer Handlungsbedarf, führt S07 nach dem erfolgreichen
+Campusgram-Wechsel direkt zur gemeinsamen Handlungsaufforderung. Ohne Handlungsbedarf bleibt eine
+kurze positive Abschlussrückmeldung. S08, S09, die Ermittlung der empfohlenen Konten und die
+Netzwerklogik bleiben unverändert. `S07_PASSPHRASE_SEARCH_CONTENT_VERSION` steigt von `4.22.0`
+auf `4.23.0`; `SUPPORTIVE_ARTIFACT_VERSION` steigt von `supportive-s00-s17-1.25.0` auf
+`supportive-s00-s17-1.26.0`.
+
+| Segment und Text-ID | Quelle | Vorher | Nachher | Primäre Rolle | Grund und Bedeutungsänderung | Interaktionsziel | Hervorhebung |
+|---|---|---|---|---|---|---|---|
+| `S07.guide.accountSummary` | ausdrücklicher Nutzerauftrag vom 2026-08-26 | vier adaptive Varianten zu offener Passwortverbindung, lokal leicht erratbarem Passwort, beiden Befundarten oder keinem Befund | entfällt vollständig | Ergebnisfeedback | wiederholt die in S06 erklärten Begriffe nicht vor dem erneut sichtbaren Netzwerk; begrenzt | kein | keine |
+| `S07.guide.remainingPlan` | ausdrücklicher Nutzerwortlaut vom 2026-08-26 | `Die übrigen offenen Punkte siehst du gleich wieder im Netzwerk. Verwende dort bei einem markierten Konto eine eigene Passphrase, bis alle offenen Punkte aufgelöst sind.` | `Die übrigen offenen Punkte siehst du gleich wieder im Netzwerk. Verwende dort bei jedem markierten Konto eine eigene Passphrase, bis alle offenen Punkte behoben sind.` | Navigation / Handlungsempfehlung | benennt alle in S08 markierten Konten als Handlungsziele und übernimmt den gewünschten Abschlussbegriff; ausdrücklich freigegeben | bestehendes `Offene Punkte beheben` | keine |
+| `S07.guide.nothingOpen` | ausdrücklicher Nutzerwortlaut vom 2026-08-26 | bisherige No-Finding-Variante `Es wurde keine offene Passwortverbindung und kein leicht erratbares Passwort erkannt.` | `Bei den anderen Konten ist hier nichts mehr offen.` | positives Ergebnisfeedback | kurze Abschlussbestätigung nur ohne offene Verbindung und ohne lokalen Fund bei den anderen Konten; begrenzt | `Weiter` schließt S07 ab und führt über die bestehende Segmentgrenze zu S08 | keine |
+| S07-Abschlussrouting | ausdrücklicher Nutzerauftrag vom 2026-08-26 | nach dem Campusgram-Erfolg immer erst adaptive Zusammenfassung, bei Handlungsbedarf danach zusätzliche Aufforderung | bei Handlungsbedarf direkt `remainingPlan`; andernfalls genau `nothingOpen` | Navigation | entfernt die redundante Zwischenblase, ohne Empfehlungen oder S08-Verhalten zu ändern | `Offene Punkte beheben` beziehungsweise `Weiter` | keine |
+
+Geschützte Formulierungen bleiben unverändert.
+
+## Copy-Delta S06 erlebnisnahe Konsequenzcopy, 26. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 26. August 2026. Die participant-facing
+PassWo-Texte vom Campusgram-Vorfall bis zum S07-Übergang knüpfen nun kürzer an die jeweils gerade
+sichtbare Szene an. Die Grenze von `nicht gefunden` wurde bereits am Ende von S05 erklärt und
+wird nicht in jeder S06-Ergebnisvariante wiederholt. Das nicht im Klartext vorliegende
+Campusgram-Passwort, die Trennung von lokaler Erratbarkeit und Passwortverbindung,
+`dasselbe Passwort` und `leichte Abwandlung`, der mögliche Beginn eines Datenlecks bei jedem
+Konto sowie die später zu behebenden lokalen Funde bleiben erhalten. Ablauf, Zustandsübergänge,
+Visualisierung, Analyse, Persistenz, Export und Timing bleiben unverändert.
+`S06_CONSEQUENCE_CONTENT_VERSION` steigt von `2.50.0` auf `2.51.0`.
+
+| Segment und Text-ID | Quelle | Copy-Delta | Primäre Rolle | Grund und Bedeutungsänderung | Interaktionsziel | Hervorhebung |
+|---|---|---|---|---|---|---|
+| `S06.narrations.s06.incident.campusgram-found` | ausdrücklicher Nutzerwortlaut vom 2026-08-26 | `Beim Campusgram-Datenleck stand das Passwort nicht im Klartext. Unsere Übung konnte es trotzdem ermitteln. Jetzt prüfen wir dasselbe Passwort und leichte Abwandlungen bei den anderen Konten.` → `Beim Campusgram-Datenleck stand das Passwort nicht im Klartext. Unsere Übung konnte es trotzdem ermitteln. Jetzt prüfen wir, ob dasselbe Passwort oder leichte Abwandlungen auch zu den anderen Konten führen.` | Orientierung / Navigation | formuliert die folgende Verbindungsfrage ergebnisoffen; begrenzt | bestehendes `Angriff starten` | keine |
+| `S06.narrations.s06.incident.campusgram-blocked` | ausdrücklicher Nutzerwortlaut vom 2026-08-26 | `Beim Campusgram-Datenleck stand das Passwort nicht im Klartext. Unsere Übung hat es nicht ermittelt. Mit den gestohlenen Passwortdaten können Angreifer aber weiter mögliche Passwörter prüfen. Deshalb betrachten wir kurz den Fall, dass es später bekannt wird.` → `Beim Campusgram-Datenleck stand das Passwort nicht im Klartext, und unsere Übung hat es nicht ermittelt. Mit den gestohlenen Passwortdaten kann aber weiter versucht werden, es zu ermitteln. Deshalb schauen wir kurz, was passiert, falls es später bekannt wird.` | Safety Boundary / Orientierung | hält Nicht-Klartext und möglichen späteren Fund verständlich zusammen, ohne abstrakte Kandidatenlogik; begrenzt | bestehendes `Angriff starten` im sichtbaren What-if-Pfad | keine |
+| `S06.narrations.s06.compare.exact-match` | Nutzerauftrag / vollständige PassWo-Prüfung vom 2026-08-26 | `Das andere Konto verwendet genau dasselbe Passwort. Ein bekanntes Passwort kann dort direkt ausprobiert werden.` → `Wird dieses Passwort bekannt, kann es auch beim anderen Konto ausprobiert werden.` | Konsequenz | wiederholt das sichtbare Ergebnis und die Überschrift `Dasselbe Passwort` nicht; nein | bestehendes `Weiter` | keine |
+| `S06.narrations.s06.compare.derived-variant-match` | Nutzerauftrag / vollständige PassWo-Prüfung vom 2026-08-26 | `Das andere Passwort ist leicht abgewandelt. Nach einem bekannten Passwort werden solche Varianten ebenfalls ausprobiert.` → `Wird dieses Passwort bekannt, liegt die leichte Abwandlung beim anderen Konto nahe.` | Konsequenz | wiederholt das sichtbare Ergebnis und die Überschrift `Leicht abgewandelt` nicht; nein | bestehendes `Weiter` | keine |
+| `S06.narrations.s06.compare.no-derived-path-recognized` | ausdrücklicher Nutzerwortlaut vom 2026-08-26 | `Die hier geprüften Varianten führen nicht zum anderen Passwort. Das ist keine Sicherheitsgarantie.` → `Die hier geprüften Varianten führen nicht zum anderen Passwort.` | Ergebnisfeedback | wiederholt die bereits erklärte Safety Boundary nicht; nein | bestehendes `Weiter` | keine |
+| `S06.narrations.s06.perspective.master-campus-found` | ausdrücklicher Nutzerwortlaut vom 2026-08-26 | `Das Master-Campus-Passwort wird in unserer Übung gefunden. Damit ist es unabhängig von Verbindungen ein offener Punkt. Jetzt prüfen wir noch seine Verbindung zur Campus E-Mail.` → `Auch das Master-Campus-Passwort wird in unserer Übung gefunden. Unabhängig davon prüfen wir jetzt seine Verbindung zur Campus E-Mail.` | Ergebnisfeedback / Navigation | entfernt die abstrakte Wiederholung `offener Punkt`, hält lokale Frage und Verbindung getrennt; nein | bestehendes `Verbindung prüfen` | keine |
+| `S06.narrations.s06.perspective.master-campus-exhaustive-found` | ausdrücklicher Nutzerwortlaut vom 2026-08-26 | `Das Master-Campus-Passwort wird hier durch vollständiges Durchprobieren gefunden. Damit ist es unabhängig von Verbindungen ein offener Punkt. Jetzt prüfen wir noch seine Verbindung zur Campus E-Mail.` → `Das vollständige Durchprobieren findet auch das Master-Campus-Passwort. Jetzt prüfen wir noch seine Verbindung zur Campus E-Mail.` | Ergebnisfeedback / Navigation | entfernt die doppelte Einordnung bei unverändertem lokalen Fund; nein | bestehendes `Verbindung prüfen` | keine |
+| `S06.narrations.s06.perspective.master-campus-blocked` | ausdrücklicher Nutzerwortlaut vom 2026-08-26 | `Das Master-Campus-Passwort wurde hier nicht gefunden. Ob es mit der Campus E-Mail verbunden ist, ist eine andere Frage; für diesen Vergleich nehmen wir kurz an, es wäre bekannt.` → `Das Master-Campus-Passwort wurde hier nicht gefunden. Ob es mit der Campus E-Mail verbunden ist, prüfen wir trotzdem.` | Ergebnisfeedback / Navigation | der vorherige Perspektivwechsel trägt die What-if-Begründung; lokale Frage und Verbindung bleiben getrennt; begrenzt | bestehendes `Verbindung prüfen` | keine |
+| `S06.narrations.s06.transition.master-campus-email-exact-match` | ausdrücklicher Nutzerwortlaut vom 2026-08-26 | `Master Campus und Campus E-Mail verwenden dasselbe Passwort. Wird eines bekannt, kann es direkt beim anderen ausprobiert werden.` → `Master Campus und Campus E-Mail verwenden dasselbe Passwort. Wird eines bekannt, kann es auch beim anderen ausprobiert werden.` | Ergebnisfeedback | natürlichere Folgeformulierung; nein | bestehendes `Weiter` | keine |
+| `S06.narrations.s06.transition.master-campus-email-derived-variant-match` | ausdrücklicher Nutzerwortlaut vom 2026-08-26 | `Die beiden Passwörter sind leicht abgewandelt. Wird eines bekannt, liegt die Variante beim anderen Konto nahe.` → `Die beiden Passwörter sind leicht abgewandelt. Wird eines bekannt, liegt auch die andere Variante nahe.` | Ergebnisfeedback | kürzerer Bezug auf das gerade sichtbare Kontopaar; nein | bestehendes `Weiter` | keine |
+| `S06.narrations.s06.transition.master-campus-email-no-match` | ausdrücklicher Nutzerwortlaut vom 2026-08-26 | `Zwischen den beiden wurde keine leichte Abwandlung erkannt. Diese Verbindung ist hier also kein offener Punkt.` → `Zwischen den beiden wurde keine leichte Abwandlung erkannt.` | Ergebnisfeedback | entfernt die gleichbedeutende Wiederholung; nein | bestehendes `Weiter` | keine |
+| `S06.narrations.s06.transition.campus-email-local-check` | ausdrücklicher Nutzerwortlaut vom 2026-08-26 | `Unabhängig davon prüfen wir jetzt das Campus-E-Mail-Passwort noch für sich.` → `Zum Schluss prüfen wir das Campus-E-Mail-Passwort noch für sich.` | Navigation | ordnet den letzten lokalen Check ohne erneute Abgrenzungsformel ein; nein | bestehendes `Weiter` | keine |
+| `S06.narrations.s06.local-check.campus-email-found` | ausdrücklicher Nutzerwortlaut vom 2026-08-26 | `Das Campus-E-Mail-Passwort wird in unserer Übung gefunden. Damit gibt es unabhängig von Passwortverbindungen einen Grund, es später zu ersetzen.` → `Auch das Campus-E-Mail-Passwort wird in unserer Übung gefunden. Es sollte deshalb später ersetzt werden.` | Ergebnisfeedback / Handlungsempfehlung | bindet die spätere Behebung direkt an den lokalen Fund; nein | bestehendes `Weiter` | keine |
+| `S06.narrations.s06.local-check.campus-email-exhaustive-found` | ausdrücklicher Nutzerwortlaut vom 2026-08-26 | `Auch das Campus-E-Mail-Passwort wird hier gefunden, weil das vollständige Durchprobieren innerhalb der Übungsgrenze liegt. Damit ist es ein weiterer offener Punkt.` → `Das vollständige Durchprobieren findet auch das Campus-E-Mail-Passwort. Es sollte deshalb später ersetzt werden.` | Ergebnisfeedback / Handlungsempfehlung | entfernt wiederholte Grenz- und Offenpunkt-Sprache, behält den lokalen Fundgrund; begrenzt | bestehendes `Weiter` | keine |
+| `S06.narrations.s06.local-check.campus-email-blocked` | ausdrücklicher Nutzerwortlaut vom 2026-08-26 | `Für sich wurde das Campus-E-Mail-Passwort in unserer begrenzten Prüfung nicht gefunden. Ob eine Passwortverbindung offen ist, haben wir getrennt davon geprüft.` → `Für sich wurde das Campus-E-Mail-Passwort in unserer Prüfung nicht gefunden.` | Ergebnisfeedback | wiederholt die zuvor vollzogene Trennung und die Safety Boundary nicht; nein | bestehendes `Weiter` | keine |
+| `S06.narrations.s06.summary.actual-none`, `.actual-one`, `.actual-both` | Nutzerauftrag / vollständige PassWo-Prüfung vom 2026-08-26 | jeweilige konkrete Reichweite plus allgemeiner zweiter Folgesatz → nur die konkrete Reichweite von Campusgram über `dasselbe Passwort` oder `leichte Abwandlungen` | Konsequenz | vermeidet eine unmittelbare Verallgemeinerung des gerade sichtbaren Ergebnisses; nein | bestehendes `Weiter` | keine |
+| `S06.narrations.s06.summary.hypothetical-none` | ausdrücklicher Nutzerwortlaut vom 2026-08-26 | `Würde das Campusgram-Passwort später bekannt, führte hier keine solche Verbindung zu den anderen Konten.` → `Falls das Campusgram-Passwort später bekannt wird, bleibt dieser Weg auf Campusgram begrenzt.` | Konsequenz | natürlichere hypothetische Zusammenfassung; nein | bestehendes `Weiter` | keine |
+| `S06.narrations.s06.summary.hypothetical-one` | ausdrücklicher Nutzerwortlaut vom 2026-08-26 | `Würde das Campusgram-Passwort später bekannt, wäre durch dasselbe Passwort oder eine leichte Abwandlung ein weiteres Konto mitgefährdet.` → `Falls das Campusgram-Passwort später bekannt wird, ist über dasselbe Passwort oder eine leichte Abwandlung auch ein weiteres Konto gefährdet.` | Konsequenz | natürlichere hypothetische Zusammenfassung; nein | bestehendes `Weiter` | keine |
+| `S06.narrations.s06.summary.hypothetical-both` | ausdrücklicher Nutzerwortlaut vom 2026-08-26 | `Würde das Campusgram-Passwort später bekannt, wären durch dasselbe Passwort oder leichte Abwandlungen beide anderen Konten mitgefährdet.` → `Falls das Campusgram-Passwort später bekannt wird, sind über dasselbe Passwort oder leichte Abwandlungen auch beide anderen Konten gefährdet.` | Konsequenz | natürlichere hypothetische Zusammenfassung; nein | bestehendes `Weiter` | keine |
+| `S06.narrations.s06.transition` | ausdrücklicher Nutzerwortlaut vom 2026-08-26 | `Die Verbindungen von Campusgram haben wir damit geprüft. Jetzt schauen wir Master Campus für sich an und danach seine Verbindung zur Campus E-Mail.` → `Ein Datenleck kann bei jedem Konto passieren. Deshalb prüfen wir jetzt Master Campus für sich und seine Verbindung zur Campus E-Mail.` | Orientierung | motiviert das zweite Ausgangskonto mit dem übertragbaren Datenleckrisiko; ausdrücklich freigegeben | bestehendes `Weiter` | keine |
+| `S06.narrations.s06.transition.s07` | ausdrücklicher Nutzerwortlaut vom 2026-08-26 | `Das Campusgram-Passwort ersetzen wir jetzt wegen des Datenlecks, unabhängig davon, wie schwer es hier zu erraten war. Offene Passwortverbindungen oder leicht erratbare Passwörter bei den anderen Konten beheben wir danach.` → `Das Campusgram-Passwort ersetzen wir jetzt wegen des Datenlecks, unabhängig davon, wie schwer es hier zu erraten war. Die übrigen offenen Punkte beheben wir danach.` | Navigation / Handlungsempfehlung | behält Datenleckgrund und späteren Reparaturbedarf, ohne beide Punktarten erneut aufzuzählen; nein | bestehendes `Passwort ersetzen` | bestehender Akzent auf dem ersten Satzteil |
+
+Die Überschrift `Campusgram-Passwort ersetzen`, die Aktionen `Angriff starten`, `Verbindung prüfen`
+und `Passwort ersetzen`, der sichtbare `Was wäre, wenn?`-Zustand sowie alle S07-Texte bleiben
+unverändert. Geschützte Formulierungen bleiben unverändert.
+
+## Copy-Delta S07 dynamische S08-Handlungsfolge, 26. August 2026
+
+- Quelle: ausdrücklicher Nutzerauftrag vom 26. August 2026 nach dem Abgleich der S07-Analyse mit dem S08-Knotennetzwerk.
+- Primäre Textrolle: Handlungsempfehlung und Navigation in den anschließenden Netzwerkabschnitt.
+- Interaktionsziel: Schaltfläche `Offene Punkte beheben` und der Übergang in das S08-Kontennetzwerk.
+- Copy-Delta: `Die übrigen offenen Punkte siehst du gleich wieder im Netzwerk. Dort bekommt jedes dafür markierte Konto eine eigene Passphrase.` wird zu `Die übrigen offenen Punkte siehst du gleich wieder im Netzwerk. Verwende dort bei einem markierten Konto eine eigene Passphrase, bis alle offenen Punkte aufgelöst sind.`
+- Begründung: Bei einer markierten Beziehung genügt die Änderung eines Endpunkts, um den gemeinsamen offenen Punkt aufzulösen. Die neue Formulierung beschreibt deshalb die dynamische Handlungsfolge, ohne zu behaupten, jedes anfangs markierte Konto müsse zwingend geändert werden.
+- Semantik: ausschließlich Präzisierung der S07-Handlungsbeschreibung; Zustandsautomat, Knotennetzwerk, Persistenz, Export und Timing bleiben unverändert.
+- Versionierung: `S07_PASSPHRASE_SEARCH_CONTENT_VERSION` steigt von `4.21.0` auf `4.22.0`; `SUPPORTIVE_ARTIFACT_VERSION` steigt von `supportive-s00-s17-1.24.0` auf `supportive-s00-s17-1.25.0`.
+
+
+## Copy-Delta S06 Datenleck, Verbindungen und lokale Erratbarkeit, 26. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 26. August 2026 nach Fertigstellung des
+Trainings. Die vorhandene S06-Szenenfolge bleibt bestehen. Der Wortlaut trennt nun konsequent
+drei Gründe, die vorher teilweise in einer Angriffserzählung vermischt waren: lokale
+Erratbarkeit eines Passworts, eine Verbindung als `dasselbe` oder `leicht abgewandelt`, und den
+Campusgram-Vorfall. In beiden Campusgram-Ausgängen wird ausdrücklich erklärt, dass das Passwort
+im Datenleck nicht im Klartext vorlag. Wenn die begrenzte Übung es nicht ermittelt hat, bleibt
+der anschließende Pfad klar als `Was wäre, wenn?` eingeordnet. Die Master-Campus-zu-Campus-E-Mail-
+Rückmeldung unterscheidet nun exakt zwischen `dasselbe` und `leicht abgewandelt`; der lokale
+Campus-E-Mail-Text behauptet nicht mehr fälschlich, dass kein Verbindungsweg bestanden habe.
+Der Übergang nach S07 begründet den Campusgram-Wechsel mit dem Datenleck, unabhängig von der
+lokalen Erratbarkeit. `S06_CONSEQUENCE_CONTENT_VERSION` steigt von `2.49.0` auf `2.50.0`.
+
+| Segment und Text-ID | Copy-Delta | Primäre Rolle | Interaktionsziel | Grund und Bedeutungsgrenze |
+|---|---|---|---|---|
+| `S06.narrations.s06.incident.campusgram-found`, `.campusgram-blocked` | Datenleck wird in beiden Pfaden als nicht im Klartext erklärt; Fund beziehungsweise Nicht-Fund wird direkt an die zuvor gezeigten Prüfwege gebunden | Mechanismuserklärung / Safety Boundary | ersten Kontenvergleich starten | stellt den Vorfall als gemeinsame Ursache her; Nicht-Fund wird nicht zu einem Sicherheitsnachweis |
+| `S06.narrations.s06.compare.exact-match`, `.derived-variant-match`, `.no-derived-path-recognized` | interne Formulierungen wie `vollständige Werte` und `begrenzter Kandidatenweg` werden durch `Dasselbe Passwort`, `Leicht abgewandelt` und kurze Folgen ersetzt | Mechanismuserklärung | Vergleichsergebnis verstehen | verwendet die bereits eingeführte Teilnehmerterminologie statt Analysejargon |
+| `S06.narrations.s06.local-reflection.marking-guide` | `Eigene Beobachtung` → `Master Campus für sich`; kürzere Markieraufforderung | Navigation | lokale Reflexion | lokale Prüfung wird sichtbar von Verbindungen getrennt |
+| `S06.narrations.s06.perspective.master-campus-found`, `.master-campus-exhaustive-found`, `.master-campus-blocked` | lokale Einordnung wird als eigener offener Punkt oder begrenzter Nicht-Fund erklärt; beim Nicht-Fund wird der hypothetische Verbindungsvergleich begründet | Ergebnisfeedback / Safety Boundary | Verbindung zur Campus E-Mail vorbereiten | verhindert den unmotivierten Sprung zu einem neuen hypothetischen Angriff |
+| `S06.narrations.s06.transition.master-campus-email-exact-match`, `.master-campus-email-derived-variant-match`, `.master-campus-email-no-match` | bisherige gemeinsame Match-Rückmeldung wird in exakte Wiederverwendung, leichte Abwandlung und keinen erkannten Weg aufgeteilt | adaptives Ergebnisfeedback | nächsten lokalen Check vorbereiten | PassWo reagiert auf das tatsächlich sichtbare Vergleichsergebnis |
+| `S06.narrations.s06.transition.campus-email-local-check`, `S06.narrations.s06.local-check.campus-email-*` | Campus E-Mail wird ausdrücklich `für sich` geprüft; lokale Fundgründe werden unabhängig von Verbindungen formuliert | Ergebnisfeedback | offenen lokalen Punkt erkennen | entfernt die alte, situationsabhängig falsche Aussage, es habe keinen direkten Weg zu diesem Konto gegeben |
+| `S06.narrations.s06.summary.actual-*`, `.hypothetical-*` | Zusammenfassungen benennen konkrete Verbindungen und ihre Reichweite statt abstrakter Angriffsausweitung | Konsequenz | Campusgram-Pfad abschließen | macht kontoübergreifende Folgen sichtbar, ohne eine Sicherheitsgarantie abzuleiten |
+| `S06.narrations.s06.transition` | `Ein Datenleck kann bei jedem Konto beginnen` → expliziter Abschluss der Campusgram-Verbindungen und Ankündigung der zwei nächsten Prüfungen | Orientierung | Perspektivwechsel | begründet Reihenfolge statt einen neuen Vorfall einzuführen |
+| `S06.page.connectionCheck` und adaptive Verwendung nach dem Master-Campus-Einzelcheck | neuer Button `Verbindung prüfen`; initialer tatsächlicher Campusgram-Pfad behält `Angriff starten` | Navigation | Master Campus → Campus E-Mail | Handlung stimmt mit der unmittelbar vorherigen Sprechblase überein |
+| `S06.narrations.s06.transition.s07` | Campusgram-Wechsel wird ausdrücklich mit dem Datenleck begründet; andere offene Verbindungen oder leicht erratbare Passwörter werden als nachfolgende Aufgabe benannt | Handlungsempfehlung | `Passwort ersetzen` | ein starkes oder nicht verbundenes Campusgram-Passwort wird wegen des Vorfalls ersetzt, ohne seine vorherige Einordnung zu entwerten |
+
+## Copy-Delta S07 Datenleck, Passphrase und offene Punkte, 26. August 2026
+
+Quelle ist derselbe Nutzerauftrag vom 26. August 2026. S07 erhält einen eigenen Wortlaut für den
+bereits vorhandenen Campusgram-Datenleckhinweis; S04 bleibt unverändert. Der Hinweis nennt erneut,
+dass gespeicherte Passwortdaten abgeflossen sind und das Passwort darin nicht im Klartext stand.
+Die Passphrase-Einführung knüpft ausdrücklich an die sechs zufälligen Wörter aus S05 an, statt die
+Methode neu zu eröffnen. Nach dem Wechsel macht PassWo den Schutzgewinn sichtbar: selbst eine
+spätere Ermittlung des alten Passworts aus den gestohlenen Daten macht dieses alte Passwort bei
+Campusgram nicht wieder gültig. Die Abschlussrückmeldung unterscheidet weiterhin adaptiv zwischen
+Passwortverbindungen und lokaler leichter Erratbarkeit, verwendet aber `offene Punkte` statt alle
+Konten pauschal als vom Datenleck betroffen zu bezeichnen. Die fünf Merksatzbeispiele werden
+verkürzt, ohne die jeweils sechs erzeugten Wörter zu verlieren. `S07_PASSPHRASE_SEARCH_CONTENT_VERSION`
+steigt von `4.20.0` auf `4.21.0`.
+
+| Segment und Text-ID | Copy-Delta | Primäre Rolle | Interaktionsziel | Grund und Bedeutungsgrenze |
+|---|---|---|---|---|
+| `S07.browser.campusgramIncidentNotice.title/body/advisory` und optionales `CampusgramIncidentNotice.noticeCopy` | S07-spezifischer Hinweis: gespeicherte Passwortdaten abgeflossen, Passwort nicht im Klartext, weitere Kandidatenprüfung trotzdem möglich | Mechanismuserklärung / Handlungsempfehlung | `Passwort jetzt ändern` | Vorfallsgrund bleibt für alle Teilnehmenden sichtbar; S04-Text wird nicht rückwirkend verändert |
+| `S07.guide.methodIntro` | Rückbezug `Jetzt nutzen wir die Idee von vorhin` plus kurze Definition `Ein solches Passwort nennt man Passphrase.` | Orientierung / Mechanismuserklärung | Passphrase-Methode starten | schließt den in S05 angekündigten Handlungsbogen |
+| `S07.guide.searchIntro` | Suchauftrag auf zwei kurze Handlungssätze reduziert | Navigation | neuen Tab öffnen und Generator nutzen | weniger redundante Erklärung |
+| `S07.guide.campusgramSuccess` | erklärt, warum der Wechsel trotz möglicher späterer Ermittlung des alten Passworts schützt | positives Ergebnisfeedback | Schutzwirkung verstehen | macht den positiven Effekt des gerade ausgeführten Schritts sichtbar, ohne Kontosicherheit absolut zu behaupten |
+| `S07.guide.accountSummary(...)` | vier adaptive Varianten benennen erkannte Passwortverbindung und lokale leichte Erratbarkeit getrennt; No-risk-Variante bleibt bei `wurde ... erkannt` | adaptives Ergebnisfeedback / Safety Boundary | verbleibende Aufgabe verstehen | kein Konto wird pauschal als sicher oder als vom Datenleck betroffen bezeichnet |
+| `S07.guide.remainingPlan`, `.continueAttack` | `betroffene Konten` / `Angriff fortsetzen` → `übrige offene Punkte` / `Offene Punkte beheben` | Handlungsempfehlung / Navigation | Übergang nach S08 | approach-orientierte Handlung statt fortgesetzter Bedrohungserzählung |
+| `S07.browser.generatorPage.passphrases[*].passWoMnemonic` | alle fünf Merksätze gekürzt, jeweils dieselben sechs generierten Wörter erhalten | unterstützende Merkhilfe | Passphrase einprägen | reduziert Textlast bei unverändertem spielerischem Beispielcharakter |
+
+Geschützte Formulierungen sowie S08 und S09 bleiben unverändert.
+
 ## Copy- und Darstellungsdelta S06 persistente Beziehungslinien und S07 Campusgram-Hinweis, 24. August 2026
 
 Quelle ist der ausdrückliche Nutzerauftrag vom 24. August 2026. Beim Verlassen einer

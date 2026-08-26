@@ -40,7 +40,8 @@ export type S06NarrationId =
   | 's06.perspective.master-campus-found'
   | 's06.perspective.master-campus-exhaustive-found'
   | 's06.perspective.master-campus-blocked'
-  | 's06.transition.master-campus-email-match'
+  | 's06.transition.master-campus-email-exact-match'
+  | 's06.transition.master-campus-email-derived-variant-match'
   | 's06.transition.master-campus-email-no-match'
   | 's06.transition.campus-email-local-check'
   | 's06.local-check.campus-email-found'
@@ -61,16 +62,16 @@ export interface S06NarrationContent {
   readonly body: string;
 }
 
-export const S06_CONSEQUENCE_CONTENT_VERSION = '2.49.0';
+export const S06_CONSEQUENCE_CONTENT_VERSION = '2.51.0';
 
 export const s06ConsequenceContent = {
   version: S06_CONSEQUENCE_CONTENT_VERSION,
   source: {
     document: 'research/private/training-script.pdf',
     internalPages: [36, 37, 38, 39, 40, 41, 42, 43, 44] as const,
-    revision: 'Userauftrag vom 2026-08-24 · getrennte What-if-Ergebnis- und Navigationsschritte',
+    revision: 'Userauftrag vom 2026-08-26 · erlebnisnahe Konsequenzcopy gestrafft',
     copyReference:
-      'docs/design/S06-S07-COPY-AUDIT.md#copy-und-ablaufdelta-s06-stabile-what-if-zustaende-und-getrennter-campus-e-mail-uebergang-24-august-2026',
+      'docs/design/S06-S07-COPY-AUDIT.md#copy-delta-s06-erlebnisnahe-konsequenzcopy-26-august-2026',
   },
   segment: {
     id: 'S06',
@@ -92,6 +93,7 @@ export const s06ConsequenceContent = {
     runtimeNotice: 'Deine drei fiktiven Übungswerte · bleiben nur lokal',
     start: 'Simulation starten',
     attackStart: 'Angriff starten',
+    connectionCheck: 'Verbindung prüfen',
     dataLeak: 'Datenleck',
     replay: 'Animation wiederholen',
     continue: 'Weiter',
@@ -250,63 +252,67 @@ export const s06ConsequenceContent = {
   narrations: {
     's06.incident.campusgram-found': {
       heading: 'Erster Vorfall: Campusgram',
-      body: 'Das Campusgram-Passwort ist nun bekannt. Der Angreifer kann dasselbe Passwort und leichte Abwandlungen jetzt auch bei den anderen Konten ausprobieren.',
+      body: 'Beim Campusgram-Datenleck stand das Passwort nicht im Klartext. Unsere Übung konnte es trotzdem ermitteln. Jetzt prüfen wir, ob dasselbe Passwort oder leichte Abwandlungen auch zu den anderen Konten führen.',
     },
     's06.incident.campusgram-blocked': {
       heading: 'Erster Vorfall: Campusgram',
-      body: 'Auch wenn das Passwort hier nicht erraten wurde, kann es durch ein Datenleck bekannt werden: etwa wenn es unmittelbar im Klartext offengelegt oder aus unzureichend geschützten Passwortdaten nachträglich ermittelt wird. Schauen wir deshalb, was dann bei den anderen Konten passieren würde.',
+      body: 'Beim Campusgram-Datenleck stand das Passwort nicht im Klartext, und unsere Übung hat es nicht ermittelt. Mit den gestohlenen Passwortdaten kann aber weiter versucht werden, es zu ermitteln. Deshalb schauen wir kurz, was passiert, falls es später bekannt wird.',
     },
     's06.compare.exact-match': {
-      heading: 'Vollständige Werte stimmen überein',
-      body: 'Dasselbe Passwort kann beim Zielkonto ausprobiert werden.',
+      heading: 'Dasselbe Passwort',
+      body: 'Wird dieses Passwort bekannt, kann es auch beim anderen Konto ausprobiert werden.',
     },
     's06.compare.derived-variant-match': {
-      heading: 'Ein begrenzter Kandidatenweg trifft den Zielwert',
-      body: 'Die gezeigten Änderungen führen zum vollständigen fiktiven Zielpasswort.',
+      heading: 'Leicht abgewandelt',
+      body: 'Wird dieses Passwort bekannt, liegt die leichte Abwandlung beim anderen Konto nahe.',
     },
     's06.compare.no-derived-path-recognized': {
-      heading: 'Kein direkter Weg erkannt',
-      body: 'Die Prüflinie stoppt vor dem Ziel. Das ist keine allgemeine Sicherheitsgarantie.',
+      heading: 'Keine leichte Abwandlung erkannt',
+      body: 'Die hier geprüften Varianten führen nicht zum anderen Passwort.',
     },
     's06.local-reflection.marking-guide': {
-      heading: 'Eigene Beobachtung',
-      body: 'Als Übung kannst du auch hier die Muster und persönlichen Angaben markieren die dir auffallen.',
+      heading: 'Master Campus für sich',
+      body: 'Markiere kurz Muster oder persönliche Angaben, die dir im Master-Campus-Passwort auffallen.',
     },
     's06.perspective.master-campus-found': {
-      heading: 'Perspektivwechsel zu Master Campus',
-      body: 'Das Master-Campus-Passwort gilt ebenfalls als gefunden. Prüfen wir, ob es bei Campus E-Mail weiterführt.',
+      heading: 'Master Campus für sich',
+      body: 'Auch das Master-Campus-Passwort wird in unserer Übung gefunden. Unabhängig davon prüfen wir jetzt seine Verbindung zur Campus E-Mail.',
     },
     's06.perspective.master-campus-exhaustive-found': {
-      heading: 'Perspektivwechsel zu Master Campus',
-      body: 'Das Durchprobieren liegt innerhalb der Grenze. Das Master-Campus-Passwort gilt hier als gefunden. Prüfen wir, ob es bei Campus E-Mail weiterführt.',
+      heading: 'Master Campus für sich',
+      body: 'Das vollständige Durchprobieren findet auch das Master-Campus-Passwort. Jetzt prüfen wir noch seine Verbindung zur Campus E-Mail.',
     },
     's06.perspective.master-campus-blocked': {
-      heading: 'Perspektivwechsel zu Master Campus',
-      body: 'Das Durchprobieren liegt außerhalb der Grenze. Das Master-Campus-Passwort gilt hier nicht als gefunden. Für den Vergleich nehmen wir kurz an, es wäre bekannt.',
+      heading: 'Master Campus für sich',
+      body: 'Das Master-Campus-Passwort wurde hier nicht gefunden. Ob es mit der Campus E-Mail verbunden ist, prüfen wir trotzdem.',
     },
-    's06.transition.master-campus-email-match': {
-      heading: 'Übergang zu Campus E-Mail',
-      body: 'Zwischen Master Campus und Campus E-Mail wurde dasselbe Passwort oder eine leichte Abwandlung erkannt. Dieser Weg könnte den Angriff auf Campus E-Mail ausweiten.',
+    's06.transition.master-campus-email-exact-match': {
+      heading: 'Dasselbe Passwort',
+      body: 'Master Campus und Campus E-Mail verwenden dasselbe Passwort. Wird eines bekannt, kann es auch beim anderen ausprobiert werden.',
+    },
+    's06.transition.master-campus-email-derived-variant-match': {
+      heading: 'Leicht abgewandelt',
+      body: 'Die beiden Passwörter sind leicht abgewandelt. Wird eines bekannt, liegt auch die andere Variante nahe.',
     },
     's06.transition.master-campus-email-no-match': {
-      heading: 'Übergang zu Campus E-Mail',
-      body: 'Zwischen Master Campus und Campus E-Mail wurde hier keine solche Übereinstimmung erkannt. Dieser Weg führt in dieser Übung nicht weiter.',
+      heading: 'Keine leichte Abwandlung erkannt',
+      body: 'Zwischen den beiden wurde keine leichte Abwandlung erkannt.',
     },
     's06.transition.campus-email-local-check': {
-      heading: 'Übergang zu Campus E-Mail',
-      body: 'Schauen wir uns das Campus-E-Mail-Passwort jetzt noch für sich an.',
+      heading: 'Campus E-Mail für sich',
+      body: 'Zum Schluss prüfen wir das Campus-E-Mail-Passwort noch für sich.',
     },
     's06.local-check.campus-email-found': {
-      heading: 'Lokaler Einzelcheck von Campus E-Mail',
-      body: 'Auch dieses Passwort gilt hier als gefunden. Vom bekannten Passwort führte aber kein direkter Weg zu diesem Konto. Trotzdem sollte jedes Passwort auch für sich schwer zu erraten sein.',
+      heading: 'Campus E-Mail für sich',
+      body: 'Auch das Campus-E-Mail-Passwort wird in unserer Übung gefunden. Es sollte deshalb später ersetzt werden.',
     },
     's06.local-check.campus-email-exhaustive-found': {
-      heading: 'Lokaler Einzelcheck von Campus E-Mail',
-      body: 'Das Durchprobieren liegt innerhalb der Grenze. Auch dieses Passwort gilt hier als gefunden.',
+      heading: 'Campus E-Mail für sich',
+      body: 'Das vollständige Durchprobieren findet auch das Campus-E-Mail-Passwort. Es sollte deshalb später ersetzt werden.',
     },
     's06.local-check.campus-email-blocked': {
-      heading: 'Lokaler Einzelcheck von Campus E-Mail',
-      body: 'Das Durchprobieren liegt außerhalb der Grenze. Dieses Passwort gilt hier nicht als gefunden.',
+      heading: 'Campus E-Mail für sich',
+      body: 'Für sich wurde das Campus-E-Mail-Passwort in unserer Prüfung nicht gefunden.',
     },
     's06.summary': {
       heading: 'Gemeinsame Endübersicht',
@@ -314,35 +320,35 @@ export const s06ConsequenceContent = {
     },
     's06.summary.actual-none': {
       heading: 'Gemeinsame Endübersicht',
-      body: 'Hier bleibt der Angriff auf Campusgram begrenzt. Bei den anderen Konten führen diese Versuche nicht weiter.',
+      body: 'Von Campusgram führt hier weder dasselbe Passwort noch eine leichte Abwandlung zu den anderen Konten.',
     },
     's06.summary.actual-one': {
       heading: 'Gemeinsame Endübersicht',
-      body: 'Bei einem weiteren Konto kann dasselbe Passwort oder eine leichte Abwandlung den Angriff weiterführen. So kann aus einem betroffenen Konto ein zweites werden.',
+      body: 'Von Campusgram führt dasselbe Passwort oder eine leichte Abwandlung zu einem weiteren Konto.',
     },
     's06.summary.actual-both': {
       heading: 'Gemeinsame Endübersicht',
-      body: 'Bei beiden anderen Konten können dasselbe Passwort oder leichte Abwandlungen den Angriff weiterführen. So kann sich ein Datenleck auf mehrere Konten ausweiten.',
+      body: 'Von Campusgram führen dasselbe Passwort oder leichte Abwandlungen zu beiden anderen Konten.',
     },
     's06.summary.hypothetical-none': {
       heading: 'Gemeinsame Endübersicht',
-      body: 'Wäre das Campusgram-Passwort bekannt geworden, wäre der Angriff hier auf Campusgram begrenzt geblieben.',
+      body: 'Falls das Campusgram-Passwort später bekannt wird, bleibt dieser Weg auf Campusgram begrenzt.',
     },
     's06.summary.hypothetical-one': {
       heading: 'Gemeinsame Endübersicht',
-      body: 'Wäre das Campusgram-Passwort bekannt geworden, hätte sich der Angriff auf ein weiteres Konto ausweiten können.',
+      body: 'Falls das Campusgram-Passwort später bekannt wird, ist über dasselbe Passwort oder eine leichte Abwandlung auch ein weiteres Konto gefährdet.',
     },
     's06.summary.hypothetical-both': {
       heading: 'Gemeinsame Endübersicht',
-      body: 'Wäre das Campusgram-Passwort bekannt geworden, hätte sich der Angriff auf beide anderen Konten ausweiten können.',
+      body: 'Falls das Campusgram-Passwort später bekannt wird, sind über dasselbe Passwort oder leichte Abwandlungen auch beide anderen Konten gefährdet.',
     },
     's06.transition': {
       heading: 'Gemeinsame Endübersicht',
-      body: 'Ein Datenleck kann bei jedem Konto beginnen. Schauen wir deshalb noch von Master Campus aus.',
+      body: 'Ein Datenleck kann bei jedem Konto passieren. Deshalb prüfen wir jetzt Master Campus für sich und seine Verbindung zur Campus E-Mail.',
     },
     's06.transition.s07': {
-      heading: 'Betroffenes Passwort ersetzen',
-      body: 'Ein Datenleck lässt sich nicht immer verhindern. Wird ein Passwort dabei bekannt, sollte es zügig ersetzt werden. Wurde dasselbe oder leicht abgewandelt auch bei anderen Konten verwendet, sollten dort ebenfalls neue, jeweils eigene Passwörter eingesetzt werden. Genau damit beginnen wir jetzt bei Campusgram.',
+      heading: 'Campusgram-Passwort ersetzen',
+      body: 'Das Campusgram-Passwort ersetzen wir jetzt wegen des Datenlecks, unabhängig davon, wie schwer es hier zu erraten war. Die übrigen offenen Punkte beheben wir danach.',
     },
   } as const satisfies Readonly<Record<S06NarrationId, S06NarrationContent>>,
   fixtures: [

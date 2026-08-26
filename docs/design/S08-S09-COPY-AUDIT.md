@@ -1,5 +1,26 @@
 # S08--S09 Copy Audit
 
+## Copy- und Ablaufdelta S09 dreiteilige Passwortmanager-Roadmap, 26. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 26. August 2026. Die bestehende Übergangskarte
+`Sektion 2 von 3` / `Passwortmanager` wird als dreiteilige Roadmap an den fachlichen
+Aufgabenwechseln wiederverwendet: Teil 1 beginnt vor der Tresorerklärung, Teil 2 vor dem
+Einrichten des neuen My-Shop-Kontos und Teil 3 vor dem Umstellen des bestehenden
+Muster-Bank-Kontos. Die Karten schließen weiterhin automatisch nach der vorhandenen Haltezeit.
+
+Die drei Wegmarken sind reine Orientierung und keine neuen Forschungs- oder
+Wiederaufnahme-Checkpoints. Persistenz, Export, Timingereignisse und die inhaltsfreien
+Segment-Checkpoints S12 und S13 bleiben unverändert. `S09_PASSWORD_SUMMARY_CONTENT_VERSION`
+steigt von `4.8.0` auf `4.9.0`. Zusammen mit der zweiteiligen MFA-Roadmap steigt
+`SUPPORTIVE_ARTIFACT_VERSION` von `supportive-s00-s17-1.23.0` auf
+`supportive-s00-s17-1.24.0`.
+
+| Segment und Text-ID | Bisher | Neu | Primäre Rolle | Interaktionsziel | Grund und Bedeutungsänderung | Hervorhebung |
+|---|---|---|---|---|---|---|
+| `S09.passwordManagerTransition.parts[0]` | `Ein Tresor für alle deine Passwörter` | `Passwortmanager verstehen` | Orientierung | automatischer Übergang zur Tresorerklärung | benennt den tatsächlichen ersten Lernschritt; begrenzt | aktive Wegmarke |
+| `S09.passwordManagerTransition.parts[1]` | nicht vorhanden | `Neues Konto einrichten` | Orientierung | automatischer Übergang zur My-Shop-Übung | grenzt die erste praktische Passwortmanager-Aufgabe ab; ausdrücklich freigegeben | aktive Wegmarke |
+| `S09.passwordManagerTransition.parts[2]` | nicht vorhanden | `Bestehendes Konto umstellen` | Orientierung | automatischer Übergang zur Muster-Bank-Übung | grenzt den Wechsel vom neuen zum bestehenden Konto ab; ausdrücklich freigegeben | aktive Wegmarke |
+
 ## Copy-Delta S09 Skalierungsdialog gestrafft, 25. August 2026
 
 Quelle ist der ausdrückliche Nutzerauftrag vom 25. August 2026. Die sechs Sprechschritte vor der

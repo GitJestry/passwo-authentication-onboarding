@@ -195,7 +195,10 @@ export function S06ConsequenceTraining({
       ? snapshot.controls.canStart
         ? {
             kind: 'perform' as const,
-            label: s06ConsequenceContent.page.attackStart,
+            label:
+              snapshot.stage === 'local-check-result'
+                ? s06ConsequenceContent.page.connectionCheck
+                : s06ConsequenceContent.page.attackStart,
             onAction: () => void runtime.controller.continue(),
           }
         : snapshot.stage === 's07-transition'

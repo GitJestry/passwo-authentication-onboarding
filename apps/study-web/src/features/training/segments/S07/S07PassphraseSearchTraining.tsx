@@ -453,16 +453,6 @@ export interface S07PassphraseSearchTrainingProps {
   ) => void;
 }
 
-function connectionKind(
-  feedback: S07AccountFeedback | undefined,
-  accountId: S01AccountId,
-): 'none' | 'similar' | 'identical' {
-  return (
-    feedback?.connections.find((connection) => connection.accountId === accountId)?.kind ??
-    'none'
-  );
-}
-
 export function S07PassphraseSearchTraining({
   displayName,
   campusgramPassword,
@@ -511,7 +501,7 @@ export function S07PassphraseSearchTraining({
       state.matches('pasteConfirmedPassword') ||
       state.matches('passwordChangeReady') ||
       state.matches('campusgramSuccess') ||
-      state.matches('remainingRisk') ||
+      state.matches('nothingOpen') ||
       state.matches('remainingPlan'));
   const generating = state.matches('generating') || state.matches('regenerating');
   const mnemonicVisible = state.matches('mnemonic');
@@ -562,22 +552,8 @@ export function S07PassphraseSearchTraining({
     speech = [guide.campusgramSuccess];
     speechId = 's07-campusgram-success';
   }
-  if (state.matches('remainingRisk')) {
-    const masterCampus = accountFeedback.find(
-      ({ accountId }) => accountId === 'master-campus',
-    );
-    const campusEmail = accountFeedback.find(
-      ({ accountId }) => accountId === 'campus-email',
-    );
-    speech = [
-      guide.accountSummary({
-        masterCampusCampusgram: connectionKind(masterCampus, 'campusgram'),
-        campusEmailCampusgram: connectionKind(campusEmail, 'campusgram'),
-        masterCampusCampusEmail: connectionKind(masterCampus, 'campus-email'),
-        masterCampusEasyToGuess: masterCampus?.easyToGuess ?? false,
-        campusEmailEasyToGuess: campusEmail?.easyToGuess ?? false,
-      }),
-    ];
+  if (state.matches('nothingOpen')) {
+    speech = [guide.nothingOpen];
   }
   if (state.matches('remainingPlan')) {
     speech = [guide.remainingPlan];
@@ -587,15 +563,13 @@ export function S07PassphraseSearchTraining({
     state.matches('campusgramMethodIntro') ||
     state.matches('mnemonicIntro') ||
     state.matches('campusgramSuccess') ||
-    state.matches('remainingRisk')
+    state.matches('nothingOpen')
   ) {
     speechAction = {
       kind: 'advance',
       onAction: () => {
         send({ type: 'NEXT' });
-        if (state.matches('remainingRisk') && !hasRemainingAccountRisk) {
-          completeTraining();
-        }
+        if (state.matches('nothingOpen')) completeTraining();
       },
     };
   }
@@ -757,6 +731,7 @@ export function S07PassphraseSearchTraining({
                   <CampusgramIncidentNotice
                     className={state.matches('incident') ? styles.incidentSpotlight : undefined}
                     currentPassword={campusgramPassword}
+                    noticeCopy={s07PassphraseSearchContent.browser.campusgramIncidentNotice}
                     passwordChangeOpen={campusgramChangeOpen}
                     onPasswordChangeOpenChange={(open) => {
                       if (open) send({ type: 'OPEN_CAMPUSGRAM_CHANGE' });
@@ -783,25 +758,23 @@ export function S07PassphraseSearchTraining({
                     pasteOnPasswordFieldClick
                     completedVisual={
                       <>
-                        <span className={styles.completedShields}>
-                          <span className={styles.completedShield}>
-                            <span className={styles.completedShieldLabelGreen}>
-                              {
-                                s07PassphraseSearchContent.browser
-                                  .campusgramPasswordChangeCompleted.shieldLabels.green
-                              }
-                            </span>
-                            <img src={greenShieldAsset} width={512} height={768} alt="" />
+                        <span className={styles.completedShield}>
+                          <span className={styles.completedShieldLabelGreen}>
+                            {
+                              s07PassphraseSearchContent.browser
+                                .campusgramPasswordChangeCompleted.shieldLabels.green
+                            }
                           </span>
-                          <span className={styles.completedShield}>
-                            <span className={styles.completedShieldLabelBlue}>
-                              {
-                                s07PassphraseSearchContent.browser
-                                  .campusgramPasswordChangeCompleted.shieldLabels.blue
-                              }
-                            </span>
-                            <img src={blueShieldAsset} width={512} height={768} alt="" />
+                          <img src={greenShieldAsset} width={512} height={768} alt="" />
+                        </span>
+                        <span className={styles.completedShield}>
+                          <span className={styles.completedShieldLabelBlue}>
+                            {
+                              s07PassphraseSearchContent.browser
+                                .campusgramPasswordChangeCompleted.shieldLabels.blue
+                            }
                           </span>
+                          <img src={blueShieldAsset} width={512} height={768} alt="" />
                         </span>
                         <CelebrationConfetti />
                       </>
