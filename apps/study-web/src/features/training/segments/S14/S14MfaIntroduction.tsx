@@ -1,4 +1,5 @@
 import {
+  s01Content,
   s14MfaContent,
   type S14FactorIconId,
   type S14FactorId,
@@ -12,10 +13,14 @@ import {
   DesktopSurface,
 } from '@passwo/ui';
 import { NetworkSymbol } from '../../../../adapters/network/NetworkSymbolRegistry.js';
+import { CampusWebsiteBackdrop } from '../../CampusWebsiteBackdrop.js';
 import { PassWoGuide } from '../../PassWoGuide.js';
 import { passWoSpeechEmphasisFor } from '../../PassWoSpeechEmphasis.js';
 import searchStyles from '../S07/S07PassphraseSearchTraining.module.css';
-import { s14MfaIntroductionMachine } from './S14MfaIntroductionMachine.js';
+import {
+  type S14BrowserTabId,
+  s14MfaIntroductionMachine,
+} from './S14MfaIntroductionMachine.js';
 import styles from './S14MfaIntroduction.module.css';
 
 function FactorIcon({ iconId }: { readonly iconId: S14FactorIconId }) {
@@ -125,10 +130,167 @@ function SearchIcon() {
   );
 }
 
-function SearchStartPage() {
+function HelpPageIcon({
+  kind,
+}: {
+  readonly kind:
+    | 'arrow-right'
+    | 'chevron-down'
+    | 'chevron-right'
+    | 'chevron-up'
+    | 'home'
+    | 'profile'
+    | 'services'
+    | 'thumb-down'
+    | 'thumb-up';
+}) {
+  const sharedProps: SVGProps<SVGSVGElement> = {
+    'aria-hidden': true,
+    viewBox: '0 0 24 24',
+    fill: 'none',
+    stroke: 'currentColor',
+    strokeWidth: 1.9,
+    strokeLinecap: 'round',
+    strokeLinejoin: 'round',
+  };
+
+  switch (kind) {
+    case 'arrow-right':
+      return (
+        <svg {...sharedProps}>
+          <path d="M4 12h16M15 7l5 5-5 5" />
+        </svg>
+      );
+    case 'home':
+      return (
+        <svg {...sharedProps}>
+          <path d="m3.5 10.8 8.5-7 8.5 7" />
+          <path d="M5.8 9v11h4.1v-6.1h4.2V20h4.1V9" />
+        </svg>
+      );
+    case 'services':
+      return (
+        <svg {...sharedProps}>
+          <rect x="3.5" y="3.5" width="6.5" height="6.5" rx="1" />
+          <rect x="14" y="3.5" width="6.5" height="6.5" rx="1" />
+          <rect x="3.5" y="14" width="6.5" height="6.5" rx="1" />
+          <rect x="14" y="14" width="6.5" height="6.5" rx="1" />
+        </svg>
+      );
+    case 'profile':
+      return (
+        <svg {...sharedProps}>
+          <circle cx="12" cy="8" r="3.25" />
+          <path d="M5.8 19.5c.7-3.4 2.8-5.2 6.2-5.2s5.5 1.8 6.2 5.2" />
+        </svg>
+      );
+    case 'chevron-up':
+      return (
+        <svg {...sharedProps}>
+          <path d="m7 14.5 5-5 5 5" />
+        </svg>
+      );
+    case 'chevron-down':
+      return (
+        <svg {...sharedProps}>
+          <path d="m7 9.5 5 5 5-5" />
+        </svg>
+      );
+    case 'chevron-right':
+      return (
+        <svg {...sharedProps}>
+          <path d="m9.5 7 5 5-5 5" />
+        </svg>
+      );
+    case 'thumb-up':
+      return (
+        <svg {...sharedProps}>
+          <path d="M8.2 20H5.1a1.6 1.6 0 0 1-1.6-1.6v-7.1a1.6 1.6 0 0 1 1.6-1.6h3.1V20Z" />
+          <path d="M8.2 10.1 11.4 4c.5-1 2-1.1 2.5-.1.3.5.4 1.1.2 1.7l-.8 3h5.1a2.1 2.1 0 0 1 2 2.7l-2 7.1A2.2 2.2 0 0 1 16.3 20H8.2" />
+        </svg>
+      );
+    case 'thumb-down':
+      return (
+        <svg {...sharedProps}>
+          <path d="M15.8 4h3.1a1.6 1.6 0 0 1 1.6 1.6v7.1a1.6 1.6 0 0 1-1.6 1.6h-3.1V4Z" />
+          <path d="m15.8 13.9-3.2 6.1c-.5 1-2 1.1-2.5.1-.3-.5-.4-1.1-.2-1.7l.8-3H5.6a2.1 2.1 0 0 1-2-2.7l2-7.1A2.2 2.2 0 0 1 7.7 4h8.1" />
+        </svg>
+      );
+  }
+}
+
+function SearchField({
+  interactive,
+  queryVisible,
+  onSubmit,
+}: {
+  readonly interactive: boolean;
+  readonly queryVisible: boolean;
+  readonly onSubmit: () => void;
+}) {
+  const content = s14MfaContent.browser.searchPage;
+
+  return (
+    <div
+      className={`${searchStyles.searchField} ${styles.searchField}`}
+      role="search"
+      aria-label={queryVisible ? 'Fiktive Suche' : 'Leere fiktive Suche'}
+      aria-disabled={!interactive || undefined}
+    >
+      {queryVisible ? (
+        <span
+          className={interactive ? styles.autofilledQuery : undefined}
+          data-autofilled={interactive || undefined}
+        >
+          {content.query}
+        </span>
+      ) : (
+        <span aria-hidden="true" />
+      )}
+      {queryVisible ? (
+        <span className={searchStyles.clearQuery} aria-hidden="true">
+          ×
+        </span>
+      ) : null}
+      {interactive ? (
+        <button
+          type="button"
+          className={searchStyles.searchSubmit}
+          data-guided-highlight="true"
+          aria-label={content.submitLabel}
+          onClick={onSubmit}
+        >
+          <SearchIcon />
+        </button>
+      ) : queryVisible ? (
+        <span className={searchStyles.searchFieldIcon} aria-hidden="true">
+          <SearchIcon />
+        </span>
+      ) : (
+        <span
+          className={`${searchStyles.searchSubmit} ${styles.lockedSearchAction}`}
+          aria-hidden="true"
+        >
+          <SearchIcon />
+        </span>
+      )}
+    </div>
+  );
+}
+
+function SearchStartPage({
+  queryVisible,
+  onSubmit,
+}: {
+  readonly queryVisible: boolean;
+  readonly onSubmit: () => void;
+}) {
   const content = s14MfaContent.browser.searchPage;
   return (
-    <main className={searchStyles.searchLandingPage} aria-label={content.ariaLabel}>
+    <main
+      className={searchStyles.searchLandingPage}
+      aria-label={content.landingAriaLabel}
+    >
       <div className={searchStyles.searchLandingContent}>
         <span
           className={`${searchStyles.searchBrand} ${searchStyles.searchLandingBrand}`}
@@ -136,46 +298,374 @@ function SearchStartPage() {
           <SearchBrandIcon />
           <span className={searchStyles.searchWordmark}>{content.brand}</span>
         </span>
-        <div
-          className={searchStyles.searchField}
-          role="search"
-          aria-label="Leere fiktive Suche"
-          aria-disabled="true"
-        >
-          <span aria-hidden="true" />
-          <span
-            className={`${searchStyles.searchSubmit} ${styles.lockedSearchAction}`}
-            aria-hidden="true"
-          >
-            <SearchIcon />
-          </span>
-        </div>
+        <SearchField
+          interactive={queryVisible}
+          queryVisible={queryVisible}
+          onSubmit={onSubmit}
+        />
       </div>
     </main>
   );
 }
 
-function LockedBrowser({ platform }: { readonly platform: DesktopPlatform }) {
+function SearchResultsLoading() {
+  const content = s14MfaContent.browser.searchPage;
+
+  return (
+    <main
+      className={`${searchStyles.searchMain} ${searchStyles.searchResultsLoading}`}
+      aria-label={content.resultsLoadingLabel}
+      aria-live="polite"
+      aria-busy="true"
+    >
+      <span className={searchStyles.searchLoadingIndicator} aria-hidden="true">
+        <SearchIcon />
+      </span>
+      <span className={searchStyles.visuallyHidden}>
+        {content.resultsLoadingLabel}
+      </span>
+    </main>
+  );
+}
+
+function SearchResultsPage({
+  loading,
+  onPrimaryResultSelect,
+}: {
+  readonly loading: boolean;
+  readonly onPrimaryResultSelect: () => void;
+}) {
+  const content = s14MfaContent.browser.searchPage;
+
+  return (
+    <div
+      className={`${searchStyles.searchPage} ${styles.searchResultsPage}`}
+      aria-label={content.resultsAriaLabel}
+    >
+      <header
+        className={`${searchStyles.searchHeader} ${styles.searchResultsHeader}`}
+      >
+        <div
+          className={`${searchStyles.searchTopRow} ${styles.searchResultsTopRow}`}
+        >
+          <span
+            className={`${searchStyles.searchBrand} ${styles.searchResultsBrand}`}
+          >
+            <SearchBrandIcon />
+            <span className={searchStyles.searchWordmark}>{content.brand}</span>
+          </span>
+          <SearchField
+            interactive={false}
+            queryVisible
+            onSubmit={() => undefined}
+          />
+        </div>
+        <nav
+          className={`${searchStyles.searchNavigation} ${styles.searchResultsNavigation}`}
+          aria-label="Suchkategorien"
+        >
+          {content.navigation.map((item, index) => (
+            <span
+              key={item}
+              className={
+                index === 0
+                  ? searchStyles.activeSearchNavigationItem
+                  : undefined
+              }
+            >
+              {item}
+            </span>
+          ))}
+        </nav>
+      </header>
+      {loading ? (
+        <SearchResultsLoading />
+      ) : (
+        <main className={`${searchStyles.searchMain} ${styles.searchResultsMain}`}>
+          <ol
+            className={`${searchStyles.resultsList} ${styles.searchResultsList}`}
+          >
+            {content.results.map((result, index) => {
+              const primary = result.id === content.primaryResultId;
+              if (primary) {
+                return (
+                  <li
+                    key={result.id}
+                    className={`${searchStyles.primaryResultItem} ${styles.primaryResultItem}`}
+                  >
+                    <button
+                      type="button"
+                      className={`${searchStyles.primaryResult} ${styles.primarySearchResult}`}
+                      data-guided-highlight="true"
+                      onClick={onPrimaryResultSelect}
+                    >
+                      <div
+                        className={`${searchStyles.resultSource} ${styles.resultSource}`}
+                      >
+                        <span
+                          className={`${searchStyles.resultFavicon} ${styles.masterCampusFavicon}`}
+                          aria-hidden="true"
+                        >
+                          <NetworkSymbol symbolId="master-campus" />
+                        </span>
+                        <span>
+                          <strong>{result.siteName}</strong>
+                          <small>{result.domain}</small>
+                        </span>
+                        <span className={searchStyles.resultMenu} aria-hidden="true">
+                          ⋮
+                        </span>
+                      </div>
+                      <span
+                        className={`${searchStyles.primaryResultTitle} ${styles.searchResultTitle}`}
+                      >
+                        {result.title}
+                      </span>
+                      <p>{result.description}</p>
+                    </button>
+                  </li>
+                );
+              }
+
+              return (
+                <li
+                  key={result.id}
+                  className={`${searchStyles.searchResult} ${styles.secondarySearchResult}`}
+                >
+                  <div
+                    className={`${searchStyles.resultSource} ${styles.resultSource}`}
+                  >
+                    <span
+                      className={`${searchStyles.resultFavicon} ${styles.secondaryFavicon}`}
+                      data-result-index={index}
+                      aria-hidden="true"
+                    >
+                      {result.siteName.slice(0, 1)}
+                    </span>
+                    <span>
+                      <strong>{result.siteName}</strong>
+                      <small>{result.domain}</small>
+                    </span>
+                    <span className={searchStyles.resultMenu} aria-hidden="true">
+                      ⋮
+                    </span>
+                  </div>
+                  <span
+                    className={`${searchStyles.resultLink} ${styles.searchResultTitle}`}
+                  >
+                    {result.title}
+                  </span>
+                  <p>{result.description}</p>
+                </li>
+              );
+            })}
+          </ol>
+        </main>
+      )}
+    </div>
+  );
+}
+
+function HelpPage({ guideVisible }: { readonly guideVisible: boolean }) {
+  const content = s14MfaContent.browser.helpPage;
+
+  return (
+    <article
+      className={styles.helpPage}
+      data-guide-visible={guideVisible || undefined}
+      aria-label={content.ariaLabel}
+    >
+      <header className={styles.helpHeader}>
+        <span className={styles.helpIdentity}>
+          <NetworkSymbol symbolId="master-campus" />
+          <strong>{content.siteName}</strong>
+        </span>
+        <span className={styles.helpSearch} aria-label={content.searchPlaceholder}>
+          <SearchIcon />
+          <span>{content.searchPlaceholder}</span>
+        </span>
+        <nav className={styles.helpNavigation} aria-label="Hilfenavigation">
+          <span>
+            <i aria-hidden="true">
+              <HelpPageIcon kind="home" />
+            </i>
+            {content.navigation[0]}
+          </span>
+          <span>
+            <i aria-hidden="true">
+              <HelpPageIcon kind="services" />
+            </i>
+            {content.navigation[1]}
+            <i className={styles.helpNavigationChevron} aria-hidden="true">
+              <HelpPageIcon kind="chevron-down" />
+            </i>
+          </span>
+          <span className={styles.helpProfile} aria-label="Profil">
+            <HelpPageIcon kind="profile" />
+            <i aria-hidden="true">
+              <HelpPageIcon kind="chevron-down" />
+            </i>
+          </span>
+        </nav>
+      </header>
+      <main className={styles.helpMain}>
+        <nav className={styles.breadcrumbs} aria-label="Brotkrümelnavigation">
+          {content.breadcrumbs.map((item, index) => (
+            <span key={item}>
+              {item}
+              {index < content.breadcrumbs.length - 1 ? (
+                <i aria-hidden="true">
+                  <HelpPageIcon kind="chevron-right" />
+                </i>
+              ) : null}
+            </span>
+          ))}
+        </nav>
+        <h1>{content.title}</h1>
+        <section className={styles.faqCard} aria-label="Fragen und Antworten">
+          <div className={styles.faqOpenItem}>
+            <div className={styles.faqHeading}>
+              <span className={styles.questionMark} aria-hidden="true">
+                ?
+              </span>
+              <h2>{content.locationQuestion}</h2>
+              <span className={styles.faqChevron} aria-hidden="true">
+                <HelpPageIcon kind="chevron-up" />
+              </span>
+            </div>
+            <div className={styles.faqAnswer}>
+              <p className={styles.locationPath}>
+                {content.locationPath.map((item, index) => (
+                  <span key={item}>
+                    {item}
+                    {index < content.locationPath.length - 1 ? (
+                      <i aria-hidden="true">
+                        <HelpPageIcon kind="arrow-right" />
+                      </i>
+                    ) : null}
+                  </span>
+                ))}
+              </p>
+              <p>{content.locationAnswer}</p>
+            </div>
+          </div>
+          <div className={styles.faqClosedItem}>
+            <span className={styles.questionMark} aria-hidden="true">
+              ?
+            </span>
+            <div>
+              <h2>{content.requirementsQuestion}</h2>
+              <p>{content.requirementsAnswer}</p>
+            </div>
+            <span className={styles.faqChevron} aria-hidden="true">
+              <HelpPageIcon kind="chevron-down" />
+            </span>
+          </div>
+        </section>
+        <div className={styles.helpFeedback}>
+          <span>{content.feedbackQuestion}</span>
+          <span>
+            <HelpPageIcon kind="thumb-up" />
+            {content.positiveFeedback}
+          </span>
+          <span>
+            <HelpPageIcon kind="thumb-down" />
+            {content.negativeFeedback}
+          </span>
+        </div>
+      </main>
+    </article>
+  );
+}
+
+type S14BrowserPhase =
+  | 'service-variation'
+  | 'search-task'
+  | 'search-loading'
+  | 'search-results'
+  | 'help-found'
+  | 'free-navigation';
+
+function BrowserLesson({
+  activeTabId,
+  displayName,
+  onNext,
+  onOpenHelp,
+  onSubmitSearch,
+  onTabSelect,
+  phase,
+  platform,
+}: {
+  readonly activeTabId: S14BrowserTabId;
+  readonly displayName: string;
+  readonly onNext: () => void;
+  readonly onOpenHelp: () => void;
+  readonly onSubmitSearch: () => void;
+  readonly onTabSelect: (tabId: S14BrowserTabId) => void;
+  readonly phase: S14BrowserPhase;
+  readonly platform: DesktopPlatform;
+}) {
   const browser = s14MfaContent.browser;
+  const masterCampus = s01Content.browser.accounts.find(
+    ({ id }) => id === browser.masterCampusTab.id,
+  );
+  if (masterCampus === undefined) return null;
+
+  const navigationFree = phase === 'help-found' || phase === 'free-navigation';
+  const helpVisible = navigationFree;
+  const queryVisible = phase !== 'service-variation';
+  const searchTabLabel = helpVisible
+    ? browser.searchTab.helpLabel
+    : queryVisible
+      ? browser.searchTab.queryLabel
+      : browser.searchTab.label;
+  const speech = phase === 'service-variation'
+    ? {
+        id: 's14-service-variation',
+        text: s14MfaContent.guide.serviceVariation,
+        action: { kind: 'advance' as const, onAction: onNext },
+      }
+    : phase === 'search-task'
+      ? {
+          id: 's14-find-availability',
+          text: s14MfaContent.guide.findAvailability,
+        }
+      : phase === 'help-found'
+        ? { id: 's14-help-found', text: s14MfaContent.guide.helpFound }
+        : null;
   const snapshot: BrowserShellSnapshot = {
     tabs: [
       {
         id: browser.masterCampusTab.id,
         label: browser.masterCampusTab.label,
         icon: <NetworkSymbol symbolId="master-campus" />,
-        enabled: false,
-        disabledReason: browser.masterCampusTab.disabledReason,
+        enabled: navigationFree,
+        ...(navigationFree
+          ? {}
+          : { disabledReason: browser.masterCampusTab.disabledReason }),
       },
       {
         id: browser.searchTab.id,
-        label: browser.searchTab.label,
+        label: searchTabLabel,
         icon: <SearchBrandIcon />,
-        enabled: false,
+        enabled: navigationFree,
       },
     ],
-    activeTabId: browser.searchTab.id,
-    address: browser.searchTab.address,
-    locked: true,
+    activeTabId,
+    address:
+      activeTabId === browser.masterCampusTab.id
+        ? `${masterCampus.address}/dashboard`
+        : helpVisible
+          ? browser.searchTab.helpAddress
+          : phase === 'search-loading' || phase === 'search-results'
+            ? browser.searchTab.resultsAddress
+            : browser.searchTab.homeAddress,
+    scrollKey: `s14:${activeTabId}:${helpVisible ? 'help' : phase}`,
+    dimmed: phase === 'service-variation',
+    ...(phase === 'help-found'
+      ? { highlightedTabId: browser.masterCampusTab.id }
+      : {}),
+    ...(displayName.trim() === '' ? {} : { accountIdentifier: displayName }),
   };
 
   return (
@@ -186,8 +676,50 @@ function LockedBrowser({ platform }: { readonly platform: DesktopPlatform }) {
       ariaLabel={browser.ariaLabel}
       windowOpen
       windowCloseEnabled={false}
+      onTabSelect={(tabId) => {
+        if (tabId !== 'master-campus' && tabId !== 'mfa-search') return;
+        onTabSelect(tabId);
+      }}
+      layers={{
+        passWo:
+          speech === null ? undefined : (
+            <PassWoGuide
+              guideName={s14MfaContent.guide.name}
+              taskLabel={s14MfaContent.guide.taskLabel}
+              helpOpen
+              helpId="s14-browser-passwo-speech"
+              openHelpLabel={s14MfaContent.guide.openHelpLabel}
+              speech={[speech.text]}
+              speechKey={speech.id}
+              speechEmphasis={passWoSpeechEmphasisFor(speech.id)}
+              {...('action' in speech ? { speechAction: speech.action } : {})}
+              placement="bottom-left"
+              speechPlacement="right"
+              showHelpButton={false}
+            />
+          ),
+      }}
     >
-      <SearchStartPage />
+      {activeTabId === browser.masterCampusTab.id ? (
+        <CampusWebsiteBackdrop
+          accountId="master-campus"
+          interactionLabel="Master Campus, angemeldet"
+          view="dashboard"
+          displayName={displayName}
+        />
+      ) : helpVisible ? (
+        <HelpPage guideVisible={phase === 'help-found'} />
+      ) : phase === 'search-loading' || phase === 'search-results' ? (
+        <SearchResultsPage
+          loading={phase === 'search-loading'}
+          onPrimaryResultSelect={onOpenHelp}
+        />
+      ) : (
+        <SearchStartPage
+          queryVisible={queryVisible}
+          onSubmit={onSubmitSearch}
+        />
+      )}
     </BrowserShell>
   );
 }
@@ -209,15 +741,72 @@ function ConceptLabel({
   );
 }
 
+type FactorConceptId = keyof typeof s14MfaContent.concepts;
+type FactorConnectionMode = 'all' | 'pairs';
+
+function FactorConnections({ mode }: { readonly mode: FactorConnectionMode }) {
+  return (
+    <svg
+      aria-hidden="true"
+      className={styles.factorConnections}
+      data-mode={mode}
+      viewBox="0 0 1000 100"
+      preserveAspectRatio="none"
+    >
+      <g data-factor-id="knowledge">
+        <path
+          d="M166.67 0 V66 H500 V100"
+          pathLength="1"
+          vectorEffect="non-scaling-stroke"
+        />
+        <circle cx="166.67" cy="3" r="7" vectorEffect="non-scaling-stroke" />
+      </g>
+      <g data-factor-id="possession">
+        <path
+          d="M500 0 V100"
+          pathLength="1"
+          vectorEffect="non-scaling-stroke"
+        />
+        <circle cx="500" cy="3" r="7" vectorEffect="non-scaling-stroke" />
+      </g>
+      <g data-factor-id="biometrics">
+        <path
+          d="M833.33 0 V66 H500 V100"
+          pathLength="1"
+          vectorEffect="non-scaling-stroke"
+        />
+        <circle cx="833.33" cy="3" r="7" vectorEffect="non-scaling-stroke" />
+      </g>
+      <circle
+        className={styles.factorConnectionHub}
+        cx="500"
+        cy="97"
+        r="8"
+        vectorEffect="non-scaling-stroke"
+      />
+    </svg>
+  );
+}
+
 function FactorBoard({
   activeFactorId,
   combinationCount,
+  conceptId,
+  connectionMode,
 }: {
   readonly activeFactorId: S14FactorId | null;
   readonly combinationCount: number;
+  readonly conceptId: FactorConceptId | null;
+  readonly connectionMode: FactorConnectionMode | null;
 }) {
+  const concept = conceptId === null ? null : s14MfaContent.concepts[conceptId];
+
   return (
-    <div className={styles.factorArea}>
+    <div
+      className={styles.factorArea}
+      data-combinations-visible={combinationCount > 0 || undefined}
+      data-concept-visible={concept !== null || undefined}
+    >
       <div className={styles.factorGrid} data-s14-factors>
         {s14MfaContent.factors.map((factor) => (
           <section
@@ -240,74 +829,111 @@ function FactorBoard({
           </section>
         ))}
       </div>
-      {combinationCount > 0 ? (
-        <ol
-          className={styles.combinations}
-          data-s14-combinations
-          aria-label="Beispiele für Faktor-Kombinationen"
-          aria-live="polite"
-        >
-          {s14MfaContent.combinations.slice(0, combinationCount).map((combination) => (
-            <li data-valid={combination.valid} key={combination.id}>
-              <span>{combination.label}</span>
-              <strong
-                role="img"
-                aria-label={
-                  combination.valid
-                    ? 'gültige Kombination: unterschiedliche Faktoren'
-                    : 'ungültige Kombination: derselbe Faktor'
-                }
-              >
-                {combination.valid ? '✓' : '✗'}
-              </strong>
-            </li>
-          ))}
-        </ol>
-      ) : null}
+      <div className={styles.factorConnectionSlot}>
+        {connectionMode === null ? null : (
+          <FactorConnections mode={connectionMode} />
+        )}
+      </div>
+      <div className={styles.factorConceptSlot}>
+        {concept === null ? null : (
+          <div
+            key={conceptId}
+            className={styles.factorConcept}
+            data-concept-id={conceptId}
+            data-s14-concepts
+          >
+            <ConceptLabel
+              title={concept.title}
+              abbreviation={concept.abbreviation}
+              emphasized={conceptId === 'twoFactor'}
+            />
+          </div>
+        )}
+        {combinationCount > 0 ? (
+          <ol
+            className={styles.combinations}
+            data-s14-combinations
+            aria-label="Beispiele für Faktor-Kombinationen"
+            aria-live="polite"
+          >
+            {s14MfaContent.combinations
+              .slice(0, combinationCount)
+              .map((combination) => (
+                <li data-valid={combination.valid} key={combination.id}>
+                  <span>{combination.label}</span>
+                  <strong
+                    role="img"
+                    aria-label={
+                      combination.valid
+                        ? 'gültige Kombination: unterschiedliche Faktoren'
+                        : 'ungültige Kombination: derselbe Faktor'
+                    }
+                  >
+                    {combination.valid ? '✓' : '✗'}
+                  </strong>
+                </li>
+              ))}
+          </ol>
+        ) : null}
+      </div>
     </div>
   );
 }
 
 function motionDurations() {
   return window.matchMedia('(prefers-reduced-motion: reduce)').matches
-    ? { cleanDesktopDurationMs: 0, combinationRevealDurationMs: 0 }
+    ? {
+        cleanDesktopDurationMs: 0,
+        combinationRevealDurationMs: 0,
+        searchResultsDelayMs: 0,
+      }
     : s14MfaContent.timings;
 }
 
 export function S14MfaIntroduction({
+  displayName = '',
   platform = 'mac',
 }: {
+  readonly displayName?: string;
   readonly platform?: DesktopPlatform;
 }) {
   const [state, send] = useMachine(s14MfaIntroductionMachine, {
     input: motionDurations(),
   });
-  const browserVisible = state.matches('browser');
+  const browserPhase: S14BrowserPhase | null = state.matches(
+    'browserServiceVariation',
+  )
+    ? 'service-variation'
+    : state.matches('browserSearchTask')
+      ? 'search-task'
+      : state.matches('searchLoading')
+        ? 'search-loading'
+        : state.matches('searchResults')
+          ? 'search-results'
+          : state.matches('helpFound')
+            ? 'help-found'
+            : state.matches('freeNavigation')
+              ? 'free-navigation'
+              : null;
+  const browserVisible = browserPhase !== null;
   const mfaVisible = !state.matches('cleanDesktop') && !browserVisible;
-  const twoFactorVisible =
-    state.matches('twoFactor') ||
-    state.matches('knowledge') ||
-    state.matches('possession') ||
-    state.matches('biometrics') ||
-    state.matches('firstCombination') ||
-    state.matches('secondCombination') ||
-    state.matches('thirdCombination') ||
-    state.matches('distinctFactors');
-  const factorsVisible =
-    state.matches('knowledge') ||
-    state.matches('possession') ||
-    state.matches('biometrics') ||
-    state.matches('firstCombination') ||
-    state.matches('secondCombination') ||
-    state.matches('thirdCombination') ||
-    state.matches('distinctFactors');
+  const conceptId: FactorConceptId | null = state.matches('mfa')
+    ? 'mfa'
+    : state.matches('twoFactor')
+      ? 'twoFactor'
+      : null;
+  const connectionMode: FactorConnectionMode | null = state.matches('mfa')
+    ? 'all'
+    : state.matches('twoFactor')
+      ? 'pairs'
+      : null;
   const activeFactorId: S14FactorId | null = state.matches('knowledge')
     ? 'knowledge'
     : state.matches('possession')
       ? 'possession'
       : state.matches('biometrics')
-        ? 'biometrics'
-        : null;
+      ? 'biometrics'
+      : null;
   const combinationCount = state.matches('firstCombination')
     ? 1
     : state.matches('secondCombination')
@@ -332,7 +958,16 @@ export function S14MfaIntroduction({
   if (browserVisible) {
     return (
       <section className={styles.training} aria-label={s14MfaContent.trainingAriaLabel}>
-        <LockedBrowser platform={platform} />
+        <BrowserLesson
+          activeTabId={state.context.activeTabId}
+          displayName={displayName}
+          phase={browserPhase}
+          platform={platform}
+          onNext={() => send({ type: 'NEXT' })}
+          onOpenHelp={() => send({ type: 'OPEN_HELP' })}
+          onSubmitSearch={() => send({ type: 'SUBMIT_SEARCH' })}
+          onTabSelect={(tabId) => send({ type: 'SELECT_TAB', tabId })}
+        />
       </section>
     );
   }
@@ -351,33 +986,15 @@ export function S14MfaIntroduction({
           <div className={styles.lessonViewport}>
             <section
               className={styles.conceptBoard}
-              data-factors-visible={factorsVisible || undefined}
+              data-factors-visible="true"
               aria-label="MFA und Faktorarten"
             >
-              {!factorsVisible ? (
-                <div className={styles.conceptStack} data-s14-concepts>
-                  <ConceptLabel
-                    title={s14MfaContent.concepts.mfa.title}
-                    abbreviation={s14MfaContent.concepts.mfa.abbreviation}
-                  />
-                  {twoFactorVisible ? (
-                    <>
-                      <span className={styles.conceptConnector} aria-hidden="true" />
-                      <ConceptLabel
-                        title={s14MfaContent.concepts.twoFactor.title}
-                        abbreviation={s14MfaContent.concepts.twoFactor.abbreviation}
-                        emphasized
-                      />
-                    </>
-                  ) : null}
-                </div>
-              ) : null}
-              {factorsVisible ? (
-                <FactorBoard
-                  activeFactorId={activeFactorId}
-                  combinationCount={combinationCount}
-                />
-              ) : null}
+              <FactorBoard
+                activeFactorId={activeFactorId}
+                combinationCount={combinationCount}
+                conceptId={conceptId}
+                connectionMode={connectionMode}
+              />
             </section>
           </div>
         ) : null}

@@ -3,7 +3,7 @@ import { s14MfaContent } from './s14.js';
 
 describe('S14 MFA introduction traceability', () => {
   it('keeps MFA, 2FA and the three factor categories together', () => {
-    expect(s14MfaContent.version).toBe('1.1.0');
+    expect(s14MfaContent.version).toBe('1.4.0');
     expect(s14MfaContent.segment).toMatchObject({
       id: 'S14',
       sectionId: 'mfa',
@@ -11,11 +11,11 @@ describe('S14 MFA introduction traceability', () => {
     });
     expect(s14MfaContent.concepts).toEqual({
       mfa: {
-        title: 'Multi-Faktor-Authentisierung',
+        title: 'Multi-Faktor-Authentifizierung',
         abbreviation: 'MFA',
       },
       twoFactor: {
-        title: 'Zwei-Faktor-Authentisierung',
+        title: 'Zwei-Faktor-Authentifizierung',
         abbreviation: '2FA',
       },
     });
@@ -32,7 +32,21 @@ describe('S14 MFA introduction traceability', () => {
     ).toBe(6);
   });
 
-  it('keeps valid and invalid factor combinations explicit', () => {
+  it('keeps the authored MFA explanation sequence explicit', () => {
+    expect(s14MfaContent.guide.mfa).toBe(
+      'Bei der Multi-Faktor-Authentifizierung (MFA) werden für die Anmeldung mehrere unterschiedliche Faktoren kombiniert.',
+    );
+    expect(s14MfaContent.guide.twoFactor).toBe(
+      'Eine besonders häufige Form ist die Zwei-Faktor-Authentifizierung (2FA). Dabei werden genau zwei unterschiedliche Faktoren kombiniert.',
+    );
+    expect(s14MfaContent.guide.factors).toEqual({
+      knowledge:
+        'Der erste Faktor ist Wissen, zum Beispiel dein Passwort, eine PIN oder die Antwort auf eine Sicherheitsfrage.',
+      possession:
+        'Der zweite Faktor ist Besitz, zum Beispiel eine Authenticator-App auf deinem Handy oder ein Sicherheitsschlüssel.',
+      biometrics:
+        'Der dritte Faktor ist Biometrie, zum Beispiel Gesichtserkennung oder ein Fingerabdruck.',
+    });
     expect(s14MfaContent.combinations).toEqual([
       {
         id: 'password-authenticator-app',
@@ -55,7 +69,7 @@ describe('S14 MFA introduction traceability', () => {
     );
   });
 
-  it('ends in the locked search tab beside Master Campus', () => {
+  it('continues from the locked search tab through local help', () => {
     expect(s14MfaContent.browser).toMatchObject({
       masterCampusTab: {
         id: 'master-campus',
@@ -64,11 +78,33 @@ describe('S14 MFA introduction traceability', () => {
       searchTab: {
         id: 'mfa-search',
         label: 'Neuer Tab',
-        address: 'search.example',
+        queryLabel: 'Master Campus 2FA aktivieren',
+        helpLabel: 'Master Campus Hilfe',
+        homeAddress: 'search.example',
       },
       searchPage: {
         brand: 'Search',
+        query: 'Master Campus 2FA aktivieren',
+        primaryResultId: 'master-campus-help',
+      },
+      helpPage: {
+        locationPath: [
+          'Einstellungen',
+          'Sicherheit',
+          'Zwei-Faktor-Authentifizierung',
+        ],
+        requirementsAnswer: 'Eine Authenticator-App auf deinem Smartphone.',
       },
     });
+    expect(s14MfaContent.browser.helpPage.requirementsAnswer).not.toContain(
+      'Google Authenticator',
+    );
+    expect(s14MfaContent.browser.helpPage.requirementsAnswer).not.toContain(
+      'Microsoft Authenticator',
+    );
+    expect(s14MfaContent.guide.findAvailability).toContain(
+      'Master Campus Zwei-Faktor-Authentifizierung',
+    );
+    expect(s14MfaContent.browser.helpPage).not.toHaveProperty('introduction');
   });
 });

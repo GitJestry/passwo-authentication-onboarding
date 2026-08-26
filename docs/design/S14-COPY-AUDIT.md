@@ -19,9 +19,9 @@ Version `1.0.0`. Die Supportive-Artifact-Version steigt von `supportive-s00-s13-
 | Text-ID | Quelle / bisher | Implementierter Wortlaut | Primäre Rolle | Interaktionsziel | Hervorhebung | Grund und Bedeutungsänderung |
 |---|---|---|---|---|---|---|
 | `S14.guide.mfa` | Nutzerauftrag; noch nicht implementiert | `Bei der Multi-Faktor-Authentifizierung (MFA) werden für die Anmeldung mehrere unterschiedliche Faktoren miteinander kombiniert.` | Mechanismuserklärung | `Weiter` | `mehrere unterschiedliche Faktoren` · Akzent | neue ausdrücklich vorgegebene Erklärung; keine Bedeutungsänderung |
-| `S14.concept.mfa` | Nutzerauftrag; noch nicht implementiert | `Multi-Faktor-Authentisierung` / `MFA` | Orientierung | kein | mittige Begriffskarte | neue ausdrücklich vorgegebene Visualisierung |
+| `S14.concept.mfa` | Nutzerauftrag; noch nicht implementiert | `Multi-Faktor-Authentifizierung` / `MFA` | Orientierung | kein | mittige Begriffskarte | neue ausdrücklich vorgegebene Visualisierung |
 | `S14.guide.twoFactor` | Nutzerauftrag; noch nicht implementiert | `Eine besonders häufige Form ist die Zwei-Faktor-Authentifizierung (2FA). Dabei kommen genau zwei unterschiedliche Faktoren zusammen.` | Mechanismuserklärung | `Weiter` | `genau zwei unterschiedliche Faktoren` · Akzent | neue ausdrücklich vorgegebene Erklärung; keine Bedeutungsänderung |
-| `S14.concept.twoFactor` | Nutzerauftrag; noch nicht implementiert | `Zwei-Faktor-Authentisierung` / `2FA` | Orientierung | kein | abgesetzte Begriffskarte unter MFA | neue ausdrücklich vorgegebene Visualisierung |
+| `S14.concept.twoFactor` | Nutzerauftrag; noch nicht implementiert | `Zwei-Faktor-Authentifizierung` / `2FA` | Orientierung | kein | abgesetzte Begriffskarte unter MFA | neue ausdrücklich vorgegebene Visualisierung |
 | `S14.factor.knowledge` | Nutzerauftrag; noch nicht implementiert | `Wissen` · `Passwort` · `Sicherheitsfragen` | Orientierung | kein | vollständige Karte während des zugehörigen Sprechschritts | vorgegebene Faktorgruppe und Beispiele |
 | `S14.guide.knowledge` | Nutzerauftrag: `Es gibt 3 Faktoren: Erstens Wissen, wie dein Passwort, Pin oder Sicherheitsfragen.` | `Es gibt drei Faktoren: Erstens Wissen, wie dein Passwort, deine PIN oder Sicherheitsfragen.` | Mechanismuserklärung | `Weiter` | `Wissen` · Akzent | reine Grammatik-, Schreibweisen- und Typografiekorrektur; nein |
 | `S14.factor.possession` | Nutzerauftrag; noch nicht implementiert | `Besitz` · `Authenticator-App` · `Sicherheitsschlüssel` | Orientierung | kein | vollständige Karte während des zugehörigen Sprechschritts | vorgegebene Faktorgruppe und Beispiele |
@@ -76,3 +76,98 @@ Darstellungsdelta: S14 verwendet für Hintergrundgrafik, Wortmarke, Suchfeld, Fa
 Suchsymbol unmittelbar dieselben CSS-Modulklassen wie die S07-Search-Landingpage. Ein Suchbegriff
 und das zugehörige Löschsymbol werden nicht gerendert. Das Suchsymbol bleibt in dieser terminalen
 Szene rein visuell und nicht bedienbar; der Master-Campus-Tab bleibt weiterhin gesperrt.
+
+## S14.1 — Recherche und Aktivierungspfad, 26. August 2026
+
+### Umfang und Quelle
+
+Der Nutzerauftrag vom 26. August 2026 ersetzt den bisherigen terminalen, gesperrten Suchtab durch
+eine geführte lokale Recherche. Die Bilder `suchergebnnise.png` und `hilfeseite.png` aus dem
+Download-Ordner sind die ausdrücklich benannten Designreferenzen. Die S14-Content-Version steigt
+von `1.1.0` auf `1.2.0`, die Supportive-Artifact-Version von
+`supportive-s00-s14-1.12.0` auf `supportive-s00-s14-1.13.0`.
+
+### Copy-Delta
+
+| Text-ID | Quelle / bisher | Implementierter Wortlaut | Primäre Rolle | Interaktionsziel | Hervorhebung | Grund und Bedeutungsänderung |
+|---|---|---|---|---|---|---|
+| `S14.guide.serviceVariation` | Nutzerauftrag; nicht vorhanden | `Wo du 2FA einschaltest, sieht bei jedem Dienst etwas anders aus.` | Mechanismuserklärung | `Weiter` | `bei jedem Dienst etwas anders` · Akzent | ausdrücklich vorgegebener Dienstgrenzen-Hinweis; freigegeben |
+| `S14.guide.findAvailability` | Nutzerauftrag; nicht vorhanden | `Finde zuerst heraus, ob Master Campus Zwei-Faktor-Authentifizierung anbietet und wo du sie aktivieren kannst.` | Navigation | Suchschaltfläche im sichtbaren Suchfeld | `Finde zuerst heraus` · Aktion | ausdrücklich vorgegebene Recherchehandlung; freigegeben |
+| `S14.browser.searchPage.query` | Nutzerauftrag; leeres Suchfeld | `Master Campus 2FA aktivieren` | Orientierung | nicht editierbares Suchfeld | keine | ausdrücklich vorgegebene, automatisch erscheinende Suchanfrage; freigegeben |
+| `S14.browser.searchPage.results` | Bilder `suchergebnnise.png`; nicht vorhanden | vier lokale fiktive Suchtreffer mit Master Campus Hilfe an erster Stelle | Orientierung | erster Suchtreffer | S07-Aktionsrahmen am ersten Treffer | visuelle und inhaltliche Übernahme der benannten Vorlage in den bestehenden fiktiven Search-Look; freigegeben |
+| `S14.browser.helpPage.location` | Bild `hilfeseite.png`; nicht vorhanden | `Einstellungen → Sicherheit → Zwei-Faktor-Authentifizierung` | Navigation | Master-Campus-Tab | keine | geforderte, nahezu wortgleiche Übernahme des Pfades; freigegeben |
+| `S14.browser.helpPage.requirements` | Bild `hilfeseite.png`: `Eine Authenticator-App (z. B. Google Authenticator oder Microsoft Authenticator) auf deinem Smartphone.` | `Eine Authenticator-App auf deinem Smartphone.` | Orientierung | kein | keine | ausdrücklich verlangte Entfernung der beiden Markenbeispiele; begrenzt |
+| `S14.guide.helpFound` | Nutzerauftrag; nicht vorhanden | `Gefunden. Aktiviere 2FA jetzt bei Master Campus.` | Ergebnisfeedback und Navigation | sichtbarer Master-Campus-Tab | `Master Campus` · Aktion | ausdrücklich vorgegebene Folgehandlung; freigegeben |
+
+### Interaktions- und Darstellungsdelta
+
+- Der erste neue Sprechschritt bleibt reiner Dialogfortschritt. Mit dem zweiten Sprechschritt
+  erscheint die feste Suchanfrage autofill-ähnlich; sie kann nicht verändert werden und nur die
+  markierte Suchschaltfläche löst den nächsten Statechart-Übergang aus.
+- Der Ergebniszustand lädt deterministisch. Vier fiktive Treffer halten die Seite auch bei kleinen
+  Browserhöhen scrollbar; ausschließlich der hervorgehobene obere Hilfetreffer ist bedienbar.
+- Die lokale Master-Campus-Hilfeseite übernimmt Informationsarchitektur, geöffnete FAQ,
+  Aktivierungspfad und Feedbackzeile aus der Vorlage. Die FAQ nennt keine Anbieterbeispiele.
+- Erst nach dem Öffnen der Hilfeseite werden Such- und Master-Campus-Tab freigeschaltet. Der
+  Master-Campus-Tab erhält den S07-Hinweisrahmen und ist die einzige Quelle des Übergangs in die
+  freie Tabnavigation; danach bleiben beide Tabs tastaturbedienbar.
+- Die Suche, Hilfeseite und Tabwahl bleiben vollständig flüchtig. Es entstehen keine
+  Forschungswrites oder neuen persistierbaren Datenklassen.
+
+## S14.2 — MFA-Faktorstruktur und Copy-Korrektur, 26. August 2026
+
+### Umfang und Quelle
+
+Der Nutzerauftrag vom 26. August 2026 ersetzt die anfängliche MFA-/2FA-Darstellung und gibt die
+zugehörigen PassWo-Sätze ausdrücklich vor. Die drei Faktorlisten bleiben dabei durchgehend
+sichtbar. Die frühere Folge aus getrennten Begriffskarten und drei Kombinationstexten entfällt.
+Zusätzlich korrigiert der Auftrag den Begriff in der Master-Campus-Recherche und entfernt den
+Einleitungsabsatz der Hilfeseite. Die S14-Content-Version steigt von `1.2.0` auf `1.3.0`, die
+Supportive-Artifact-Version von `supportive-s00-s14-1.13.0` auf
+`supportive-s00-s14-1.14.0`.
+
+### Copy-Delta
+
+| Text-ID | Bisher | Implementiert | Primäre Rolle | Interaktionsziel | Hervorhebung | Grund und Bedeutungsänderung |
+|---|---|---|---|---|---|---|
+| `S14.guide.mfa` | `Bei der Multi-Faktor-Authentifizierung (MFA) werden für die Anmeldung mehrere unterschiedliche Faktoren miteinander kombiniert.` | `Bei der Multi-Faktor-Authentifizierung (MFA) werden für die Anmeldung mehrere unterschiedliche Faktoren kombiniert.` | Mechanismuserklärung | `Weiter` | `mehrere unterschiedliche Faktoren` · Akzent | ausdrücklich vorgegebene Straffung; nein |
+| `S14.guide.twoFactor` | `Eine besonders häufige Form ist die Zwei-Faktor-Authentifizierung (2FA). Dabei kommen genau zwei unterschiedliche Faktoren zusammen.` | `Eine besonders häufige Form ist die Zwei-Faktor-Authentifizierung (2FA). Dabei werden genau zwei unterschiedliche Faktoren kombiniert.` | Mechanismuserklärung | `Weiter` | `genau zwei unterschiedliche Faktoren` · Akzent | ausdrücklich vorgegebene Angleichung an den sichtbaren Kombinationsmechanismus; nein |
+| `S14.guide.knowledge` | `Es gibt drei Faktoren: Erstens Wissen, wie dein Passwort, deine PIN oder Sicherheitsfragen.` | `Der erste Faktor ist Wissen, zum Beispiel dein Passwort, eine PIN oder die Antwort auf eine Sicherheitsfrage.` | Mechanismuserklärung | `Weiter` | `Wissen` · Akzent | ausdrücklich vorgegebene Präzisierung der Beispiele; begrenzt |
+| `S14.guide.possession` | `Zweitens etwas, das du besitzt, wie deine Authenticator-App auf dem Handy oder einen zusätzlichen USB-Sicherheitsschlüssel zum Verifizieren.` | `Der zweite Faktor ist Besitz, zum Beispiel eine Authenticator-App auf deinem Handy oder ein Sicherheitsschlüssel.` | Mechanismuserklärung | `Weiter` | `Besitz` · Akzent | ausdrücklich vorgegebene Kürzung und Angleichung an die sichtbare Liste; begrenzt |
+| `S14.guide.biometrics` | `Und drittens ein Körpermerkmal, das du schon tagtäglich nutzt, wie Gesichtserkennung oder Fingerabdrücke.` | `Der dritte Faktor ist Biometrie, zum Beispiel Gesichtserkennung oder ein Fingerabdruck.` | Mechanismuserklärung | `Weiter` | `Biometrie` · Akzent | ausdrücklich vorgegebene Kürzung und Angleichung an die sichtbare Liste; begrenzt |
+| `S14.guide.findAvailability` | `Finde zuerst heraus, ob Master Campus Zwei-Faktor-Authentifizierung anbietet und wo du sie aktivieren kannst.` | `Finde zuerst heraus, ob Master Campus Zwei-Faktor-Authentifizierung anbietet und wo du sie aktivieren kannst.` | Navigation | Suchschaltfläche im sichtbaren Suchfeld | `Finde zuerst heraus` · Aktion | ausdrücklich verlangte Begriffskorrektur; nein |
+| `S14.browser.helpPage.introduction` | `Hier erfährst du, wo du die Zwei-Faktor-Authentifizierung für dein Master-Campus-Konto aktivierst.` | entfällt | Orientierung | kein | keine | ausdrücklich verlangte Entfernung einer redundanten Einleitung; begrenzt |
+
+### Interaktions- und Darstellungsdelta
+
+- Die drei Listen `Wissen`, `Besitz` und `Biometrie` stehen von Beginn der MFA-Erklärung an links,
+  mittig und rechts. Ihre großen unterstrichenen Titel, jeweils zwei Beispiele und sechs
+  semantischen Symbole bleiben bestehen.
+- Ein mittiger MFA-Knoten verbindet sich zunächst sichtbar mit allen drei Faktorlisten. Im
+  folgenden Sprechschritt wird ausschließlich dieser Knoten durch `Zwei-Faktor-Authentifizierung` /
+  `2FA` ersetzt.
+- Während der 2FA-Erklärung wechseln die sichtbaren Linienpaare im Sekundentakt deterministisch
+  zwischen Wissen/Besitz, Wissen/Biometrie und Besitz/Biometrie. Bei Reduced Motion bleibt das
+  gültige Paar Wissen/Besitz statisch sichtbar.
+- Nach `Weiter` verschwindet der 2FA-Knoten. Die drei Faktorlisten bleiben für die einzelnen
+  Faktor-Erklärungen und den abschließenden Kerngedanken sichtbar; nur die jeweils erklärte Liste
+  wird zusätzlich über Rahmen und Leuchte hervorgehoben.
+- Nach den drei Faktor-Erklärungen erscheinen wieder deterministisch zwei Kombinationen aus
+  unterschiedlichen Faktoren und anschließend die ungültige Wiederholung desselben Faktors.
+  Ablaufentscheidungen bleiben vollständig in der S14-Statechart; die zyklische Linienprojektion
+  ist eine zustandsgebundene, rein visuelle CSS-Animation.
+
+## S14.3 — Einheitliche Authentifizierungsbegriffe, 26. August 2026
+
+Der ausdrückliche Nutzerauftrag vereinheitlicht innerhalb von S14 alle sichtbaren Begriffe auf
+`Authentifizierung`. Dies umfasst die MFA-/2FA-Begriffsknoten, die
+Suchtreffer sowie Titel, zugängliche Bezeichnung, Brotkrümel, Frage und Aktivierungspfad der
+Hilfeseite. Rollen, Interaktionsziele und Hervorhebungen bleiben unverändert. Die
+S14-Content-Version steigt von `1.3.0` auf `1.4.0`, die Supportive-Artifact-Version von
+`supportive-s00-s14-1.14.0` auf `supportive-s00-s14-1.15.0`.
+
+Darstellungskorrektur: Die drei Faktorkarten stehen in allen MFA-, 2FA-, Erklärungs- und
+Kombinationszuständen an derselben oberen Position. Der jeweilige MFA-/2FA-Begriff erscheint
+darunter. Kräftigere Verbindungslinien, eine helle Konturkante und sichtbare Endpunkte machen die
+Verbindung zu jeder Faktorkarte eindeutig; die aktive Faktor-Erklärung verändert nur Rahmen und
+Leuchte, nicht mehr die Kartenposition.

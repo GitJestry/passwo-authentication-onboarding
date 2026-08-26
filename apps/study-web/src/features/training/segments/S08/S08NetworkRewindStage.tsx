@@ -1758,7 +1758,7 @@ export function S08NetworkRewindStage({
       ) : null}
       {s14Visible ? (
         <div className={styles.stageOverlay}>
-          <S14MfaIntroduction platform={platform} />
+          <S14MfaIntroduction displayName={displayName} platform={platform} />
         </div>
       ) : null}
       {conclusionOverlayPhase === null ? null : (

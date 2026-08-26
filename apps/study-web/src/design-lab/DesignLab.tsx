@@ -636,7 +636,7 @@ const scenarios: Record<DesignLabScenarioId, DesignLabScenario> = {
   's3-1-mfa-factors': {
     label: 's3.1 · MFA und zweiter Faktor',
     description:
-      'Direkter lokaler QA-Einstieg in S14.0 mit MFA-/2FA-Begriffen, drei Faktorarten, Kombinationen und gesperrtem Suchtab.',
+      'Direkter lokaler QA-Einstieg in S14.1 mit MFA-/2FA-Begriffen, drei Faktorarten, Kombinationen sowie geführter Suche und Master-Campus-Hilfeseite.',
     dimmed: false,
     showPassWoOverlay: false,
   },
