@@ -47,7 +47,8 @@ Der Befehl führt standardmäßig aus:
 
 1. `pnpm test:web:release` mit Artefaktintegrität, Typ- und Research-Boundary-Prüfung sowie allen Core-Tests,
 2. dateibasierte vollständige Webläufe, Neustart/Resume, Löschung, Export und Parallelrandomisierung,
-3. den Playwright-Vollablauf für **beide** erzwungenen Bedingungen und den realen SecAware-Kurs,
+3. den begrenzten Playwright-Artefakt-Smoke mit regulärem Abschluss für **beide** erzwungenen
+   Bedingungen und den realen SecAware-Kurs,
 4. den Web-/Server-Build inklusive vorkomprimierter Vite- und SecAware-Auslieferungsassets,
 5. einen neuen timestamp-basierten Release per `rsync`, wobei der private SecAware-Quellsnapshot lokal bleibt,
 6. `pnpm install --frozen-lockfile` auf Linux und die Host-Prüfung von `better-sqlite3`,

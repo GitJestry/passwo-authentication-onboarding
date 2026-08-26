@@ -31,7 +31,7 @@ run('Research-Core inklusive Web-Persistenz, Resume, Löschung und Parallelität
   'test:core',
 ]);
 run('Produktive Web-Runtime bauen', 'pnpm', ['build:web-runtime']);
-run('Beide Studienbedingungen im Browser vollständig durchlaufen', 'pnpm', [
+run('Beide Studienbedingungen mit begrenztem Browser-Artefakt-Smoke abschließen', 'pnpm', [
   'exec',
   'playwright',
   'test',

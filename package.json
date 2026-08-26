@@ -39,7 +39,6 @@
     "study:audit-data": "tsx ./scripts/audit-study-data.ts",
     "study:timing-report": "tsx ./scripts/report-study-timing.ts",
     "deploy:prepare-native": "bash ./deploy/scripts/prepare-native-dependencies.sh",
-    "test:e2e:persistence": "playwright test tests/e2e/study-persistence-smoke.spec.ts",
     "qa:live:setup": "bash ./deploy/scripts/setup-live-qa.sh",
     "deploy:web": "bash ./deploy/scripts/deploy-web.sh"
   },

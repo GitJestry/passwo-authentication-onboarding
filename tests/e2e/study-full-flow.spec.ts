@@ -1,14 +1,18 @@
 import { fileURLToPath } from 'node:url';
 import {
   artifactIntervalStartResponseSchema,
+  confirmArtifactCheckpointResponseSchema,
   instrumentRuntimeManifest,
   instrumentSubmissionRequestSchema,
   mainInstrumentBlocks,
   sessionStatusResponseSchema,
   SUPPORTIVE_ARTIFACT_SEGMENT_IDS,
+  SUPPORTIVE_POST_S08_SEGMENT_IDS,
+  supportiveS08ResumeStateSchema,
   WEB_STUDY_REQUEST_HEADER,
   WEB_STUDY_REQUEST_HEADER_VALUE,
   webCreateSessionResponseSchema,
+  webResumeResponseSchema,
   type InstrumentResponseValue,
   type InstrumentRuntimeItem,
   type InstrumentSubmissionBlock,
@@ -30,6 +34,16 @@ const writeHeaders = {
   'content-type': 'application/json',
   [WEB_STUDY_REQUEST_HEADER]: WEB_STUDY_REQUEST_HEADER_VALUE,
 } as const;
+const supportiveS08ResumeState = supportiveS08ResumeStateSchema.parse({
+  schemaVersion: 'supportive-s08-resume-v1',
+  passphraseIds: {
+    campusgram: 'passphrase-01-hyphen',
+    masterCampus: 'passphrase-02-hyphen',
+    campusEmail: 'passphrase-03-hyphen',
+  },
+  weakAccountIds: [],
+  relationships: [],
+});
 
 test.use({ contextOptions: { reducedMotion: 'reduce' } });
 
@@ -143,7 +157,7 @@ async function startArtifactWithoutNavigation(page: Page, sessionId: string) {
   );
 }
 
-async function skipSupportiveArtifact(
+async function advanceSupportiveArtifactToS17(
   page: Page,
   sessionId: string,
   intervalId: string,
@@ -166,10 +180,26 @@ async function skipSupportiveArtifact(
       elapsedMs,
     });
   }
-  await postStudy(page, `/api/study/sessions/${sessionId}/artifact-intervals/end`, {
-    intervalId,
-    elapsedMs: elapsedMs + 1,
-  });
+
+  const s08Checkpoint = confirmArtifactCheckpointResponseSchema.parse(
+    await postStudy(page, `/api/study/sessions/${sessionId}/artifact-checkpoint`, {
+      intervalId,
+      checkpoint: 'supportive:S08',
+      resumeState: supportiveS08ResumeState,
+    }),
+  );
+  expect(s08Checkpoint.checkpoint).toBe('supportive:S08');
+
+  for (const segmentId of SUPPORTIVE_POST_S08_SEGMENT_IDS) {
+    const checkpoint = `supportive:${segmentId}` as const;
+    const response = confirmArtifactCheckpointResponseSchema.parse(
+      await postStudy(page, `/api/study/sessions/${sessionId}/artifact-checkpoint`, {
+        intervalId,
+        checkpoint,
+      }),
+    );
+    expect(response.checkpoint).toBe(checkpoint);
+  }
 }
 
 async function skipReferenceArtifact(
@@ -200,13 +230,81 @@ async function completeThroughUi(page: Page): Promise<Response> {
   return response;
 }
 
+async function completeSupportiveFromS17Resume(page: Page, sessionId: string): Promise<void> {
+  const resumeResponsePromise = page.waitForResponse(
+    (response) =>
+      response.request().method() === 'POST' &&
+      new URL(response.url()).pathname === '/api/study/session/resume',
+  );
+  const intervalResponsePromise = page.waitForResponse(
+    (response) =>
+      response.request().method() === 'POST' &&
+      new URL(response.url()).pathname ===
+        `/api/study/sessions/${sessionId}/artifact-intervals`,
+  );
+  await page.reload();
+
+  const resumeResponse = await resumeResponsePromise;
+  expect(resumeResponse.ok()).toBe(true);
+  const resumed = webResumeResponseSchema.parse(await resumeResponse.json()).session;
+  expect(resumed).toMatchObject({
+    sessionId,
+    checkpoint: 'supportive:S17',
+    resumeTarget: 'artifact',
+    interrupted: true,
+    supportiveS08ResumeState,
+  });
+
+  const intervalResponse = await intervalResponsePromise;
+  expect(intervalResponse.ok()).toBe(true);
+  expect(artifactIntervalStartResponseSchema.parse(await intervalResponse.json())).toMatchObject({
+    checkpoint: 'supportive:S17',
+    interrupted: true,
+  });
+
+  await page.getByRole('button', { name: 'Weiter', exact: true }).click();
+  const completeCheckpointResponsePromise = page.waitForResponse((response) => {
+    if (
+      response.request().method() !== 'POST' ||
+      new URL(response.url()).pathname !==
+        `/api/study/sessions/${sessionId}/artifact-checkpoint`
+    ) {
+      return false;
+    }
+    const requestBody: unknown = response.request().postDataJSON();
+    return (
+      typeof requestBody === 'object' &&
+      requestBody !== null &&
+      'checkpoint' in requestBody &&
+      requestBody.checkpoint === 'supportive:complete'
+    );
+  });
+  const intervalEndResponsePromise = page.waitForResponse(
+    (response) =>
+      response.request().method() === 'POST' &&
+      new URL(response.url()).pathname ===
+        `/api/study/sessions/${sessionId}/artifact-intervals/end`,
+  );
+  await page.getByRole('button', { name: 'Training abschließen' }).click();
+
+  const completeCheckpointResponse = await completeCheckpointResponsePromise;
+  expect(completeCheckpointResponse.ok()).toBe(true);
+  expect(
+    confirmArtifactCheckpointResponseSchema.parse(await completeCheckpointResponse.json())
+      .checkpoint,
+  ).toBe('supportive:complete');
+  expect((await intervalEndResponsePromise).ok()).toBe(true);
+}
+
 for (const assignmentMode of ['forced-supportive', 'forced-reference'] as const) {
   const expectedCondition = assignmentMode === 'forced-supportive' ? 'supportive' : 'reference';
 
-  test(`${expectedCondition} completes the full study without manual artifact navigation`, async ({
+  test(`${expectedCondition} completes the study with a bounded artifact smoke`, async ({
     page,
   }) => {
     await startStudyServer(assignmentMode);
+    const pageErrors: string[] = [];
+    page.on('pageerror', (error) => pageErrors.push(error.message));
     const session = await createSessionThroughUi(page);
     expect(session.condition).toBe(expectedCondition);
 
@@ -220,7 +318,8 @@ for (const assignmentMode of ['forced-supportive', 'forced-reference'] as const)
 
     const artifact = await startArtifactWithoutNavigation(page, session.sessionId);
     if (expectedCondition === 'supportive') {
-      await skipSupportiveArtifact(page, session.sessionId, artifact.intervalId);
+      await advanceSupportiveArtifactToS17(page, session.sessionId, artifact.intervalId);
+      await completeSupportiveFromS17Resume(page, session.sessionId);
     } else {
       await skipReferenceArtifact(page, session.sessionId, artifact.intervalId);
     }
@@ -236,5 +335,6 @@ for (const assignmentMode of ['forced-supportive', 'forced-reference'] as const)
     expect(sessionStatusResponseSchema.parse(await completionResponse.json()).completionStatus).toBe(
       'completed',
     );
+    expect(pageErrors).toEqual([]);
   });
 }

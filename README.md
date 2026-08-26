@@ -1,11 +1,11 @@
 # PassWo Authentication Onboarding
 
 Dieses pnpm-Monorepo enthält das **Supportive Authentication Onboarding** und die Runtime für die
-gekoppelte Between-Subjects-Studie. Der lokale technische Studienpfad, die visuelle
-Trainingsplattform, die Segmente S00 bis S07 und die pilot-versionierten Forschungsinstrumente
-sind integriert. Für die Hauptstudie ist ein same-origin Webbetrieb mit sicherer Wiederaufnahme
-implementiert. S08 bis S17 und die same-origin Follow-up-Route sind noch offen; der bereits
-integrierte Studienlauf bleibt davon vollständig ausführbar.
+gekoppelte Between-Subjects-Studie. Der technische Studienpfad, die visuelle Trainingsplattform,
+die Segmente S00 bis S17 und die pilot-versionierten Forschungsinstrumente sind integriert. Für
+die Hauptstudie ist ein same-origin Webbetrieb mit sicherer Wiederaufnahme implementiert. Die
+same-origin Follow-up-Route ist noch offen; der Hauptstudienlauf bleibt davon vollständig
+ausführbar.
 
 ## Aktueller Stand
 
@@ -14,9 +14,8 @@ integrierte Studienlauf bleibt davon vollständig ausführbar.
   Legacy-Reload-/Lease-Behandlung sowie CSV-/JSON-Export mit Manifest und Prüfsummen.
 - **M2 – Visual Platform:** BrowserShell, PassWo-Adapter, Mission-/Animations-Handshake,
   Reduced Motion und der vollständige S00-Slice.
-- **Training:** S00 bis S07 bilden den integrierten Lauf. S07 verdichtet die bereits vorhandenen
-  lokalen S03-/S05-/S06-Befunde im Studienpfad und Design Lab zu genau einem nächsten Schritt je
-  Konto.
+- **Training:** S00 bis S17 bilden den integrierten Lauf von Passwortstärke und Einzigartigkeit über
+  Passwortmanager und Wiederherstellung bis zur Zwei-Faktor-Authentifizierung.
 - **Instrumente:** Pre, unmittelbarer Post-Fragebogen, gemeinsamer Guardrail, post-guardrail
   Self-Efficacy und retrospektive SecAware-Vorerfahrung laufen als versionierte atomare Submissions.
   Die freiwillige Nachbefragung besitzt eine getrennte Recontact-Registry und einen Schedule-Export.
@@ -24,7 +23,8 @@ integrierte Studienlauf bleibt davon vollständig ausführbar.
 - **Web-Runtime:** Browser schließen oder neu laden unterbricht eine neue
   Web-Sitzung, beendet sie aber nicht. Der letzte sichere inhaltsfreie Checkpoint wird im selben
   Browser wiederaufgenommen; ausgewertet werden nur regulär abgeschlossene Runs.
-- **Als Nächstes:** S08 bis S17 und die same-origin Follow-up-Route gemäß ADR 0016 fertigstellen.
+- **Als Nächstes:** die same-origin Follow-up-Route gemäß ADR 0016 fertigstellen und die manuellen
+  Hauptstudien-Freeze-Prüfungen abschließen.
 
 `apps/study-desktop` verpackt die Anwendung für Apple Silicon ohne Adresszeile und startet die
 vorhandene Runtime intern. `apps/study-web` ist der einzige React-/Vite-Renderer.
@@ -254,8 +254,7 @@ pnpm test:web:release          # vollständiges lokales Release-Gate für die We
 pnpm check                    # Biome, TypeScript und Research Boundary
 pnpm test:core                # Research-Core-, Contract- und lokale Trainingsdaten-Tests
 pnpm build                    # Server, kanonischen Renderer und Electron-Hülle bauen
-pnpm test:e2e                 # beide vollständigen Studienbedingungen, Artefakte schnell übersprungen
-pnpm test:e2e:persistence     # älterer manueller Persistenz-Smoke-Test
+pnpm test:e2e                 # beide Studienbedingungen mit begrenztem Artefakt-Smoke abschließen
 pnpm test:reference-artifact  # echter SecAware-Kursweg und automatischer Post-Übergang
 pnpm test:desktop             # Electron-/SQLite-Smoke-Test
 pnpm desktop:package          # lokale arm64-.app
@@ -266,10 +265,11 @@ pnpm check:research-boundary  # Datengrenzen und private Quellen prüfen
 SecAware-Artefakt, prüft Typen und Research Boundary, führt die vollständige Core-Suite,
 dateibasierte Webläufe für beide Bedingungen, Neustart/Resume, Pseudonymisierung, Export,
 Löschcode und parallele Blockrandomisierung aus, baut die Produktionsruntime und durchläuft beide
-Browserpfade sowie den realen dreiteiligen SecAware-Kurs. PassWo S00–S07 gehören derzeit vollständig
-zu Sektion 1; eine Unterbrechung innerhalb dieser Sektion rekonstruiert sie ab S01. Die typisierte
-Resume-Tabelle muss beim späteren Hinzufügen von Sektion 2 oder 3 erweitert werden, sonst scheitert
-das Release-Gate bereits beim Typecheck.
+Browserpfade sowie den realen dreiteiligen SecAware-Kurs. Der PassWo-Browsertest bestätigt die
+Timingfolge S00–S07 synthetisch, schreibt den minimalen S08-Resume-Zustand und die inhaltsfreien
+Checkpoints S09–S17 und schließt nach einem echten Reload direkt aus S17 regulär ab. Eine
+Unterbrechung innerhalb von Sektion 1 rekonstruiert weiterhin ab S01; ab S08 wird der zuletzt
+bestätigte Segmenteinstieg mit ausschließlich dem typisierten Minimalzustand geöffnet.
 
 Vor dem ersten E2E-Lauf wird Chromium einmalig mit
 `pnpm exec playwright install chromium` installiert. Optional prüft derselbe Befehl nach den lokalen

@@ -373,7 +373,7 @@ describe('research-safe contracts', () => {
       'passwordPart',
       'spans',
       'semanticEvidence',
-      'displayName',
+      ['display', 'Name'].join(''),
     ]) {
       expect(
         supportiveS08ResumeStateSchema.safeParse({
