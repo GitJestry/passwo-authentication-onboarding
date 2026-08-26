@@ -114,6 +114,15 @@ try {
   const studyOrigin = runtime.origin;
   browser = await chromium.launch();
   const context = await browser.newContext();
+  await context.route(
+    (url) => url.href === firstReferenceSupplement.url,
+    (route) =>
+      route.fulfill({
+        body: '<!doctype html><html lang="de"><title>Zusatzinformation</title></html>',
+        contentType: 'text/html; charset=utf-8',
+        status: 200,
+      }),
+  );
   const pages = [];
   const artifactEndTimings = [];
   context.on('page', (page) => pages.push(page));
@@ -256,16 +265,22 @@ try {
     .locator('button[aria-expanded="false"]')
     .filter({ hasText: 'Zusatzinformationen' });
   await disclosure.click();
+  const supplementPagePromise = context.waitForEvent('page');
   await courseFrame.locator(`a[href="${firstReferenceSupplement.url}"]`).click();
-  await page.getByRole('alert').waitFor();
-  if (
-    !(await page.getByRole('alert').innerText()).includes(
-      'Zusatzinformationen sind nur in der Desktop-App verfügbar.',
-    )
-  ) {
-    fail('the browser development path did not show its technical supplement notice.');
+  const supplementPage = await supplementPagePromise;
+  await supplementPage.waitForURL((url) => url.href === firstReferenceSupplement.url);
+  await supplementPage.waitForLoadState('domcontentloaded');
+  if (supplementPage.url() !== firstReferenceSupplement.url) {
+    fail('the browser supplement did not open its canonical URL.');
   }
-  await page.getByRole('button', { name: 'Zurück zum Training' }).click();
+  const supplementIsolation = await supplementPage.evaluate(() => ({
+    hasOpener: window.opener !== null,
+    referrer: document.referrer,
+  }));
+  if (supplementIsolation.hasOpener || supplementIsolation.referrer !== '') {
+    fail('the browser supplement was not isolated with noopener and noreferrer.');
+  }
+  await supplementPage.close();
 
   await clickCourseControl(/WEITER ZUM THEMA PASSWORT-MANAGER/iu);
   await clickCourseControl(/WEITER ZUM THEMA MULTI-FAKTOR-AUTHENTIFIZIERUNG/iu);

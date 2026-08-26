@@ -2,7 +2,8 @@
 
 - **Status:** Accepted
 - **Datum:** 2026-08-17
-- **Revision:** 2026-08-26 für die segmentgenaue PassWo-Wiederaufnahme ab S08
+- **Revision:** 2026-08-26 für die segmentgenaue PassWo-Wiederaufnahme ab S08 und die
+  SecAware-Zusatznavigation im Web
 - **Citation label:** `ADR 0016-Web-Resume-Lifecycle`
 - **Ersetzt für den Hauptstudienbetrieb:** Reload-Abbruch aus `ADR 0008-Lease`, externen
   Follow-up-Import und verzögerten Debrief-Versand aus `ADR 0011-Follow-up-Recontact`
@@ -32,6 +33,14 @@ Eine separate Ethikkommissionsfreigabe ist für dieses Bachelorprojekt nicht als
 vorgesehen. Das Repository darf weder eine nicht vorhandene Freigabe behaupten noch sie als
 technischen Launch-Blocker erfinden. Teilnahmeinformation, Einwilligung, Datenminimierung,
 Zugriffsschutz und die hier beschriebene Löschung bleiben verbindliche Anforderungen.
+
+Die zwölf eingefrorenen SecAware-Zusatzlinks bleiben auch im Webbetrieb verfügbar. Der Wrapper
+akzeptiert weiterhin ausschließlich die vollständig geprüfte Nachricht aus dem konfigurierten
+same-origin Kursframe und löst die Link-ID gegen die kanonische Registry auf. Im Browser öffnet er
+die festgeschriebene HTTP(S)-Adresse mit `noopener` und `noreferrer` in einem separaten Tab. Der
+SecAware-Kurs bleibt unverändert im Studien-Tab; externe Inhalte werden weder in den Web-Client
+eingebettet noch durch den Study Server weitergeleitet. Die isolierte Desktop-Darstellung aus
+ADR 0009 und ADR 0011 bleibt für die lokale Electron-Hülle unverändert.
 
 ### 2. Unterbrechen und Wiederaufnehmen
 

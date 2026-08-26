@@ -32,9 +32,10 @@ Aus dem Teilnehmerpfad werden entfernt:
 
 Die fachlichen Aussagen der drei Unterrichtslektionen bleiben unverändert. Sichtbarer Text der
 zwölf supplementären Links und ihre eingefrorenen Ziele bleiben erhalten. Vier leere
-Duplikat-Anker werden entfernt. Ihre Navigation ist ausschließlich über die in ADR 0009
-definierte Desktop-Bridge zulässig. Externe Medienreferenzen werden nur auf eindeutig vorhandene
-lokale Snapshot-Dateien umgeschrieben; andernfalls schlägt der Build fehl.
+Duplikat-Anker werden entfernt. Ihre Navigation ist ausschließlich über die geprüfte Wrapper-Bridge
+zulässig; Desktop- und Webdarstellung sind in ADR 0009 beziehungsweise
+`ADR 0016-Web-Resume-Lifecycle` festgelegt. Externe Medienreferenzen werden nur auf eindeutig
+vorhandene lokale Snapshot-Dateien umgeschrieben; andernfalls schlägt der Build fehl.
 
 Der erfolgreiche SCORM-Kursabschluss sendet genau ein minimales Completion-Ereignis mit Typ und
 eingefrorener Snapshot-ID. Der Studienwrapper akzeptiert es ausschließlich von der konfigurierten
@@ -51,7 +52,7 @@ Study-Guardrail. Für die Referenzbedingung wird ausschließlich die globale Art
 - Popups, Top-Level-Navigation, Downloads, Formübertragungen und externe Laufzeitverbindungen des
   SecAware-iframes sind durch Dataset-Transformation, iframe-Sandbox, CSP und Verifier mehrfach
   begrenzt. Die schmale Ausnahme für Zusatzinformationen liegt außerhalb dieses iframes und ist
-  in ADR 0009 definiert.
+  für Desktop und Web in ADR 0009 beziehungsweise `ADR 0016-Web-Resume-Lifecycle` definiert.
 - Der private Completion-Integrationstest muss den echten `SetReachedEnd`-Pfad des generierten
   Builds ausführen.
 - Änderungen an Auswahl, Transformation, Hashes oder Completion-Bridge erfordern eine neue

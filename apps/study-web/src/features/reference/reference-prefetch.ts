@@ -10,25 +10,31 @@ const referenceWarmupGroups = [
   [
     'scormdriver/preloadIntegrity.js',
     'scormcontent/index.html',
-    'scormcontent/lib/rise/089c1887.js',
+    'scormcontent/lib/lzwcompress.js',
   ],
   [
-    'scormcontent/lib/lzwcompress.js',
+    'scormcontent/lib/rise/089c1887.js',
     'scormcontent/lib/learn_dist/entry.js',
     'scormcontent/lib/mondrian/entry.js',
+  ],
+  [
+    'scormcontent/lib/rise/bb36bef0.js',
+    'scormcontent/lib/rise/d9b9ec3d.js',
+    'scormcontent/lib/rise/64b25d98.css',
+  ],
+  [
+    'scormcontent/lib/rise/79bcdede.css',
+    'scormcontent/assets/aBcORCWLh3hZzWVI.png',
   ],
 ] as const;
 
 let warmupStarted = false;
-let warmupAbortController: AbortController | null = null;
-let cancelScheduledWarmup: (() => void) | null = null;
 
-async function warmTarget(path: string, signal: AbortSignal): Promise<boolean> {
+async function warmTarget(path: string): Promise<boolean> {
   try {
     const response = await fetch(`${REFERENCE_ARTIFACT_ROUTE_PREFIX}${path}`, {
       cache: 'force-cache',
       credentials: 'same-origin',
-      signal,
     });
     if (!response.ok) return false;
     await response.arrayBuffer();
@@ -38,29 +44,18 @@ async function warmTarget(path: string, signal: AbortSignal): Promise<boolean> {
   }
 }
 
-async function warmInBoundedGroups(signal: AbortSignal): Promise<void> {
+async function warmInBoundedGroups(): Promise<void> {
   for (const group of referenceWarmupGroups) {
-    if (signal.aborted) return;
-    const results = await Promise.all(group.map((path) => warmTarget(path, signal)));
-    if (signal.aborted || results.includes(false)) return;
+    const results = await Promise.all(group.map((path) => warmTarget(path)));
+    if (results.includes(false)) return;
   }
 }
 
 export function prefetchReferenceArtifact(): void {
   if (warmupStarted) return;
   warmupStarted = true;
-  warmupAbortController = new AbortController();
-  const signal = warmupAbortController.signal;
   const start = () => {
-    cancelScheduledWarmup = null;
-    void warmInBoundedGroups(signal);
+    void warmInBoundedGroups();
   };
-  cancelScheduledWarmup = scheduleIdleWork(start);
-}
-
-export function cancelReferenceArtifactPrefetch(): void {
-  warmupAbortController?.abort();
-  warmupAbortController = null;
-  cancelScheduledWarmup?.();
-  cancelScheduledWarmup = null;
+  scheduleIdleWork(start);
 }

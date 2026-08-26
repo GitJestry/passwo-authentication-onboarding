@@ -7,8 +7,10 @@ Zusätzlich zur globalen `AGENTS.md` gilt:
 - React-Komponenten rendern Statechart-/Scene-Snapshots und enthalten keinen versteckten Ablauf.
 - Im Web-Client werden externe Inhalte nicht eingebettet. Ausschließlich der deterministisch
   generierte lokale SecAware-Study-Build darf gemäß `ADR 0008-Reference` same-origin und sandboxed
-  eingebettet werden. Die zwölf eingefrorenen Zusatz-IDs dürfen gemäß ADR 0009 ausschließlich in
-  einem isolierten Desktop-`WebContentsView` außerhalb des Web-Clients geöffnet werden.
+  eingebettet werden. Die zwölf eingefrorenen Zusatz-IDs werden im Web gemäß
+  `ADR 0016-Web-Resume-Lifecycle` nach vollständiger Bridge-Prüfung mit `noopener` und `noreferrer`
+  in einem separaten Browser-Tab geöffnet; im Desktop bleibt der isolierte `WebContentsView` aus
+  ADR 0009 maßgeblich.
 - Das SecAware-iframe darf keine Popups, Top-Level-Navigation, Downloads oder Formübertragungen
   erlauben und akzeptiert Completion nur mit Origin-, Source-, Typ-, Snapshot-ID- und
   Payload-Prüfung. Zusatznavigation prüft zusätzlich die kanonische Link-ID.

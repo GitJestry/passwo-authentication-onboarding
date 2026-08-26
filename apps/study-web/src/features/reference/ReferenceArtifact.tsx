@@ -6,6 +6,7 @@ import {
   REFERENCE_ARTIFACT_SNAPSHOT_ID,
   REFERENCE_ARTIFACT_URL,
   referenceArtifactLessonCheckpointIdSchema,
+  referenceSupplementLinkForId,
   referenceSupplementLinkIdSchema,
   type ReferenceArtifactLessonCheckpointId,
 } from '@passwo/contracts';
@@ -165,7 +166,6 @@ export function ReferenceArtifact({
   const [checkpointWriteFailed, setCheckpointWriteFailed] = useState(false);
   const [reloadKey, setReloadKey] = useState(0);
   const [viewerOpen, setViewerOpen] = useState(false);
-  const [desktopBridgeUnavailable, setDesktopBridgeUnavailable] = useState(false);
 
   onCompleteRef.current = onComplete;
   onCheckpointRef.current = onCheckpoint;
@@ -224,26 +224,22 @@ export function ReferenceArtifact({
 
       const bridge = window.passwoDesktop;
       if (bridge === undefined) {
-        setDesktopBridgeUnavailable(true);
+        const link = referenceSupplementLinkForId(linkId);
+        window.open(link.url, '_blank', 'noopener,noreferrer');
         return;
       }
 
       supplementRequestPendingRef.current = true;
-      setDesktopBridgeUnavailable(false);
       void bridge.openReferenceSupplement(linkId).then(
         (opened) => {
           supplementRequestPendingRef.current = false;
-          if (!opened) {
-            setDesktopBridgeUnavailable(true);
-            return;
-          }
+          if (!opened) return;
           activeSupplementLinkIdRef.current = linkId;
           viewerOpenRef.current = true;
           setViewerOpen(true);
         },
         () => {
           supplementRequestPendingRef.current = false;
-          setDesktopBridgeUnavailable(true);
         },
       );
     };
@@ -262,7 +258,6 @@ export function ReferenceArtifact({
     completionInFlightRef.current = false;
     completionFinishedRef.current = false;
     setLoadFailed(false);
-    setDesktopBridgeUnavailable(false);
     lightSchemeCleanupRef.current();
     lightSchemeCleanupRef.current = () => undefined;
     setReloadKey((current) => current + 1);
@@ -338,18 +333,6 @@ export function ReferenceArtifact({
           <p>Der Fortschritt konnte nicht bestätigt werden.</p>
           <button className={styles.button} type="button" onClick={retryCheckpointWrite}>
             Erneut versuchen
-          </button>
-        </div>
-      ) : null}
-      {desktopBridgeUnavailable && !loadFailed && !checkpointWriteFailed ? (
-        <div className={styles.errorPanel} role="alert">
-          <p>Zusatzinformationen sind nur in der Desktop-App verfügbar.</p>
-          <button
-            className={styles.button}
-            type="button"
-            onClick={() => setDesktopBridgeUnavailable(false)}
-          >
-            Zurück zum Training
           </button>
         </div>
       ) : null}

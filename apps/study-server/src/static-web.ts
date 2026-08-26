@@ -78,6 +78,7 @@ export function registerReferenceArtifact(
     root: referenceArtifactDirectory,
     prefix: REFERENCE_ARTIFACT_ROUTE_PREFIX,
     index: false,
+    preCompressed: true,
     redirect: false,
     wildcard: true,
     setHeaders(response) {

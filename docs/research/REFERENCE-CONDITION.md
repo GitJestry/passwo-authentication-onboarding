@@ -60,12 +60,20 @@ Trainingsheader.
 
 Der Wrapper akzeptiert Zusatznavigation ausschließlich von seiner konfigurierten
 iframe-Window-Referenz, von derselben Origin, mit exakter Schlüsselmenge sowie eingefrorenem Typ,
-Snapshot-ID und Link-ID. In der Desktop-App öffnen Webseiten ihre kanonische HTTP(S)-URL in einem
-nicht persistenten, sandboxed Viewer. Das eingefrorene PDF wird gemäß ADR 0011 begrenzt geladen,
-validiert und durch den lokal gebündelten PDF-Viewer im selben isolierten View dargestellt. Dessen
-56-Pixel-Leiste bietet jederzeit „Zurück zum Training“. Der Viewer wird beim Zurückkehren zerstört;
-Kurszustand, Operational Lease und globale Artefaktzeit bleiben erhalten. Im
-Browser-Entwicklungsmodus erscheint nur ein technischer Hinweis.
+Snapshot-ID und Link-ID. Im Webbetrieb wird die kanonische HTTP(S)-URL mit `noopener` und
+`noreferrer` in einem separaten Browser-Tab geöffnet; der unveränderte Kurs bleibt im Studien-Tab
+erhalten. Externe Inhalte werden nicht in den Web-Client eingebettet oder durch den Study Server
+weitergeleitet. In der Desktop-App öffnen Webseiten ihre kanonische HTTP(S)-URL weiterhin in einem
+nicht persistenten, sandboxed Viewer. Das eingefrorene PDF wird dort gemäß ADR 0011 begrenzt
+geladen, validiert und durch den lokal gebündelten PDF-Viewer im selben isolierten View dargestellt.
+Dessen 56-Pixel-Leiste bietet jederzeit „Zurück zum Training“. Der Viewer wird beim Zurückkehren
+zerstört; Kurszustand, Operational Lease und globale Artefaktzeit bleiben erhalten.
+
+### Copy-Delta Web-Zusatznavigation, 26. August 2026
+
+| Segment und Text-ID | Quelle | Aktueller Text | Geplanter Text | Primäre Rolle | Grund | Bedeutungsänderung | Interaktionsziel | Hervorhebung |
+|---|---|---|---|---|---|---|---|---|
+| SecAware-Wrapper `desktopBridgeUnavailable` | ausdrücklicher Nutzerauftrag vom 26. August 2026 | `Zusatzinformationen sind nur in der Desktop-App verfügbar.` | entfällt | interner technischer Hinweis | Die geprüfte Linkaktion ist im produktiven Webbetrieb verfügbar; der Hinweis wäre falsch und würde die tatsächliche Handlung blockieren. | ausdrücklich freigegeben | aktivierter SecAware-Zusatzlink öffnet einen separaten Browser-Tab | keine |
 
 Der generierte SCORM-Treiber umschließt den tatsächlichen erfolgreichen Aufruf von
 `SetReachedEnd`. Höchstens einmal sendet er an `window.top` die Nachricht

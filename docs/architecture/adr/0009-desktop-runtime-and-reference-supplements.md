@@ -1,6 +1,7 @@
 # ADR 0009 — Desktop Runtime und SecAware-Zusatznavigation
 
-- **Status:** Accepted
+- **Status:** Accepted für die Desktop Runtime; die Browser-Zusatznavigation ist durch die
+  Revision von `ADR 0016-Web-Resume-Lifecycle` ersetzt
 - **Datum:** 2026-07-26
 - **Ergänzt:** `ADR 0008-Reference` (eingebettetes, studienadaptiertes Referenzartefakt)
 

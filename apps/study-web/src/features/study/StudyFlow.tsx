@@ -37,10 +37,7 @@ import {
   loadSupportiveArtifactRenderer,
   preloadSupportiveArtifactRuntime,
 } from '../artifact-loaders.js';
-import {
-  cancelReferenceArtifactPrefetch,
-  prefetchReferenceArtifact,
-} from '../reference/reference-prefetch.js';
+import { prefetchReferenceArtifact } from '../reference/reference-prefetch.js';
 import { TrainingClipboardBoundary } from '../training/TrainingClipboardBoundary.js';
 import { GuardrailBlockForm, QuestionnaireSectionForm } from './InstrumentForm.js';
 import styles from './StudyFlow.module.css';
@@ -627,12 +624,8 @@ function HydratedStudyFlow({
   }, [context.artifactCheckpoint, context.interrupted]);
   useEffect(() => {
     if (context.condition !== 'reference') return;
-    if (snapshot.matches({ artifactLifecycle: { artifact: 'reference' } })) {
-      cancelReferenceArtifactPrefetch();
-      return;
-    }
     prefetchReferenceArtifact();
-  }, [context.condition, snapshot]);
+  }, [context.condition]);
   useEffect(() => {
     if (context.condition === null) return;
     const preloadRenderer =
