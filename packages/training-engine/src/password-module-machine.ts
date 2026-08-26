@@ -1,8 +1,9 @@
+import type { SupportiveResumeSegmentId } from '@passwo/contracts';
 import { assign, setup } from 'xstate';
 import { isPermittedFictionalPassword } from './fictional-password-input.js';
 
 export type RetrievalResult = 'pending' | 'retrievable' | 'not-remembered' | 'assisted';
-export type PasswordModuleResumeSegmentId = 'S00' | 'S01' | 'S08';
+export type PasswordModuleResumeSegmentId = SupportiveResumeSegmentId;
 
 export interface PasswordModuleContext {
   readonly accountIds: readonly string[];
@@ -162,7 +163,10 @@ export const passwordModuleMachine = setup({
   guards: {
     resumesAtS00: ({ context }) => context.resumeSegmentId === 'S00',
     resumesAtS01: ({ context }) => context.resumeSegmentId === 'S01',
-    resumesAtS08: ({ context }) => context.resumeSegmentId === 'S08',
+    resumesAtOrAfterS08: ({ context }) =>
+      context.resumeSegmentId !== null &&
+      context.resumeSegmentId !== 'S00' &&
+      context.resumeSegmentId !== 'S01',
     isKnownAccount: ({ context, event }) =>
       event.type === 'SELECT_ACCOUNT' && isKnownAccount(context, event.accountId),
     canEditAccount: ({ context, event }) =>
@@ -327,7 +331,13 @@ export const passwordModuleMachine = setup({
   },
   states: {
     entry: {
-      always: [{ guard: 'resumesAtS08', target: 's08', actions: 'discardTransientTrainingData' }],
+      always: [
+        {
+          guard: 'resumesAtOrAfterS08',
+          target: 's08',
+          actions: 'discardTransientTrainingData',
+        },
+      ],
       on: {
         DISPLAY_NAME_ENTERED: [
           { target: 's00', guard: 'resumesAtS00', actions: 'storeDisplayName' },

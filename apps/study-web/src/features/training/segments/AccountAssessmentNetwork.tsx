@@ -7,6 +7,7 @@ import attackerAsset from '../../../assets/passwo/attacker.webp';
 import passwordFactorShieldAsset from '../../../assets/s05/password-factor-shield.webp';
 import comparisonPathShieldAsset from '../../../assets/s06/comparison-path-shield.webp';
 import easyToGuessAsset from '../../../assets/s06/easy-to-guess.png';
+import mfaChainsAsset from '../../../assets/s15/mfa-chains.png';
 import type { NetworkPresentationSnapshot } from '../../../adapters/network/NetworkMotionAdapter.js';
 import { CelebrationConfetti } from '../CelebrationConfetti.js';
 import {
@@ -61,6 +62,9 @@ function AccountStatusOverlay({
   compactCelebration,
   showAccountShield,
   shieldAsset,
+  mfaChainRevealIndex,
+  mfaActivationRevealIndex,
+  mfaActivationLabel,
   easyToGuess,
   compromised,
 }: {
@@ -80,6 +84,9 @@ function AccountStatusOverlay({
   readonly compactCelebration: boolean;
   readonly showAccountShield: boolean;
   readonly shieldAsset: string;
+  readonly mfaChainRevealIndex: number | null;
+  readonly mfaActivationRevealIndex: number | null;
+  readonly mfaActivationLabel: string | null;
   readonly easyToGuess: boolean;
   readonly compromised: boolean;
 }) {
@@ -96,6 +103,8 @@ function AccountStatusOverlay({
     comparisonResult === null &&
     actionLabel === null &&
     !celebrate &&
+    mfaChainRevealIndex === null &&
+    mfaActivationRevealIndex === null &&
     !compromised
   ) {
     return null;
@@ -163,6 +172,36 @@ function AccountStatusOverlay({
           aria-hidden="true"
         />
       ) : null}
+      {mfaChainRevealIndex === null || node.kind !== 'account' ? null : (
+        <img
+          className={styles.mfaChains}
+          data-mfa-chains
+          src={mfaChainsAsset}
+          width={1536}
+          height={1024}
+          alt=""
+          aria-hidden="true"
+          style={{ animationDelay: `${mfaChainRevealIndex * 65}ms` }}
+        />
+      )}
+      {mfaActivationRevealIndex === null ||
+      mfaActivationLabel === null ||
+      node.kind !== 'account' ? null : (
+        <>
+          <strong
+            className={styles.mfaActivationToast}
+            data-mfa-activation-toast
+            aria-hidden="true"
+            style={{ animationDelay: `${mfaActivationRevealIndex * 65}ms` }}
+          >
+            <span aria-hidden="true">✓</span> {mfaActivationLabel}
+          </strong>
+          <CelebrationConfetti
+            delayMs={mfaActivationRevealIndex * 65}
+            compact
+          />
+        </>
+      )}
       {easyToGuess ? (
         <img
           className={styles.easyToGuess}
@@ -250,6 +289,9 @@ function AccountAssessmentNetworkView({
   nodeActionLabels = emptyNodeActionLabels,
   celebratingNodeId = null,
   celebratingNodeIds = emptyAccountIds,
+  mfaChainNodeIds = emptyAccountIds,
+  mfaActivationNodeIds = emptyAccountIds,
+  mfaActivationLabel = null,
   celebrationDelayStepMs = 0,
   compactCelebration = false,
   onNodeSelect = ignoreNodeSelect,
@@ -293,6 +335,9 @@ function AccountAssessmentNetworkView({
   readonly nodeActionLabels?: Readonly<Partial<Record<S06AccountId, string>>>;
   readonly celebratingNodeId?: string | null;
   readonly celebratingNodeIds?: readonly string[];
+  readonly mfaChainNodeIds?: readonly string[];
+  readonly mfaActivationNodeIds?: readonly string[];
+  readonly mfaActivationLabel?: string | null;
   readonly celebrationDelayStepMs?: number;
   readonly compactCelebration?: boolean;
   readonly onNodeSelect?: (nodeId: string) => void;
@@ -312,6 +357,8 @@ function AccountAssessmentNetworkView({
   const renderNodeOverlay = useCallback(
     (node: NetworkSceneSnapshot['nodes'][number]) => {
       const celebrationIndex = celebratingNodeIds.indexOf(node.id);
+      const mfaChainRevealIndex = mfaChainNodeIds.indexOf(node.id);
+      const mfaActivationRevealIndex = mfaActivationNodeIds.indexOf(node.id);
       return (
         <AccountStatusOverlay
           node={node}
@@ -342,6 +389,11 @@ function AccountAssessmentNetworkView({
           compactCelebration={compactCelebration}
           showAccountShield={showAccountShields}
           shieldAsset={accountShieldAsset}
+          mfaChainRevealIndex={mfaChainRevealIndex < 0 ? null : mfaChainRevealIndex}
+          mfaActivationRevealIndex={
+            mfaActivationRevealIndex < 0 ? null : mfaActivationRevealIndex
+          }
+          mfaActivationLabel={mfaActivationLabel}
           easyToGuess={isEasyToGuessAccount(node.id, easyToGuessAccountIds)}
           compromised={node.id === compromisedNodeId}
         />
@@ -362,6 +414,9 @@ function AccountAssessmentNetworkView({
       nodeActionLabels,
       celebratingNodeId,
       celebratingNodeIds,
+      mfaChainNodeIds,
+      mfaActivationNodeIds,
+      mfaActivationLabel,
       celebrationDelayStepMs,
       compactCelebration,
       accountShieldAsset,

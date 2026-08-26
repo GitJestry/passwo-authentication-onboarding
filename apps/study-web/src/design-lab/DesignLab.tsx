@@ -640,6 +640,27 @@ const scenarios: Record<DesignLabScenarioId, DesignLabScenario> = {
     dimmed: false,
     showPassWoOverlay: false,
   },
+  's3-2-mfa-result': {
+    label: 's3.3 · 2FA aktiviert',
+    description:
+      'Direkter lokaler QA-Einstieg in S15 beim letzten Browser-Schließen, dem blauen Master-Campus-Schild, Konfetti und der ersten lilafarbenen Kette.',
+    dimmed: false,
+    showPassWoOverlay: false,
+  },
+  's3-3-mfa-expansion': {
+    label: 's3.4 · Schutz ausweiten',
+    description:
+      'Direkter lokaler QA-Einstieg in S16 bei der Priorisierung wichtiger Konten und der Ausweitung auf bekannte sowie weitere Beispielkonten.',
+    dimmed: false,
+    showPassWoOverlay: false,
+  },
+  's3-4-training-summary': {
+    label: 's3.5 · Training abschließen',
+    description:
+      'Direkter lokaler QA-Einstieg in S17 bei der integrierten Zusammenfassung und der Übergabe an den Fragebogen.',
+    dimmed: false,
+    showPassWoOverlay: false,
+  },
 };
 
 const scenarioGroups = [
@@ -706,7 +727,12 @@ const scenarioGroups = [
   },
   {
     label: 'MFA · s3.x',
-    scenarioIds: ['s3-1-mfa-factors'],
+    scenarioIds: [
+      's3-1-mfa-factors',
+      's3-2-mfa-result',
+      's3-3-mfa-expansion',
+      's3-4-training-summary',
+    ],
   },
 ] as const satisfies readonly DesignLabScenarioGroup[];
 
@@ -1487,6 +1513,39 @@ export function DesignLab({ scenarioId }: { readonly scenarioId: DesignLabScenar
         <DesignLabIntroduction scenarioId={scenarioId} scenario={scenario} />
         <ArtifactPreview>
           <S07DirectQaPreview initialStage="s14" passwordOverrides={passwordOverrides} />
+        </ArtifactPreview>
+      </main>
+    );
+  }
+
+  if (scenarioId === 's3-2-mfa-result') {
+    return (
+      <main className={styles.labPage}>
+        <DesignLabIntroduction scenarioId={scenarioId} scenario={scenario} />
+        <ArtifactPreview>
+          <S07DirectQaPreview initialStage="s15" passwordOverrides={passwordOverrides} />
+        </ArtifactPreview>
+      </main>
+    );
+  }
+
+  if (scenarioId === 's3-3-mfa-expansion') {
+    return (
+      <main className={styles.labPage}>
+        <DesignLabIntroduction scenarioId={scenarioId} scenario={scenario} />
+        <ArtifactPreview>
+          <S07DirectQaPreview initialStage="s16" passwordOverrides={passwordOverrides} />
+        </ArtifactPreview>
+      </main>
+    );
+  }
+
+  if (scenarioId === 's3-4-training-summary') {
+    return (
+      <main className={styles.labPage}>
+        <DesignLabIntroduction scenarioId={scenarioId} scenario={scenario} />
+        <ArtifactPreview>
+          <S07DirectQaPreview initialStage="s17" passwordOverrides={passwordOverrides} />
         </ArtifactPreview>
       </main>
     );

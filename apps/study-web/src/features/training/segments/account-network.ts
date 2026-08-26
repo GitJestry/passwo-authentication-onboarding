@@ -1180,8 +1180,11 @@ export function createS14MfaProtectedNetwork(
     nodes: incidentNetwork.nodes.map((node): SceneNode =>
       node.id === 'master-campus' ? { ...node, status: 'protected' } : node,
     ),
+    edges: incidentNetwork.edges.filter(
+      ({ id }) => !id.startsWith('s13-master-campus-protection-'),
+    ),
     accessibleSummary:
-      'Das geordnete Kontonetzwerk ist wieder sichtbar. Master Campus trägt nach der Einrichtung der Zwei-Faktor-Authentifizierung einen blauen Schutzschild; die zusätzliche Hürde blockiert die zuvor gezeigten direkten Wege zu den anderen Konten.',
+      'Das geordnete Kontonetzwerk ist wieder sichtbar. Master Campus trägt nach der Einrichtung der Zwei-Faktor-Authentifizierung einen blauen Schutzschild. Die zuvor gezeigten grünen Schutzlinien sind verschwunden.',
   };
 }
 

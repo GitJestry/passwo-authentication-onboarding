@@ -68,13 +68,15 @@ Die Runtime stellt den letzten bestätigten sicheren Checkpoint wieder her:
   semantischen Detailbefunde und bestätigt atomar den minimalen S08-Resume-Zustand;
 - Resume ab S08 rekonstruiert ausschließlich vorgegebene Passphrasen über Content-IDs sowie die
   noch erforderlichen kanonischen Schwäche-/Relationsflags;
+- ab S08 öffnet Resume den Einstieg des zuletzt bestätigten Segments S08 bis S17; dafür wird neben
+  dem minimalen S08-Zustand nur die inhaltsfreie Segment-ID fortgeschrieben;
 - Trainingsinputs werden für die Wiederaufnahme weder gesendet noch gespeichert.
 
 Im aktuell integrierten PassWo-Lauf gehören S00 bis S07 zur flüchtigen Sektion 1 `passwords`. Eine
 Unterbrechung im einmaligen S00-Einstieg beginnt wieder bei S00; danach beginnt diese Sektion
 datenschutzkonform bei S01 neu. Der bestätigte Checkpoint `supportive:S08` ist die harte
-Datengrenze und der direkte Wiederaufnahmestart für die nachfolgenden Segmente einschließlich der
-Passwortmanager-Simulation.
+Datengrenze. Danach wird bei jedem neuen Segment ausschließlich dessen inhaltsfreie ID S09 bis S17
+bestätigt, sodass die Wiederaufnahme am Einstieg des zuletzt erreichten Segments beginnt.
 
 Wenn die Person nicht vor `resumeCloseAt` zurückkehrt, bleibt die Sitzung unvollständig. Sie wird
 nicht ausgewertet und beim Datensatz-Freeze gelöscht. Eine vorzeitige individuelle Löschung bleibt
@@ -140,7 +142,8 @@ eine Löschung anfragen möchten.
   `HttpOnly`-Cookie;
 - Session, Zuweisung, Versionen, atomare Antworten, Timing, inhaltsfreier Checkpoint und
   Abschlussstatus liegen serverseitig. Zwischen S08 und Artefaktabschluss kommt ausschließlich der
-  in ADR 0016 abschließend typisierte, nicht rekonstruierende Simulationsresume-Zustand hinzu;
+  in ADR 0016 abschließend typisierte, nicht rekonstruierende Simulationsresume-Zustand hinzu; der
+  inhaltsfreie Checkpoint enthält dabei nur die zuletzt bestätigte Segment-ID S08 bis S17;
 - E-Mail und Raw-Follow-up-Token liegen ausschließlich im getrennten Kontaktregister;
 - Request-Bodies, IP-Adressen, User-Agents, Trainingswerte und Raw Tokens werden nicht in
   projektkontrollierten Anwendungs- oder Access-Logs persistiert.

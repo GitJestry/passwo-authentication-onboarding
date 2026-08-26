@@ -43,10 +43,43 @@ export const SUPPORTIVE_CHECKPOINTS = [
   'supportive:S06',
   'supportive:S07',
   'supportive:S08',
+  'supportive:S09',
+  'supportive:S10',
+  'supportive:S11',
+  'supportive:S12',
+  'supportive:S13',
+  'supportive:S14',
+  'supportive:S15',
+  'supportive:S16',
+  'supportive:S17',
   'supportive:complete',
 ] as const;
 export const supportiveCheckpointSchema = z.enum(SUPPORTIVE_CHECKPOINTS);
 export type SupportiveCheckpoint = z.infer<typeof supportiveCheckpointSchema>;
+export const supportivePostS08CheckpointSchema = z.enum([
+  'supportive:S09',
+  'supportive:S10',
+  'supportive:S11',
+  'supportive:S12',
+  'supportive:S13',
+  'supportive:S14',
+  'supportive:S15',
+  'supportive:S16',
+  'supportive:S17',
+]);
+export const supportiveS08BackedCheckpointSchema = z.enum([
+  'supportive:S08',
+  'supportive:S09',
+  'supportive:S10',
+  'supportive:S11',
+  'supportive:S12',
+  'supportive:S13',
+  'supportive:S14',
+  'supportive:S15',
+  'supportive:S16',
+  'supportive:S17',
+  'supportive:complete',
+]);
 export const artifactCheckpointSchema = z.union([
   supportiveCheckpointSchema,
   referenceLessonCheckpointSchema,
@@ -167,7 +200,7 @@ export const webResumeSessionSchema = z
   .superRefine((session, context) => {
     const requiresS08State =
       session.condition === 'supportive' &&
-      (session.checkpoint === 'supportive:S08' || session.checkpoint === 'supportive:complete');
+      supportiveS08BackedCheckpointSchema.safeParse(session.checkpoint).success;
     if (requiresS08State !== (session.supportiveS08ResumeState !== null)) {
       context.addIssue({
         code: 'custom',
@@ -248,6 +281,7 @@ export const confirmArtifactCheckpointRequestSchema = z.union([
       checkpoint: z.union([
         z.literal('supportive:entry'),
         z.literal('supportive:S00'),
+        supportivePostS08CheckpointSchema,
         z.literal('supportive:complete'),
         referenceLessonCheckpointSchema,
       ]),

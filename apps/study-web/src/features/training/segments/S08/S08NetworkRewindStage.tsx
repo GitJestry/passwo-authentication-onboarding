@@ -1,10 +1,14 @@
-import type { S06AccountId, SupportiveS08ResumeState } from '@passwo/contracts';
+import type {
+  S06AccountId,
+  SupportivePostS08SegmentId,
+  SupportiveS08ResumeState,
+} from '@passwo/contracts';
 import {
   s08NetworkReplayContent,
   s09PasswordSummaryContent,
   s12PasswordManagerContent,
   s13PasswordManagerPracticeContent,
-  s14MfaContent,
+  s15ToS17MfaConclusionContent,
 } from '@passwo/training-content';
 import type { DesktopPlatform } from '@passwo/ui';
 import { DesktopSurface } from '@passwo/ui';
@@ -76,13 +80,19 @@ export type S08ChangeableAccountId = Exclude<S06AccountId, 'campusgram'>;
 export type S08NetworkRewindInitialStage =
   | 's08'
   | 's09'
+  | 's10'
+  | 's11'
+  | 's12'
   | 'manager'
   | 's13'
   | 's13-network'
   | 's13-bank'
   | 's13-campusgram'
   | 's13-conclusion'
-  | 's14';
+  | 's14'
+  | 's15'
+  | 's16'
+  | 's17';
 
 interface S08Context {
   readonly initialStage: S08NetworkRewindInitialStage;
@@ -96,6 +106,7 @@ interface S08Context {
   readonly recoveryRevealDelayMs: number;
   readonly networkRepairDurationMs: number;
   readonly mfaIncidentDelayMs: number;
+  readonly mfaResultCelebrationDurationMs: number;
   readonly protectedAccountIds: readonly S08ChangeableAccountId[];
   readonly resolvingAccountId: S08ChangeableAccountId | null;
   readonly riskModel: S08ProtectionRiskModel;
@@ -120,6 +131,8 @@ type S08Event =
   | { readonly type: 'S13_REPAIR_ALL_PASSWORDS' }
   | { readonly type: 'S13_FINISH' }
   | { readonly type: 'S14_BROWSER_CLOSED' }
+  | { readonly type: 'S16_EXPAND_PROTECTION' }
+  | { readonly type: 'S17_FINISH' }
   | { readonly type: 'NEXT' };
 
 const s08Machine = setup({
@@ -139,6 +152,7 @@ const s08Machine = setup({
       readonly recoveryRevealDelayMs: number;
       readonly networkRepairDurationMs: number;
       readonly mfaIncidentDelayMs: number;
+      readonly mfaResultCelebrationDurationMs: number;
       readonly riskModel: S08ProtectionRiskModel;
     },
   },
@@ -154,6 +168,8 @@ const s08Machine = setup({
     recoveryRevealDelay: ({ context }) => context.recoveryRevealDelayMs,
     networkRepairDuration: ({ context }) => context.networkRepairDurationMs,
     mfaIncidentDelay: ({ context }) => context.mfaIncidentDelayMs,
+    mfaResultCelebrationDuration: ({ context }) =>
+      context.mfaResultCelebrationDurationMs,
   },
   guards: {
     allResolved: ({ context }) =>
@@ -166,6 +182,9 @@ const s08Machine = setup({
         event.accountId,
       ),
     startsAtS09: ({ context }) => context.initialStage === 's09',
+    startsAtS10: ({ context }) => context.initialStage === 's10',
+    startsAtS11: ({ context }) => context.initialStage === 's11',
+    startsAtS12: ({ context }) => context.initialStage === 's12',
     startsAtManager: ({ context }) => context.initialStage === 'manager',
     startsAtS13: ({ context }) => context.initialStage === 's13',
     startsAtS13Network: ({ context }) => context.initialStage === 's13-network',
@@ -174,6 +193,9 @@ const s08Machine = setup({
     startsAtS13Conclusion: ({ context }) =>
       context.initialStage === 's13-conclusion',
     startsAtS14: ({ context }) => context.initialStage === 's14',
+    startsAtS15: ({ context }) => context.initialStage === 's15',
+    startsAtS16: ({ context }) => context.initialStage === 's16',
+    startsAtS17: ({ context }) => context.initialStage === 's17',
     selectedIntegrated: ({ event }) =>
       event.type === 'S13_VARIANT_SELECTED' && event.variant === 'integrated',
   },
@@ -208,6 +230,7 @@ const s08Machine = setup({
     recoveryRevealDelayMs: input.recoveryRevealDelayMs,
     networkRepairDurationMs: input.networkRepairDurationMs,
     mfaIncidentDelayMs: input.mfaIncidentDelayMs,
+    mfaResultCelebrationDurationMs: input.mfaResultCelebrationDurationMs,
     protectedAccountIds:
       input.initialStage === 's08' ? [] : [...input.recommendedAccountIds],
     resolvingAccountId: null,
@@ -216,6 +239,9 @@ const s08Machine = setup({
   states: {
     entry: {
       always: [
+        { guard: 'startsAtS17', target: 's17HowTo' },
+        { guard: 'startsAtS16', target: 's16Effort' },
+        { guard: 'startsAtS15', target: 's15ResultCelebration' },
         { guard: 'startsAtS14', target: 's14' },
         {
           guard: 'startsAtS13Conclusion',
@@ -225,7 +251,10 @@ const s08Machine = setup({
         { guard: 'startsAtS13Bank', target: 'managerPracticeBank' },
         { guard: 'startsAtS13Network', target: 'managerPracticeNetworkReturn' },
         { guard: 'startsAtS13', target: 'managerPractice' },
+        { guard: 'startsAtS12', target: 'managerTransition' },
         { guard: 'startsAtManager', target: 'managerTransition' },
+        { guard: 'startsAtS11', target: 's09Expansion' },
+        { guard: 'startsAtS10', target: 's09Intro' },
         { guard: 'startsAtS09', target: 's09Summary' },
         { target: 'protection' },
       ],
@@ -462,13 +491,44 @@ const s08Machine = setup({
     },
     s14: {
       tags: ['s14'],
-      on: { S14_BROWSER_CLOSED: { target: 's14NetworkReturn' } },
+      on: { S14_BROWSER_CLOSED: { target: 's15ResultCelebration' } },
     },
-    s14NetworkReturn: {
-      tags: ['manager', 'expanded', 's14-network-return'],
+    s15ResultCelebration: {
+      tags: [
+        'manager',
+        'expanded',
+        'mfa-conclusion',
+        'mfa-master-chain',
+        's15-result-celebration',
+      ],
+      after: { mfaResultCelebrationDuration: { target: 's15PasswordAlone' } },
+    },
+    s15PasswordAlone: {
+      tags: ['manager', 'expanded', 'mfa-conclusion', 'mfa-master-chain'],
+      on: { NEXT: { target: 's15SecondFactor' } },
+    },
+    s15SecondFactor: {
+      tags: ['manager', 'expanded', 'mfa-conclusion', 'mfa-master-chain'],
+      on: { NEXT: { target: 's16Effort' } },
+    },
+    s16Effort: {
+      tags: ['manager', 'expanded', 'mfa-conclusion', 'mfa-master-chain'],
+      on: { NEXT: { target: 's16Prioritization' } },
+    },
+    s16Prioritization: {
+      tags: ['manager', 'expanded', 'mfa-conclusion', 'mfa-master-chain'],
+      on: { S16_EXPAND_PROTECTION: { target: 's17HowTo' } },
+    },
+    s17HowTo: {
+      tags: ['manager', 'expanded', 'mfa-conclusion', 'mfa-expanded-chains'],
+      on: { NEXT: { target: 's17IntegratedSummary' } },
+    },
+    s17IntegratedSummary: {
+      tags: ['manager', 'expanded', 'mfa-conclusion', 'mfa-expanded-chains'],
+      on: { S17_FINISH: { target: 'complete' } },
     },
     complete: {
-      tags: ['manager', 'expanded', 's13-network', 's13-mfa', 's13-mfa-preview'],
+      tags: ['manager', 'expanded', 'mfa-conclusion', 'mfa-expanded-chains'],
     },
   },
 });
@@ -481,6 +541,9 @@ export interface S08NetworkRewindStageProps {
   readonly resumeState?: SupportiveS08ResumeState;
   readonly platform: DesktopPlatform;
   readonly initialStage?: S08NetworkRewindInitialStage;
+  readonly onSegmentCheckpoint?: (
+    segmentId: SupportivePostS08SegmentId,
+  ) => Promise<void>;
   readonly onComplete?: () => void;
 }
 
@@ -676,6 +739,7 @@ export function S08NetworkRewindStage({
   resumeState,
   platform,
   initialStage = 's08',
+  onSegmentCheckpoint,
   onComplete,
 }: S08NetworkRewindStageProps) {
   const networkHostRef = useRef<HTMLDivElement | null>(null);
@@ -708,9 +772,84 @@ export function S08NetworkRewindStage({
       recoveryRevealDelayMs: conclusionDurations.recoveryRevealDelayMs,
       networkRepairDurationMs: conclusionDurations.repairDurationMs,
       mfaIncidentDelayMs: conclusionDurations.mfaIncidentDelayMs,
+      mfaResultCelebrationDurationMs: window.matchMedia(
+        '(prefers-reduced-motion: reduce)',
+      ).matches
+        ? s15ToS17MfaConclusionContent.timings.reducedResultConfirmationDurationMs
+        : s15ToS17MfaConclusionContent.timings.resultCelebrationDurationMs,
       riskModel: protectionRiskModel,
     },
   });
+  const segmentCheckpoint = state.matches('s09Summary')
+    ? 'S09'
+    : state.matches('s09Intro')
+      ? 'S10'
+      : state.matches('s09Expansion') ||
+          state.matches('s09Reduction') ||
+          state.matches('s09Question') ||
+          state.matches('passWoDifficulty') ||
+          state.matches('passWoWorkarounds') ||
+          state.matches('passWoRisks') ||
+          state.matches('passWoSolution')
+        ? 'S11'
+        : state.matches('managerTransition') || state.matches('managerLesson')
+          ? 'S12'
+          : state.matches('managerPractice')
+            ? 'S13'
+            : state.matches('s14')
+              ? 'S14'
+              : state.matches('s15ResultCelebration') ||
+                  state.matches('s15PasswordAlone') ||
+                  state.matches('s15SecondFactor')
+                ? 'S15'
+                : state.matches('s16Effort') || state.matches('s16Prioritization')
+                  ? 'S16'
+                  : state.matches('s17HowTo') ||
+                      state.matches('s17IntegratedSummary') ||
+                      state.matches('complete')
+                    ? 'S17'
+                    : null;
+  const confirmedSegmentCheckpointRef = useRef<SupportivePostS08SegmentId | null>(null);
+  const requestedSegmentCheckpointRef = useRef<SupportivePostS08SegmentId | null>(null);
+  const [segmentCheckpointStatus, setSegmentCheckpointStatus] = useState<
+    'ready' | 'pending' | 'error'
+  >('ready');
+  const confirmSegmentCheckpoint = useCallback(
+    (segmentId: SupportivePostS08SegmentId) => {
+      if (onSegmentCheckpoint === undefined) return;
+      requestedSegmentCheckpointRef.current = segmentId;
+      setSegmentCheckpointStatus('pending');
+      void onSegmentCheckpoint(segmentId).then(
+        () => {
+          if (requestedSegmentCheckpointRef.current !== segmentId) return;
+          confirmedSegmentCheckpointRef.current = segmentId;
+          setSegmentCheckpointStatus('ready');
+        },
+        () => {
+          if (requestedSegmentCheckpointRef.current !== segmentId) return;
+          setSegmentCheckpointStatus('error');
+        },
+      );
+    },
+    [onSegmentCheckpoint],
+  );
+  useEffect(() => {
+    if (
+      onSegmentCheckpoint === undefined ||
+      segmentCheckpoint === null ||
+      confirmedSegmentCheckpointRef.current === segmentCheckpoint ||
+      (requestedSegmentCheckpointRef.current === segmentCheckpoint &&
+        segmentCheckpointStatus !== 'ready')
+    ) {
+      return;
+    }
+    confirmSegmentCheckpoint(segmentCheckpoint);
+  }, [
+    confirmSegmentCheckpoint,
+    onSegmentCheckpoint,
+    segmentCheckpoint,
+    segmentCheckpointStatus,
+  ]);
   const preparationVisible =
     state.matches('protection') || state.matches('protectionDissolving');
   const firstPathStep = useMemo(
@@ -913,10 +1052,10 @@ export function S08NetworkRewindStage({
       if (state.matches('managerPracticeBankProtectionReveal')) {
         return bankShieldedNetwork;
       }
-      if (state.matches('s14NetworkReturn')) {
+      if (state.hasTag('mfa-conclusion')) {
         return mfaProtectedNetwork;
       }
-      if (state.hasTag('s13-mfa-preview') || state.matches('complete')) {
+      if (state.hasTag('s13-mfa-preview')) {
         return mfaIncidentNetwork;
       }
       if (
@@ -999,6 +1138,35 @@ export function S08NetworkRewindStage({
   useLayoutEffect(() => {
     adapter.render(projectedNetwork);
   }, [adapter, projectedNetwork]);
+  const expandedMfaChainNodeIds = useMemo(() => {
+    const knownAccountIds = new Set<string>(
+      s15ToS17MfaConclusionContent.network.knownAccountIds,
+    );
+    return projectedNetwork.nodes.flatMap(({ id, kind }) => {
+      if (kind !== 'account') return [];
+      if (knownAccountIds.has(id)) return [id];
+      const additionalAccountMatch = id.match(/^s09-additional-account-(\d+)$/u);
+      if (additionalAccountMatch === null) return [];
+      const accountNumber = Number(additionalAccountMatch[1]);
+      const receivesMfaChain =
+        accountNumber %
+          s15ToS17MfaConclusionContent.network.additionalAccountStride ===
+        0;
+      return receivesMfaChain
+        ? [id]
+        : [];
+    });
+  }, [projectedNetwork]);
+  const mfaChainNodeIds = state.hasTag('mfa-expanded-chains')
+    ? expandedMfaChainNodeIds
+    : state.hasTag('mfa-master-chain')
+      ? ['master-campus']
+      : [];
+  const mfaActivationNodeIds = state.matches('s15ResultCelebration')
+    ? ['master-campus']
+    : state.matches('s17HowTo')
+      ? expandedMfaChainNodeIds.filter((nodeId) => nodeId !== 'master-campus')
+      : [];
   const bankFocusVisible =
     state.matches('managerPracticeExistingAccountRelation') ||
     state.matches('managerPracticeExistingAccountReplace') ||
@@ -1198,6 +1366,66 @@ export function S08NetworkRewindStage({
                                 ],
                               }
                             : null;
+  const mfaConclusionSpeech = state.matches('s15PasswordAlone')
+    ? {
+        id: 's15-mfa-password-alone',
+        text: [s15ToS17MfaConclusionContent.guide.outcome.passwordAlone],
+        action: {
+          kind: 'advance' as const,
+          label: 'Weiter',
+          onAction: () => send({ type: 'NEXT' }),
+        },
+      }
+    : state.matches('s15SecondFactor')
+      ? {
+          id: 's15-mfa-second-factor',
+          text: [s15ToS17MfaConclusionContent.guide.outcome.secondFactor],
+          action: {
+            kind: 'advance' as const,
+            label: 'Weiter',
+            onAction: () => send({ type: 'NEXT' }),
+          },
+        }
+      : state.matches('s16Effort')
+        ? {
+            id: 's16-mfa-effort',
+            text: [s15ToS17MfaConclusionContent.guide.prioritize.effort],
+            action: {
+              kind: 'advance' as const,
+              label: 'Weiter',
+              onAction: () => send({ type: 'NEXT' }),
+            },
+          }
+        : state.matches('s16Prioritization')
+          ? {
+              id: 's16-prioritize-mfa',
+              text: [
+                s15ToS17MfaConclusionContent.guide.prioritize.importantAccounts,
+              ],
+              action: {
+                kind: 'perform' as const,
+                label: s15ToS17MfaConclusionContent.guide.expandAction,
+                onAction: () => send({ type: 'S16_EXPAND_PROTECTION' }),
+              },
+            }
+          : state.matches('s17HowTo')
+            ? {
+                id: 's17-mfa-how-to',
+                text: [s15ToS17MfaConclusionContent.guide.expanded.howTo],
+                action: {
+                  kind: 'advance' as const,
+                  label: 'Weiter',
+                  onAction: () => send({ type: 'NEXT' }),
+                },
+              }
+            : state.matches('s17IntegratedSummary')
+              ? {
+                  id: 's17-integrated-summary',
+                  text: [s15ToS17MfaConclusionContent.guide.expanded.summary],
+                  action: null,
+                }
+              : null;
+  const networkSpeech = s13NetworkSpeech ?? mfaConclusionSpeech;
   const s13NetworkStep = state.matches('managerPracticeNewAccountReveal')
     ? 'new-account-reveal'
     : state.matches('managerPracticeNetworkReturn')
@@ -1234,7 +1462,7 @@ export function S08NetworkRewindStage({
                                   ? 'all-accounts-protected'
                                   : state.hasTag('s13-mfa-preview')
                                     ? 'mfa-incident'
-                                    : state.matches('s14NetworkReturn')
+                                    : state.hasTag('mfa-conclusion')
                                       ? 'mfa-protected'
                                       : state.matches('conclusionMfaIncidentFocus')
                                         ? 'all-accounts-protected'
@@ -1260,7 +1488,7 @@ export function S08NetworkRewindStage({
     state.matches('conclusionVariantReturn') ||
     state.matches('conclusionNetworkFade') ||
     state.hasTag('s13-mfa') ||
-    state.matches('s14NetworkReturn');
+    state.hasTag('mfa-conclusion');
   const celebratesMyShop =
     state.matches('managerPracticeNewAccountShield') ||
     state.matches('managerPracticeNewAccountConnections');
@@ -1332,6 +1560,38 @@ export function S08NetworkRewindStage({
   );
   const s14Visible = state.matches('s14');
 
+  const segmentCheckpointBlocked =
+    onSegmentCheckpoint !== undefined &&
+    segmentCheckpoint !== null &&
+    !state.matches('s15ResultCelebration') &&
+    confirmedSegmentCheckpointRef.current !== segmentCheckpoint;
+  if (segmentCheckpointBlocked) {
+    return (
+      <div className={styles.stageStack}>
+        <section
+          className={styles.segmentCheckpointBoundary}
+          role={segmentCheckpointStatus === 'error' ? 'alert' : 'status'}
+          aria-busy={segmentCheckpointStatus !== 'error'}
+        >
+          {segmentCheckpointStatus === 'error' ? (
+            <>
+              <p>Die Segmentgrenze konnte nicht bestätigt werden.</p>
+              <p>Fehlercode: resume-segment-checkpoint-failed</p>
+              <button
+                type="button"
+                onClick={() => confirmSegmentCheckpoint(segmentCheckpoint)}
+              >
+                Erneut versuchen
+              </button>
+            </>
+          ) : (
+            <p>Training wird vorbereitet …</p>
+          )}
+        </section>
+      </div>
+    );
+  }
+
   return (
     <div className={styles.stageStack}>
       <section
@@ -1347,8 +1607,8 @@ export function S08NetworkRewindStage({
           undefined
         }
         aria-label={
-          state.hasTag('s14-network-return')
-            ? s14MfaContent.trainingAriaLabel
+          state.hasTag('mfa-conclusion')
+            ? s15ToS17MfaConclusionContent.trainingAriaLabel
             : state.hasTag('s13-network')
             ? s13PasswordManagerPracticeContent.trainingAriaLabel
             : state.hasTag('manager') || state.hasTag('manager-transition')
@@ -1389,6 +1649,9 @@ export function S08NetworkRewindStage({
             !state.hasTag('s13-conclusion-clear') &&
             !state.hasTag('s13-mfa')) ||
           undefined
+        }
+        data-s15-master-campus-pulse={
+          state.matches('s15SecondFactor') || undefined
         }
         data-s13-fully-protected={fullyProtectedVisible || undefined}
         data-s08-resolving-account={state.context.resolvingAccountId ?? undefined}
@@ -1446,9 +1709,13 @@ export function S08NetworkRewindStage({
             adapter={adapter}
             presentation={presentation}
             ariaLabel={
-              state.matches('conclusionNetworkRepaired')
-                ? s13PasswordManagerPracticeContent.conclusion.network.repairedAriaLabel
-                : projectedNetwork.accessibleSummary
+              state.hasTag('mfa-expanded-chains')
+                ? s15ToS17MfaConclusionContent.network.expandedProtectionAriaLabel
+                : state.hasTag('mfa-master-chain')
+                  ? s15ToS17MfaConclusionContent.network.masterCampusProtectedAriaLabel
+                  : state.matches('conclusionNetworkRepaired')
+                    ? s13PasswordManagerPracticeContent.conclusion.network.repairedAriaLabel
+                    : projectedNetwork.accessibleSummary
             }
             attackPhase={pathReplayRunning ? 'attacking' : 'incident-check'}
             attackerAccountId={
@@ -1523,11 +1790,22 @@ export function S08NetworkRewindStage({
             }
             celebrationDelayStepMs={220}
             compactCelebration={state.matches('conclusionNetworkRepairing')}
+            mfaChainNodeIds={mfaChainNodeIds}
+            mfaActivationNodeIds={mfaActivationNodeIds}
+            mfaActivationLabel={s15ToS17MfaConclusionContent.status.activated}
             interactionDisabled={!state.matches('protection')}
             nodeActionLabels={actionLabels}
             showEdgeLabels={preparationVisible || s13ExistingAccountRelationVisible}
             onNodeSelect={handleNetworkNodeSelect}
           />
+          {state.matches('s15ResultCelebration') ? (
+            <div className={styles.mfaActivationMoment} role="status" aria-live="polite">
+              <strong>
+                <span aria-hidden="true">✓</span>{' '}
+                {s15ToS17MfaConclusionContent.status.activated}
+              </strong>
+            </div>
+          ) : null}
           {replayComplete ? (
             <div className={styles.completionMoment} role="status" aria-live="polite">
               <CelebrationConfetti />
@@ -1539,6 +1817,17 @@ export function S08NetworkRewindStage({
           <S13ImportedVault
             highlighted={state.matches('managerPracticeExistingAccount')}
           />
+        ) : null}
+        {state.matches('s17IntegratedSummary') ? (
+          <button
+            type="button"
+            className={styles.trainingCompletionAction}
+            data-passwo-speech-obstacle
+            autoFocus
+            onClick={() => send({ type: 'S17_FINISH' })}
+          >
+            {s15ToS17MfaConclusionContent.guide.completeAction}
+          </button>
         ) : null}
         {replayReady ? (
           <button
@@ -1625,30 +1914,56 @@ export function S08NetworkRewindStage({
               </button>
             </section>
           </>
-        ) : s13NetworkSpeech !== null ? (
+        ) : networkSpeech !== null ? (
           <section
             className={styles.passWoScene}
-            aria-label="PassWo erklärt neue und bestehende Konten im Passwortmanager"
+            aria-label={
+              mfaConclusionSpeech === null
+                ? 'PassWo erklärt neue und bestehende Konten im Passwortmanager'
+                : s15ToS17MfaConclusionContent.trainingAriaLabel
+            }
           >
             <PassWoGuide
-              guideName={s13PasswordManagerPracticeContent.guide.name}
-              taskLabel={state.hasTag('s13-mfa') ? 'MFA' : 'Passwortmanager'}
+              guideName={
+                mfaConclusionSpeech === null
+                  ? s13PasswordManagerPracticeContent.guide.name
+                  : s15ToS17MfaConclusionContent.guide.name
+              }
+              taskLabel={
+                mfaConclusionSpeech === null
+                  ? state.hasTag('s13-mfa')
+                    ? 'MFA'
+                    : 'Passwortmanager'
+                  : s15ToS17MfaConclusionContent.guide.taskLabel
+              }
               helpOpen
-              helpId="s13-network-speech"
-              openHelpLabel="PassWo-Hinweis öffnen"
-              speech={s13NetworkSpeech.text}
-              speechEmphasis={passWoSpeechEmphasisFor(s13NetworkSpeech.id)}
-              speechKey={s13NetworkSpeech.id}
+              helpId={
+                mfaConclusionSpeech === null
+                  ? 's13-network-speech'
+                  : 's15-s17-network-speech'
+              }
+              openHelpLabel={
+                mfaConclusionSpeech === null
+                  ? 'PassWo-Hinweis öffnen'
+                  : s15ToS17MfaConclusionContent.guide.openHelpLabel
+              }
+              speech={networkSpeech.text}
+              speechEmphasis={passWoSpeechEmphasisFor(networkSpeech.id)}
+              speechKey={networkSpeech.id}
               speechObstacleSelector="[data-s13-import-vault]"
-              {...(browserReopenPrompt || networkRepairPrompt
-                ? {}
-                : {
-                    speechAction: {
-                      kind: 'advance' as const,
-                      label: 'Weiter',
-                      onAction: () => send({ type: 'NEXT' }),
-                    },
-                  })}
+              {...(mfaConclusionSpeech !== null
+                ? mfaConclusionSpeech.action === null
+                  ? {}
+                  : { speechAction: mfaConclusionSpeech.action }
+                : browserReopenPrompt || networkRepairPrompt
+                  ? {}
+                  : {
+                      speechAction: {
+                        kind: 'advance' as const,
+                        label: 'Weiter',
+                        onAction: () => send({ type: 'NEXT' }),
+                      },
+                    })}
               placement="bottom-left"
               showHelpButton={false}
             />

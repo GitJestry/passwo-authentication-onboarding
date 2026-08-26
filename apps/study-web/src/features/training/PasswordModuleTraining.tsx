@@ -2,6 +2,7 @@ import { s00Content, s01Content, s05Content } from '@passwo/training-content';
 import type {
   PredefinedPassphraseId,
   S06AccountId,
+  SupportivePostS08SegmentId,
   SupportiveS08ResumeState,
   TransientPasswordSemanticEvidence,
 } from '@passwo/contracts';
@@ -42,6 +43,7 @@ import type {
   S06ConsequenceSource,
   S06TimingState,
 } from './segments/S06/S06ConsequenceTraining.js';
+import type { S08NetworkRewindInitialStage } from './segments/S08/S08NetworkRewindStage.js';
 import { createSupportiveS08ResumeState } from './segments/account-network.js';
 import {
   preloadTrainingSegmentImages,
@@ -168,7 +170,37 @@ export interface PasswordModuleTrainingProps {
   readonly resumeSegmentId?: PasswordModuleResumeSegmentId;
   readonly resumeState?: SupportiveS08ResumeState;
   readonly onS08Checkpoint?: (resumeState: SupportiveS08ResumeState) => Promise<void>;
+  readonly onPostS08Checkpoint?: (
+    segmentId: SupportivePostS08SegmentId,
+  ) => Promise<void>;
   readonly onComplete?: () => void;
+}
+
+function lateTrainingInitialStage(
+  resumeSegmentId: PasswordModuleResumeSegmentId | undefined,
+): S08NetworkRewindInitialStage {
+  switch (resumeSegmentId) {
+    case 'S09':
+      return 's09';
+    case 'S10':
+      return 's10';
+    case 'S11':
+      return 's11';
+    case 'S12':
+      return 's12';
+    case 'S13':
+      return 's13';
+    case 'S14':
+      return 's14';
+    case 'S15':
+      return 's15';
+    case 'S16':
+      return 's16';
+    case 'S17':
+      return 's17';
+    default:
+      return 's08';
+  }
 }
 
 function s06RetrievalStatus(
@@ -192,6 +224,7 @@ function PasswordModuleTrainingContent({
   resumeSegmentId,
   resumeState,
   onS08Checkpoint,
+  onPostS08Checkpoint,
   onComplete,
 }: PasswordModuleTrainingProps) {
   const [snapshot, setSnapshot] = useState<PasswordModuleSnapshot | null>(null);
@@ -779,7 +812,11 @@ function PasswordModuleTrainingContent({
         displayName={postS08DisplayName}
         recommendedAccountIds={[]}
         platform={platform}
+        initialStage={lateTrainingInitialStage(resumeSegmentId)}
         resumeState={s08ResumeState}
+        {...(onPostS08Checkpoint === undefined
+          ? {}
+          : { onSegmentCheckpoint: onPostS08Checkpoint })}
         {...(onComplete === undefined ? {} : { onComplete })}
       />
     );

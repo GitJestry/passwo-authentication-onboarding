@@ -19,9 +19,30 @@ Seitenangaben beziehen sich auf die im Trainingsdokument ausgewiesene interne Pa
 | S12 | Passwortmanager | 60–65 | TF2, TF3, TF4, TF6 | Generator, Save, Autofill, Vault, Recovery, Systemwahl |
 | S13 | Ein neues und ein bestehendes Konto | Nutzerauftrag 2026-08-25 | TF2, TF3 | My-Shop-Registrierung; Muster Bank: Passwort erzeugen, beim Dienst ändern, Tresoreintrag aktualisieren und erneut ausfüllen |
 | S14 | Mehrere Faktoren | 66–67 | TF2, TF3, TF6 | Wissen/Besitz/Inhärenz, Aktivierungssimulation |
-| S15 | Recovery-Hinweis | 67–68 | TF6 | geschützter Wiederherstellungscode, Grenzen |
+| S15 | Wirkung des zweiten Faktors | 67–68 | TF6 | Passwort allein reicht nach 2FA nicht mehr, sichtbare Schutzwirkung |
 | S16 | Priorisierung/Ausweitung | 68 | TF1, TF6 | wichtige Konten zuerst, MFA wo verfügbar |
-| S17 | Integrierte Zusammenfassung | 69–71 | TF4, TF6 | vier Schutzebenen, letzter Guardrail |
+| S17 | Integrierte Zusammenfassung | 69–71 | TF4, TF6 | eigene starke Passwörter, 2FA bei wichtigen Konten, Abschluss |
+
+## Implementierte S15–S17-Version
+
+- Nach dem letzten verpflichtenden Browser-Schließen wechselt Master Campus aus der roten
+  Passwort-bekannt-Vorschau in den blauen Schildzustand. Die grünen Vorschauverbindungen
+  verschwinden; `✓ 2FA aktiviert`, Mini-Konfetti und die bereitgestellten lilafarbenen Ketten
+  erscheinen unmittelbar gemeinsam am Master-Campus-Knoten.
+- PassWo erklärt jeden vorgegebenen Gedanken in einer eigenen Sprechblase und führt anschließend
+  in die priorisierte Ausweitung: wichtige Konten zuerst. Die handlungsspezifische Aktion ergänzt
+  Ketten auf allen bekannten Trainingskonten sowie deterministisch auf einem Teil der anonymen
+  weiteren Konten; jeder neu ergänzte Knoten erhält ein kleines `2FA aktiviert`-Feedback mit
+  Mini-Konfetti. `zweiten Faktor` und die Übertragbarkeit auf andere Konten tragen jeweils eine
+  eigene Kerngedankenmarkierung; bei der zweiten S15-Erklärung pulsiert Master Campus einmal kurz.
+- Die letzte Sprechblase verbindet eigene starke Passwörter mit 2FA bei wichtigen Konten. Ihre
+  ausdrücklich vorgegebenen grünen, blauen und lilafarbenen Hervorhebungen sind gruppiert.
+  `Training abschließen` steht separat als große gläserne Primäraktion in der Bildschirmmitte und
+  übergibt an den gemeinsamen Post-Fragebogen.
+- Die produktive Wiederaufnahme öffnet ab S08 den Einstieg des zuletzt bestätigten Segments S08 bis
+  S17. Persistiert werden dafür nur der minimale S08-Resume-Zustand und die inhaltsfreie Segment-ID;
+  Passwortwerte bleiben flüchtig. Für die isolierte visuelle Prüfung existieren direkte lokale
+  QA-Einstiege für Ergebnis, Ausweitung und Zusammenfassung.
 
 ## Implementierte S02-Version
 

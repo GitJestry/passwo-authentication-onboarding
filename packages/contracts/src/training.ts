@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-export const SUPPORTIVE_ARTIFACT_VERSION = 'supportive-s00-s14-1.19.0';
+export const SUPPORTIVE_ARTIFACT_VERSION = 'supportive-s00-s17-1.23.0';
 export const REFERENCE_ARTIFACT_VERSION =
   'secaware-passwords-authentication-v9-study-adapted-2026-07-30-r16';
 export const REFERENCE_ARTIFACT_SNAPSHOT_ID = 'secaware-passwords-authentication-2026-07-26';
@@ -53,6 +53,30 @@ export function referenceArtifactSourceLessonIdForCheckpoint(
   return checkpoint.sourceLessonId;
 }
 
+export const segmentIds = [
+  'S00',
+  'S01',
+  'S02',
+  'S03',
+  'S04',
+  'S05',
+  'S06',
+  'S07',
+  'S08',
+  'S09',
+  'S10',
+  'S11',
+  'S12',
+  'S13',
+  'S14',
+  'S15',
+  'S16',
+  'S17',
+] as const;
+
+export const segmentIdSchema = z.enum(segmentIds);
+export type SegmentId = z.infer<typeof segmentIdSchema>;
+
 export const SUPPORTIVE_ARTIFACT_SEGMENT_IDS = [
   'S00',
   'S01',
@@ -67,6 +91,28 @@ export const supportiveArtifactSegmentIdSchema = z.enum(SUPPORTIVE_ARTIFACT_SEGM
 export type SupportiveArtifactSegmentId = (typeof SUPPORTIVE_ARTIFACT_SEGMENT_IDS)[number];
 export const SUPPORTIVE_ARTIFACT_FINAL_SEGMENT_ID =
   'S07' as const satisfies SupportiveArtifactSegmentId;
+export const SUPPORTIVE_POST_S08_SEGMENT_IDS = [
+  'S09',
+  'S10',
+  'S11',
+  'S12',
+  'S13',
+  'S14',
+  'S15',
+  'S16',
+  'S17',
+] as const;
+export const supportivePostS08SegmentIdSchema = z.enum(
+  SUPPORTIVE_POST_S08_SEGMENT_IDS,
+);
+export type SupportivePostS08SegmentId = z.infer<
+  typeof supportivePostS08SegmentIdSchema
+>;
+export type SupportiveResumeSegmentId =
+  | 'S00'
+  | 'S01'
+  | 'S08'
+  | SupportivePostS08SegmentId;
 
 export const trainingSectionIdSchema = z.enum(['passwords', 'password-manager', 'mfa']);
 export type TrainingSectionId = z.infer<typeof trainingSectionIdSchema>;
@@ -98,7 +144,7 @@ export type PredefinedPassphraseId = z.infer<typeof predefinedPassphraseIdSchema
 
 export interface SupportiveSectionResumeTarget {
   readonly sectionId: TrainingSectionId;
-  readonly segmentId: SupportiveArtifactSegmentId;
+  readonly segmentId: SupportiveResumeSegmentId;
 }
 
 /**
@@ -114,10 +160,20 @@ const supportiveSectionResumeTargets = {
   S05: { sectionId: 'passwords', segmentId: 'S01' },
   S06: { sectionId: 'passwords', segmentId: 'S01' },
   S07: { sectionId: 'passwords', segmentId: 'S01' },
-} as const satisfies Record<SupportiveArtifactSegmentId, SupportiveSectionResumeTarget>;
+  S08: { sectionId: 'passwords', segmentId: 'S08' },
+  S09: { sectionId: 'passwords', segmentId: 'S09' },
+  S10: { sectionId: 'passwords', segmentId: 'S10' },
+  S11: { sectionId: 'passwords', segmentId: 'S11' },
+  S12: { sectionId: 'password-manager', segmentId: 'S12' },
+  S13: { sectionId: 'password-manager', segmentId: 'S13' },
+  S14: { sectionId: 'mfa', segmentId: 'S14' },
+  S15: { sectionId: 'mfa', segmentId: 'S15' },
+  S16: { sectionId: 'mfa', segmentId: 'S16' },
+  S17: { sectionId: 'mfa', segmentId: 'S17' },
+} as const satisfies Record<SegmentId, SupportiveSectionResumeTarget>;
 
 export function supportiveSectionResumeTargetFor(
-  checkpoint: SupportiveArtifactSegmentId,
+  checkpoint: SegmentId,
 ): SupportiveSectionResumeTarget {
   return supportiveSectionResumeTargets[checkpoint];
 }
@@ -125,35 +181,12 @@ export function supportiveSectionResumeTargetFor(
 /**
  * S00–S07 checkpoints contain no training input. S01 creates the fictional identity and passwords
  * needed by the rest of that transient section, so an interrupted later segment safely rebuilds
- * it from S01. The separately typed S08 checkpoint owns the later minimal resume boundary.
+ * it from S01. From S08 onward each content-free checkpoint resumes at its own segment entry while
+ * the separately typed minimal S08 state reconstructs only predefined simulation values.
  */
-export function supportiveResumeSegmentFor(checkpoint: SupportiveArtifactSegmentId): 'S00' | 'S01' {
+export function supportiveResumeSegmentFor(checkpoint: SegmentId): SupportiveResumeSegmentId {
   return supportiveSectionResumeTargets[checkpoint].segmentId;
 }
-
-export const segmentIds = [
-  'S00',
-  'S01',
-  'S02',
-  'S03',
-  'S04',
-  'S05',
-  'S06',
-  'S07',
-  'S08',
-  'S09',
-  'S10',
-  'S11',
-  'S12',
-  'S13',
-  'S14',
-  'S15',
-  'S16',
-  'S17',
-] as const;
-
-export const segmentIdSchema = z.enum(segmentIds);
-export type SegmentId = z.infer<typeof segmentIdSchema>;
 
 export const translationFocusIdSchema = z.enum(['TF1', 'TF2', 'TF3', 'TF4', 'TF5', 'TF6']);
 export type TranslationFocusId = z.infer<typeof translationFocusIdSchema>;

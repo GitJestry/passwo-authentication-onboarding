@@ -2,7 +2,7 @@
 
 - **Status:** Accepted
 - **Datum:** 2026-08-17
-- **Revision:** 2026-08-25 für die minimale PassWo-Wiederaufnahmegrenze ab S08
+- **Revision:** 2026-08-26 für die segmentgenaue PassWo-Wiederaufnahme ab S08
 - **Citation label:** `ADR 0016-Web-Resume-Lifecycle`
 - **Ersetzt für den Hauptstudienbetrieb:** Reload-Abbruch aus `ADR 0008-Lease`, externen
   Follow-up-Import und verzögerten Debrief-Versand aus `ADR 0011-Follow-up-Recontact`
@@ -65,16 +65,20 @@ Die Wiederaufnahme verwendet einen kryptographisch zufälligen, opaken Rückkehr
   IDs rekonstruiert;
 - der lokale Trainingszustand verwirft alle frei eingegebenen Passwortwerte und Detailbefunde vor
   dem S08-Checkpoint-Write. Der minimale S08-Zustand wird nach Artefaktabschluss gelöscht und ist
-  kein Forschungs- oder Analyseexportfeld.
+  kein Forschungs- oder Analyseexportfeld;
+- nach dem bestätigten S08-Write darf der inhaltsfreie Fortschritts-Checkpoint monoton auf die
+  Segment-IDs S09 bis S17 fortgeschrieben werden. Diese Checkpoints enthalten ausschließlich die
+  Segment-ID und keine Eingaben, Entscheidungen oder rekonstruierten Trainingsinhalte.
 
 Bei der Rückkehr im selben Browser wird der letzte serverseitig bestätigte Checkpoint ausgewertet.
 SecAware öffnet den letzten bestätigten Seiteneinstieg. PassWo setzt bis S07 nicht an einem
 einzelnen Segment fort, sondern rekonstruiert Sektion 1 `passwords` ab ihrem festgelegten Einstieg:
 Während des einmaligen S00-Einstiegs wird S00 wiederholt, danach beginnt diese Sektion bei S01 neu.
-Ab dem bestätigten S08-Checkpoint beginnt PassWo dagegen direkt bei S08 und rekonstruiert nur den
-oben festgelegten minimalen Simulationszustand. Sektion 2 `password-manager` und Sektion 3 `mfa`
-verwenden diesen Zustand, ohne frühere Trainingsinputs wiederherzustellen. Bereits atomar
-gespeicherte Fragebogenblöcke werden nicht erneut erhoben.
+Ab dem bestätigten S08-Checkpoint beginnt PassWo dagegen am Einstieg des zuletzt bestätigten
+Segments S08 bis S17. Dafür rekonstruiert die Runtime nur den oben festgelegten minimalen
+Simulationszustand und wertet die inhaltsfreie Segment-ID aus. Sektion 2 `password-manager` und
+Sektion 3 `mfa` verwenden diesen Zustand, ohne frühere Trainingsinputs wiederherzustellen. Bereits
+atomar gespeicherte Fragebogenblöcke werden nicht erneut erhoben.
 
 Nach regulärem Abschluss, individueller Löschung, Ablauf oder Datensatz-Freeze werden
 Rückkehrschlüssel und Cookie ungültig. Geht der Rückkehrschlüssel vorher verloren oder wird das
@@ -139,8 +143,9 @@ dokumentierten `anonymisedAt`.
 ## Konsequenzen
 
 - Web-Resume benötigt zusätzlich eine eng typisierte, nullable Spalte für den temporären
-  S08-Resume-Zustand. Sie darf nur an den Checkpoints `supportive:S08` und
-  `supportive:complete` befüllt sein und wird beim Artefaktabschluss geleert.
+  S08-Resume-Zustand. Sie darf ab `supportive:S08` bis einschließlich `supportive:complete`
+  befüllt sein und wird beim Artefaktabschluss geleert. Der bestehende inhaltsfreie
+  Fortschritts-Checkpoint trägt dabei die zuletzt bestätigte Segment-ID S08 bis S17.
 - JavaScript-lesbarer Browser Storage bleibt für Teilnehmer- und Trainingszustand verboten.
 - Die bestehende lokale Runtime darf als Entwicklungsstand weiterlaufen, ist aber vor dem
   Hauptstudien-Versions-Freeze an diese Entscheidung anzupassen.

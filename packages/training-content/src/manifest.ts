@@ -128,11 +128,12 @@ export const trainingSegments = [
   },
   {
     id: 'S15',
-    title: 'Recovery-Hinweis',
+    title: 'Wirkung des zweiten Faktors',
     section: 'mfa',
     sourcePages: '67-68',
     foci: ['TF6'],
-    learningObjective: 'Geschützte Wiederherstellungsoption als Dienstgrenze verstehen.',
+    learningObjective:
+      'Verstehen, warum das Passwort allein nach der 2FA-Aktivierung nicht reicht.',
   },
   {
     id: 'S16',
@@ -148,6 +149,7 @@ export const trainingSegments = [
     section: 'mfa',
     sourcePages: '69-71',
     foci: ['TF4', 'TF6'],
-    learningObjective: 'Vier Schutzebenen und ihre Grenzen zusammenführen.',
+    learningObjective:
+      'Eigene starke Passwörter und 2FA bei wichtigen Konten zusammenführen.',
   },
 ] as const satisfies readonly TrainingSegmentDefinition[];

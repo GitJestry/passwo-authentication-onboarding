@@ -11,6 +11,7 @@ import {
   SUPPORTIVE_ARTIFACT_SEGMENT_IDS,
   SUPPORTIVE_CHECKPOINTS,
   supportiveCheckpointSchema,
+  supportiveS08BackedCheckpointSchema,
   supportiveS08ResumeStateSchema,
   WEB_STUDY_REQUEST_HEADER,
   WEB_STUDY_REQUEST_HEADER_VALUE,
@@ -106,8 +107,11 @@ async function skipSupportiveArtifact(
   intervalId: string,
   checkpoint: (typeof SUPPORTIVE_CHECKPOINTS)[number],
 ): Promise<void> {
+  const resumesAtOrAfterS08 = supportiveS08BackedCheckpointSchema.safeParse(
+    checkpoint,
+  ).success;
   const segmentIds =
-    checkpoint === 'supportive:S08' || checkpoint === 'supportive:complete'
+    resumesAtOrAfterS08
       ? []
       : checkpoint === 'supportive:S00' || checkpoint === 'supportive:entry'
         ? SUPPORTIVE_ARTIFACT_SEGMENT_IDS
@@ -142,7 +146,7 @@ async function skipSupportiveArtifact(
       ),
     );
   }
-  if (checkpoint !== 'supportive:S08' && checkpoint !== 'supportive:complete') {
+  if (!resumesAtOrAfterS08) {
     confirmArtifactCheckpointResponseSchema.parse(
       await postJson(
         apiBasePath,

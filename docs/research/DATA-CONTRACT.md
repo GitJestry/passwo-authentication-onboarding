@@ -30,7 +30,7 @@ Abgrenzung von Pseudonymisierung und Anonymisierung durch den Europäischen Date
 | Instrumentdaten | Pre, Post, Guardrail, Self-Efficacy, retrospektive SecAware-Frage | `study.sqlite` |
 | Präsentation | Form-ID und tatsächlich angezeigte Guardrail-Option-IDs | `study.sqlite` |
 | Timing | Artefakt-Sitzungsintervalle, Abschnitt/Segment, Dauer, Sichtbarkeit, technische Reason Codes | `study.sqlite`; keine passive Aktivitätsüberwachung |
-| Fortschritt | stabiler inhaltsfreier Checkpoint | `study.sqlite`; bis S07 Wiederaufnahme ohne Trainingswerte |
+| Fortschritt | stabiler inhaltsfreier Checkpoint | `study.sqlite`; bis S07 sicherer Sektionseinstieg, ab S08 zuletzt bestätigte Segment-ID ohne Trainingswerte |
 | S08-Simulationsresume | Schema-Version, drei IDs vorgegebener Passphrasen, notwendige kanonische Schwäche- und Relationsflags | temporär in `study.sqlite`; nur für S08 bis Artefaktabschluss, nie im Forschungs- oder Analyseexport |
 | Rückkehrschlüssel | Hash und Ablaufzeit eines zufälligen Resume-Tokens | `study.sqlite`; nur operative Wiederaufnahme |
 | Follow-up-Verknüpfung | Einwilligung, Follow-up-Version, Token-Hash, Follow-up-Antworten | `study.sqlite`; pseudonyme Verbindung bis zur Anonymisierung |
@@ -62,6 +62,11 @@ am sicheren S00-/S01-Sektionseinstieg neu, ohne flüchtige Trainingswerte zu per
 Übergang zu S08 werden frei eingegebene Passwortwerte, Teilstrings und semantische Detailbefunde
 lokal verworfen. Danach darf die Runtime unmittelbar ab S08 ausschließlich über den minimalen
 `supportive-s08-resume-v1`-Zustand fortsetzen.
+
+Nach dem bestätigten S08-Write darf der stabile inhaltsfreie Fortschritts-Checkpoint monoton die
+Segment-IDs S09 bis S17 annehmen. Die Wiederaufnahme beginnt damit am Einstieg des zuletzt
+bestätigten Segments. Diese IDs enthalten keine Passwortwerte, Trainingsentscheidungen oder
+semantischen Detailbefunde und erweitern den S08-Simulationsresume-Zustand nicht.
 
 Dieser Zustand erlaubt genau drei IDs aus dem versionierten vordefinierten Passphrasen-Pool,
 höchstens die Konten-IDs `master-campus` und `campus-email` als verbleibende Schwächeflags sowie

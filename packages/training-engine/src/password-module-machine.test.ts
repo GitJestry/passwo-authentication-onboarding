@@ -326,6 +326,21 @@ describe('passwordModuleMachine', () => {
     expect(actor.getSnapshot().context).not.toHaveProperty('s06Result');
   });
 
+  it('routes a later content-free resume checkpoint through the cleared S08 boundary', () => {
+    const actor = createActor(passwordModuleMachine, {
+      input: { accountIds, resumeSegmentId: 'S15' },
+    });
+    actor.start();
+
+    expect(actor.getSnapshot().matches('s08')).toBe(true);
+    expect(actor.getSnapshot().context.passwordValues).toEqual({
+      'master-campus': '',
+      'campus-email': '',
+      campusgram: '',
+    });
+    expect(actor.getSnapshot().context.resumeSegmentId).toBe('S15');
+  });
+
   it('keeps failed entries retryable and completes forgotten passwords through assistance', () => {
     const actor = createModuleActor();
     configureAllAccounts(actor);

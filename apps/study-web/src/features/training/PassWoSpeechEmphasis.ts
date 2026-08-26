@@ -10,6 +10,7 @@ export type PassWoSpeechEmphasisTone =
   | 'positive'
   | 'warning'
   | 'action'
+  | 'mfa'
   | 'master-campus'
   | 'campus-email'
   | 'campusgram';
@@ -344,6 +345,19 @@ const emphasisBySpeechId: Readonly<Record<string, readonly PassWoSpeechEmphasis[
   ],
   's14-close-after-login': [
     { phrase: 'Schließe den Browser noch einmal', tone: 'action' },
+  ],
+  's15-mfa-second-factor': [{ phrase: 'zweiten Faktor', tone: 'mfa' }],
+  's17-mfa-how-to': [
+    { phrase: 'Bei anderen Konten kannst du genauso vorgehen:', tone: 'accent' },
+  ],
+  's17-integrated-summary': [
+    { phrase: 'eigene', tone: 'positive', contrastId: 'integrated-protection-summary' },
+    { phrase: 'starke', tone: 'accent', contrastId: 'integrated-protection-summary' },
+    {
+      phrase: 'reicht das Passwort für den Angreifer allein nicht mehr aus.',
+      tone: 'mfa',
+      contrastId: 'integrated-protection-summary',
+    },
   ],
 };
 

@@ -121,6 +121,10 @@
   --emphasis-color: var(--color-accent-strong);
 }
 
+.emphasis[data-emphasis-tone="mfa"] {
+  --emphasis-color: #b879ff;
+}
+
 .emphasis[data-emphasis-tone="master-campus"] {
   --emphasis-color: var(--color-master-campus);
 }

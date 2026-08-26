@@ -214,7 +214,7 @@ describe('research-safe contracts', () => {
   });
 
   it('keeps canonical artifact versions and the S00–S07 segment order', () => {
-    expect(SUPPORTIVE_ARTIFACT_VERSION).toBe('supportive-s00-s14-1.19.0');
+    expect(SUPPORTIVE_ARTIFACT_VERSION).toBe('supportive-s00-s17-1.23.0');
     expect(SUPPORTIVE_ARTIFACT_VERSION).not.toBe(REFERENCE_ARTIFACT_VERSION);
     expect(SUPPORTIVE_ARTIFACT_SEGMENT_IDS).toEqual([
       'S00',
@@ -236,6 +236,10 @@ describe('research-safe contracts', () => {
         segmentId: 'S01',
       });
     }
+    expect(supportiveSectionResumeTargetFor('S15')).toEqual({
+      sectionId: 'mfa',
+      segmentId: 'S15',
+    });
     expect(
       studyTimingEventSchema.safeParse({
         sequence: 1,
@@ -325,6 +329,12 @@ describe('research-safe contracts', () => {
         resumeState,
       }).success,
     ).toBe(true);
+    expect(
+      confirmArtifactCheckpointRequestSchema.safeParse({
+        intervalId: 'b185bbd8-2088-47d2-b45a-924c8d8778ea',
+        checkpoint: 'supportive:S15',
+      }).success,
+    ).toBe(true);
     const resumeSession = {
       sessionId: '6b51a541-5e36-4c24-88ea-2ec05e41e72d',
       condition: 'supportive',
@@ -340,6 +350,12 @@ describe('research-safe contracts', () => {
       supportiveS08ResumeState: resumeState,
     };
     expect(webResumeSessionSchema.safeParse(resumeSession).success).toBe(true);
+    expect(
+      webResumeSessionSchema.safeParse({
+        ...resumeSession,
+        checkpoint: 'supportive:S15',
+      }).success,
+    ).toBe(true);
     expect(
       webResumeSessionSchema.safeParse({
         ...resumeSession,
@@ -418,6 +434,15 @@ describe('research-safe contracts', () => {
     expect(designLabScenarioForPath('/design-lab/s3-1-mfa-factors')).toBe(
       's3-1-mfa-factors',
     );
+    expect(designLabScenarioForPath('/design-lab/s3-2-mfa-result')).toBe(
+      's3-2-mfa-result',
+    );
+    expect(designLabScenarioForPath('/design-lab/s3-3-mfa-expansion')).toBe(
+      's3-3-mfa-expansion',
+    );
+    expect(designLabScenarioForPath('/design-lab/s3-4-training-summary')).toBe(
+      's3-4-training-summary',
+    );
     expect(designLabPathForTrainingQaSegment('s13')).toBe(
       '/design-lab/s2-2-my-shop-registration',
     );
@@ -429,6 +454,15 @@ describe('research-safe contracts', () => {
     );
     expect(designLabPathForTrainingQaSegment('s14')).toBe(
       '/design-lab/s3-1-mfa-factors',
+    );
+    expect(designLabPathForTrainingQaSegment('s15')).toBe(
+      '/design-lab/s3-2-mfa-result',
+    );
+    expect(designLabPathForTrainingQaSegment('s16')).toBe(
+      '/design-lab/s3-3-mfa-expansion',
+    );
+    expect(designLabPathForTrainingQaSegment('s17')).toBe(
+      '/design-lab/s3-4-training-summary',
     );
     expect(designLabScenarioForPath('/design-lab/s07-directly-reached')).toBeNull();
   });

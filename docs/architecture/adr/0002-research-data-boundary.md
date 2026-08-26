@@ -2,7 +2,7 @@
 
 - **Status:** Accepted
 - **Datum:** 2026-07-23
-- **Revision:** 2026-08-25 gemäß der S08-Ergänzung in ADR 0016
+- **Revision:** 2026-08-26 gemäß der segmentgenauen Resume-Ergänzung in ADR 0016
 
 ## Entscheidung
 
@@ -15,7 +15,9 @@ Detailbefunde verlassen den flüchtigen Rendererzustand nicht. Die einzige enge 
 operative Trainingswiederaufnahme ist der in ADR 0016 definierte Zustand
 `supportive-s08-resume-v1`: ausschließlich IDs vorgegebener Passphrasen sowie kanonische
 Konten-/Relationsflags, niemals frei eingegebene Strings oder Teilstrings. Dieser Zustand wird
-nach Artefaktabschluss entfernt und nicht exportiert.
+nach Artefaktabschluss entfernt und nicht exportiert. Nach dem S08-Write darf der bereits
+autorisierte inhaltsfreie Fortschritts-Checkpoint ausschließlich die zuletzt bestätigte Segment-ID
+S09 bis S17 ergänzen; dadurch entsteht keine weitere persistierte Inhaltsdatenklasse.
 
 ## Konsequenzen
 

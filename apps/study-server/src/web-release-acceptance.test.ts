@@ -453,7 +453,7 @@ describe('Web resume and concurrency acceptance', () => {
     database.close();
   });
 
-  it('resumes at S08 with only the minimal predefined simulation state', async () => {
+  it('resumes at the last confirmed post-S08 segment with only minimal simulation state', async () => {
     const paths = temporaryDatabasePaths('passwo-s08-resume-');
     const firstServer = createWebServer('forced-supportive', paths.study, paths.recontact);
     const created = await createWebTestSession(firstServer, 202, false);
@@ -488,6 +488,15 @@ describe('Web resume and concurrency acceptance', () => {
         resumeState: supportiveS08ResumeStateFixture,
       },
     );
+    await webPost(
+      firstServer,
+      created.cookie,
+      `/api/study/sessions/${created.session.sessionId}/artifact-checkpoint`,
+      {
+        intervalId: interval.intervalId,
+        checkpoint: 'supportive:S15',
+      },
+    );
     await closeTrackedServer(firstServer);
 
     const database = new Database(paths.study, { readonly: true });
@@ -520,7 +529,7 @@ describe('Web resume and concurrency acceptance', () => {
     );
     const resumed = webResumeResponseSchema.parse(resumedResponse.json()).session;
     expect(resumed).toMatchObject({
-      checkpoint: 'supportive:S08',
+      checkpoint: 'supportive:S15',
       resumeTarget: 'artifact',
       supportiveS08ResumeState: supportiveS08ResumeStateFixture,
     });

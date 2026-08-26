@@ -23,6 +23,7 @@ import {
   SUPPORTIVE_ARTIFACT_SEGMENT_IDS,
   SUPPORTIVE_CHECKPOINTS,
   supportiveCheckpointSchema,
+  supportiveS08BackedCheckpointSchema,
   supportiveS08ResumeStateSchema,
   type RegisterRecontactRequest,
   type SupportiveS08ResumeState,
@@ -382,7 +383,7 @@ export class WebRuntimeRepository {
         this.#storeS08ResumeState(sessionId, request.resumeState);
         return this.#advanceCheckpoint(sessionId, request.checkpoint);
       }
-      if (request.checkpoint === 'supportive:complete') {
+      if (supportiveS08BackedCheckpointSchema.safeParse(request.checkpoint).success) {
         if (session.condition !== 'supportive') {
           throw new StudyRepositoryError('artifact-checkpoint-condition-conflict', 409);
         }
@@ -534,7 +535,7 @@ export class WebRuntimeRepository {
     const checkpoint = studyProgressCheckpointSchema.parse(session.progressCheckpoint);
     const supportiveS08ResumeState =
       session.condition === 'supportive' &&
-      (checkpoint === 'supportive:S08' || checkpoint === 'supportive:complete')
+      supportiveS08BackedCheckpointSchema.safeParse(checkpoint).success
         ? supportiveS08ResumeStateSchema.parse(
             JSON.parse(session.supportiveS08ResumeStateJson ?? 'null'),
           )
@@ -694,10 +695,14 @@ export class WebRuntimeRepository {
       if (starts.length !== ends.length) throw new StudyRepositoryError('segment-already-active', 409);
       if (starts.length === 0) {
         const checkpoint = this.#artifactCheckpoint(this.#checkpointSession(sessionId));
+        const checkpointSegment = checkpoint.startsWith('supportive:')
+          ? supportiveArtifactSegmentIdSchema.safeParse(
+              checkpoint.slice('supportive:'.length),
+            )
+          : null;
         if (
           !checkpoint.startsWith('supportive:') ||
-          checkpoint === 'supportive:S08' ||
-          checkpoint === 'supportive:complete'
+          (checkpoint !== 'supportive:entry' && !checkpointSegment?.success)
         ) {
           throw new StudyRepositoryError('segment-resume-checkpoint-invalid', 409);
         }

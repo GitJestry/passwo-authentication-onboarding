@@ -7,10 +7,12 @@ import {
   recontactEmailSchema,
   referenceArtifactLessonCheckpointIdSchema,
   referenceLessonCheckpointSchema,
-  supportiveArtifactSegmentIdSchema,
+  segmentIdSchema,
   supportiveResumeSegmentFor,
   supportiveCheckpointSchema,
   type ReferenceArtifactLessonCheckpointId,
+  type SupportivePostS08SegmentId,
+  type SupportiveResumeSegmentId,
   type SupportiveS08ResumeState,
   type WebResumeSession,
 } from '@passwo/contracts';
@@ -470,14 +472,18 @@ function SupportiveArtifact({
   resumeSegmentId,
   resumeState,
   onS08Checkpoint,
+  onPostS08Checkpoint,
   onComplete,
 }: {
   readonly timingPort: BrowserSegmentTimingAdapter;
   readonly timingError: string | null;
   readonly onRetryTiming: () => void;
-  readonly resumeSegmentId?: 'S00' | 'S01' | 'S08';
+  readonly resumeSegmentId?: SupportiveResumeSegmentId;
   readonly resumeState?: SupportiveS08ResumeState;
   readonly onS08Checkpoint: (resumeState: SupportiveS08ResumeState) => Promise<void>;
+  readonly onPostS08Checkpoint: (
+    segmentId: SupportivePostS08SegmentId,
+  ) => Promise<void>;
   readonly onComplete: () => void;
 }) {
   return (
@@ -489,6 +495,7 @@ function SupportiveArtifact({
         {...(resumeSegmentId === undefined ? {} : { resumeSegmentId })}
         {...(resumeState === undefined ? {} : { resumeState })}
         onS08Checkpoint={onS08Checkpoint}
+        onPostS08Checkpoint={onPostS08Checkpoint}
         onComplete={onComplete}
       />
     </TrainingClipboardBoundary>
@@ -582,11 +589,13 @@ function HydratedStudyFlow({
     if (parsed.data === 'supportive:entry') return 'S00';
     if (parsed.data === 'supportive:S08') return 'S08';
     return supportiveResumeSegmentFor(
-      supportiveArtifactSegmentIdSchema.parse(parsed.data.slice('supportive:'.length)),
+      segmentIdSchema.parse(parsed.data.slice('supportive:'.length)),
     );
   }, [context.artifactCheckpoint, context.interrupted]);
   const supportiveResumeState =
-    supportiveResumeSegment === 'S08'
+    supportiveResumeSegment !== undefined &&
+    supportiveResumeSegment !== 'S00' &&
+    supportiveResumeSegment !== 'S01'
       ? (resumeSession?.supportiveS08ResumeState ?? undefined)
       : undefined;
   const finishSupportiveArtifact = useCallback(() => {
@@ -760,6 +769,12 @@ function HydratedStudyFlow({
               await api.confirmArtifactCheckpoint(context.sessionId, {
                 checkpoint: 'supportive:S08',
                 resumeState,
+              });
+            }}
+            onPostS08Checkpoint={async (segmentId) => {
+              if (context.sessionId === null) throw new Error('missing-session');
+              await api.confirmArtifactCheckpoint(context.sessionId, {
+                checkpoint: `supportive:${segmentId}`,
               });
             }}
             onComplete={finishSupportiveArtifact}
