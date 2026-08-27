@@ -38,6 +38,7 @@
     "clean": "node ./scripts/clean.mjs",
     "study:audit-data": "tsx ./scripts/audit-study-data.ts",
     "study:timing-report": "tsx ./scripts/report-study-timing.ts",
+    "study:stats": "bash ./scripts/study-stats/show-current-stats.sh",
     "deploy:prepare-native": "bash ./deploy/scripts/prepare-native-dependencies.sh",
     "qa:live:setup": "bash ./deploy/scripts/setup-live-qa.sh",
     "deploy:web": "bash ./deploy/scripts/deploy-web.sh"

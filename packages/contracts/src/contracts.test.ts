@@ -214,7 +214,7 @@ describe('research-safe contracts', () => {
   });
 
   it('keeps canonical artifact versions and the S00–S07 segment order', () => {
-    expect(SUPPORTIVE_ARTIFACT_VERSION).toBe('supportive-s00-s17-1.27.0');
+    expect(SUPPORTIVE_ARTIFACT_VERSION).toBe('supportive-s00-s17-1.27.1');
     expect(SUPPORTIVE_ARTIFACT_VERSION).not.toBe(REFERENCE_ARTIFACT_VERSION);
     expect(SUPPORTIVE_ARTIFACT_SEGMENT_IDS).toEqual([
       'S00',

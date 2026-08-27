@@ -290,7 +290,7 @@ export const s14MfaIntroductionMachine = setup({
         SELECT_TAB: { actions: 'selectTab' },
         NEXT: {
           target: 'loginAutofilling',
-          actions: 'selectMasterCampusTab',
+          actions: ['selectMasterCampusTab', 'refreshAuthenticatorCode'],
         },
       },
     },

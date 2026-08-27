@@ -339,3 +339,21 @@ unverändert.
 - Der S14-spezifische PassWo-Aufgabenstatus wird nicht mehr gerendert. Dadurch entfällt der am
   unteren linken Browserrand abgeschnittene Fortschrittsbalken; Figur und Sprechblasen bleiben
   unverändert sichtbar.
+
+## Korrektheitspatch — neuer TOTP-Code bei erneuter Anmeldung, 27. August 2026
+
+Der ausdrückliche Nutzerauftrag vom 27. August 2026 korrigiert ausschließlich die Konsistenz der
+lokalen TOTP-Simulation beim Eintritt in den erneuten Anmeldeablauf von S14.2. Der Übergang aus
+dem Einrichtungsfeedback schaltet nun immer deterministisch auf den nächsten der vorhandenen
+simulierten Authenticator-Codes und startet dessen 30-Sekunden-Timer neu. Eine Fallunterscheidung
+anhand des vorherigen Code-Zeitschritts findet nicht statt.
+
+Teilnehmertext, Lernziel, Interaktionsreihenfolge, Persistenz und Forschungswrites bleiben
+unverändert. `S14_MFA_CONTENT_VERSION` bleibt deshalb bei `1.7.0`; die
+Supportive-Artifact-Version steigt als Korrektheitspatch von `supportive-s00-s17-1.27.0` auf
+`supportive-s00-s17-1.27.1`.
+
+Der Fix wurde nach acht abgeschlossenen PassWo-Teilnahmen eingeführt. Nach der vorliegenden
+Rückmeldung fiel die bisherige Darstellung einer Person auf und beeinflusste deren Entscheidung
+oder Bearbeitung nicht. Das Delta wird daher als kleiner Konsistenzfix der TOTP-Simulation und
+nicht als substanzieller Studien- oder Inhaltswechsel geführt.
