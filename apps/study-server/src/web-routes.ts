@@ -14,6 +14,8 @@ import {
   deletionCodeHashSchema,
   deletionCodeSchema,
   instrumentSubmissionRequestSchema,
+  recruitmentSourceSchema,
+  type RecruitmentSource,
   saveResponseResponseSchema,
   sessionStatusResponseSchema,
   WEB_RESUME_COOKIE_MAX_AGE_SECONDS,
@@ -170,6 +172,11 @@ function requireWriteRequest(request: FastifyRequest, publicOrigin?: string): vo
   }
 }
 
+function recruitmentSourceFor(recruitmentId: string | null): RecruitmentSource {
+  const parsed = recruitmentSourceSchema.safeParse(recruitmentId);
+  return parsed.success ? parsed.data : 'ub';
+}
+
 export function registerWebStudyRoutes(
   server: FastifyInstance,
   options: WebStudyRouteOptions,
@@ -323,6 +330,7 @@ export function registerWebStudyRoutes(
           }),
           recontact: body.recontact,
         },
+        recruitmentSourceFor(body.recruitmentId),
         hash,
         expiry.expiresAtIso,
       ),

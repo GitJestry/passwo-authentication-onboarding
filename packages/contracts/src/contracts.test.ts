@@ -26,6 +26,7 @@ import {
   researchExportManifestSchema,
   researchExportProfileSchema,
   researchExportSessionRecordSchema,
+  recruitmentSourceSchema,
   REFERENCE_ARTIFACT_VERSION,
   registerRecontactRequestSchema,
   s07RecommendationIds,
@@ -74,6 +75,30 @@ describe('research-safe contracts', () => {
         followUpConsent: false,
         deletionCodeHash: validDeletionCodeHash,
         condition: 'supportive',
+      }).success,
+    ).toBe(false);
+  });
+
+  it('accepts only the landing-page id as recruitment input', () => {
+    const request = {
+      requestId: 'f5d74d44-f700-4dc7-ac00-5e251a8890c3',
+      consentAccepted: true,
+      followUpConsent: false,
+      recontact: null,
+    };
+
+    expect(webCreateSessionRequestSchema.parse(request).recruitmentId).toBeNull();
+    expect(
+      webCreateSessionRequestSchema.parse({ ...request, recruitmentId: 'tu' }).recruitmentId,
+    ).toBe('tu');
+    expect(recruitmentSourceSchema.parse('other-university')).toBe('other-university');
+    expect(recruitmentSourceSchema.parse('rwth_2026')).toBe('rwth_2026');
+    expect(recruitmentSourceSchema.safeParse('not valid!').success).toBe(false);
+    expect(recruitmentSourceSchema.safeParse('a'.repeat(81)).success).toBe(false);
+    expect(
+      webCreateSessionRequestSchema.safeParse({
+        ...request,
+        recruitmentSource: 'tu',
       }).success,
     ).toBe(false);
   });
@@ -651,9 +676,9 @@ describe('research-safe contracts', () => {
 
   it('keeps researcher exports inside the approved data boundary', () => {
     const manifest = {
-      schemaVersion: 'research-export-v7',
+      schemaVersion: 'research-export-v8',
       profile: 'audit',
-      schemaProfileVersion: 'research-audit-v2',
+      schemaProfileVersion: 'research-audit-v3',
       exportedAtIso: '2026-07-24T12:00:00.000Z',
       runtimeManifestVersion: instrumentRuntimeManifest.runtimeManifestVersion,
       versions: {

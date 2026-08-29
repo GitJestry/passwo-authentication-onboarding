@@ -445,15 +445,17 @@ export function exportResearchData({
         fileName: 'sessions.csv',
         content: csvFile(
           [
-            'researchId', 'condition', 'assignmentMode', 'studyVersion', 'contentVersion',
+            'researchId', 'recruitmentSource', 'condition', 'assignmentMode', 'studyVersion',
+            'contentVersion',
             'questionnaireVersion', 'guardrailVersion', 'guardrailFormId', 'consentVersion',
             'referenceArtifactVersion', 'consentAccepted', 'followUpConsent', 'followUpVersion',
             'completionStatus', 'technicalErrorCode', 'artifactSessionElapsedMs',
             'webInterruptionCount', 'createdAtIso', 'completedAtIso',
           ],
           sessions.map((session) => [
-            session.researchId, session.condition, session.assignmentMode, session.studyVersion,
-            session.contentVersion, session.questionnaireVersion, session.guardrailVersion,
+            session.researchId, session.recruitmentSource, session.condition,
+            session.assignmentMode, session.studyVersion, session.contentVersion,
+            session.questionnaireVersion, session.guardrailVersion,
             session.guardrailFormId, session.consentVersion, session.referenceArtifactVersion,
             session.consentAccepted, session.followUpConsent, session.followUpVersion,
             session.completionStatus, session.technicalErrorCode,
@@ -523,15 +525,17 @@ export function exportResearchData({
         fileName: 'sessions.csv',
         content: csvFile(
           [
-            'researchId', 'condition', 'assignmentMode', 'studyVersion', 'contentVersion',
+            'researchId', 'recruitmentSource', 'condition', 'assignmentMode', 'studyVersion',
+            'contentVersion',
             'questionnaireVersion', 'guardrailVersion', 'guardrailFormId', 'consentVersion',
             'referenceArtifactVersion', 'consentAccepted', 'followUpConsent', 'followUpVersion',
             'completionStatus', 'technicalErrorCode', 'artifactSessionElapsedMs',
             'webInterruptionCount',
           ],
           analysisSessions.map((session) => [
-            session.researchId, session.condition, session.assignmentMode, session.studyVersion,
-            session.contentVersion, session.questionnaireVersion, session.guardrailVersion,
+            session.researchId, session.recruitmentSource, session.condition,
+            session.assignmentMode, session.studyVersion, session.contentVersion,
+            session.questionnaireVersion, session.guardrailVersion,
             session.guardrailFormId, session.consentVersion, session.referenceArtifactVersion,
             session.consentAccepted, session.followUpConsent, session.followUpVersion,
             session.completionStatus, session.technicalErrorCode,
@@ -614,10 +618,10 @@ export function exportResearchData({
     }
 
     const manifest = researchExportManifestSchema.parse({
-      schemaVersion: 'research-export-v7',
+      schemaVersion: 'research-export-v8',
       profile,
       schemaProfileVersion:
-        profile === 'audit' ? 'research-audit-v2' : 'research-analysis-v2',
+        profile === 'audit' ? 'research-audit-v3' : 'research-analysis-v3',
       exportedAtIso,
       runtimeManifestVersion: instrumentRuntimeManifest.runtimeManifestVersion,
       versions: {

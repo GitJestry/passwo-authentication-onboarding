@@ -13,6 +13,7 @@ import {
   mainInstrumentBlocks,
   normalizeInstrumentSubmission,
   type PersistedSessionRecord,
+  type RecruitmentSource,
   type RegisterRecontactRequest,
   type StudyCondition,
   type StudyTimingEvent,
@@ -153,7 +154,10 @@ export class StudyRepository {
     this.#ensureArtifactBoundaryIndex();
   }
 
-  createSession(request: CreateSessionRequest): CreateSessionResponse {
+  createSession(
+    request: CreateSessionRequest,
+    recruitmentSource: RecruitmentSource = 'ub',
+  ): CreateSessionResponse {
     this.recoverStaleArtifactSessions();
     const create = this.#database.transaction(() => {
       const existing = this.#findSessionByRequestId(request.requestId);
@@ -181,6 +185,7 @@ export class StudyRepository {
             create_request_id,
             research_code,
             deletion_code_hash,
+            recruitment_source,
             condition,
             assignment_mode,
             study_version,
@@ -203,6 +208,7 @@ export class StudyRepository {
             @requestId,
             @researchCode,
             @deletionCodeHash,
+            @recruitmentSource,
             @condition,
             @assignmentMode,
             @studyVersion,
@@ -227,6 +233,7 @@ export class StudyRepository {
           requestId: request.requestId,
           researchCode,
           deletionCodeHash: request.deletionCodeHash,
+          recruitmentSource,
           condition: assignment.condition,
           assignmentMode: this.#assignmentMode,
           studyVersion: this.#versions.study,

@@ -5,6 +5,13 @@ import { followUpTokenHashSchema } from './recontact.js';
 export const studyConditionSchema = z.enum(['supportive', 'reference']);
 export type StudyCondition = z.infer<typeof studyConditionSchema>;
 
+export const recruitmentSourceSchema = z
+  .string()
+  .min(1)
+  .max(80)
+  .regex(/^[A-Za-z0-9_-]+$/u);
+export type RecruitmentSource = z.infer<typeof recruitmentSourceSchema>;
+
 export const assignmentModeSchema = z.enum([
   'permuted-block',
   'forced-supportive',
@@ -70,6 +77,7 @@ export const persistedSessionRecordSchema = z
     sessionId: z.uuid(),
     researchCode: researchCodeSchema,
     deletionCodeHash: deletionCodeHashSchema,
+    recruitmentSource: recruitmentSourceSchema,
     condition: studyConditionSchema,
     assignmentMode: assignmentModeSchema,
     studyVersion: versionIdSchema,

@@ -163,7 +163,10 @@ export type SupportiveS08ResumeState = z.infer<typeof supportiveS08ResumeStateSc
 
 export const webCreateSessionRequestSchema = createSessionRequestSchema
   .omit({ deletionCodeHash: true })
-  .extend({ recontact: registerRecontactRequestSchema.nullable() })
+  .extend({
+    recruitmentId: z.string().max(80).nullable().catch(null).default(null),
+    recontact: registerRecontactRequestSchema.nullable(),
+  })
   .strict()
   .superRefine((request, context) => {
     if (request.followUpConsent !== (request.recontact !== null)) {

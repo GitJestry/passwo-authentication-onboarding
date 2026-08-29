@@ -6,6 +6,7 @@ import { fileURLToPath } from 'node:url';
 import {
   hashDeletionCode,
   mainInstrumentBlocks,
+  recruitmentSourceSchema,
   SUPPORTIVE_ARTIFACT_SEGMENT_IDS,
   supportiveSectionResumeTargetFor,
   supportiveS08ResumeStateSchema,
@@ -132,6 +133,108 @@ function groupBy<Key, Value>(
   return groups;
 }
 
+it('persists the canonical recruitment source across create, resume and export', async () => {
+  const paths = temporaryDatabasePaths('passwo-recruitment-source-');
+  const firstServer = createWebServer('forced-supportive', paths.study, paths.recontact);
+  const createdDefault = await createWebTestSession(firstServer, 91, false);
+  const createdUb = await createWebTestSession(firstServer, 92, false, 'ub');
+  const createdTu = await createWebTestSession(firstServer, 93, false, 'tu');
+  const createdOther = await createWebTestSession(
+    firstServer,
+    94,
+    false,
+    'other-university',
+  );
+  const createdInvalid = await createWebTestSession(firstServer, 95, false, 'not valid!');
+
+  const sourceRowSchema = z
+    .object({
+      sessionId: z.uuid(),
+      researchId: z.string(),
+      recruitmentSource: recruitmentSourceSchema,
+    })
+    .strict();
+  const database = new Database(paths.study, { readonly: true, fileMustExist: true });
+  const sourceRows = z.array(sourceRowSchema).parse(
+    database
+      .prepare(
+        `SELECT session_id AS sessionId, research_code AS researchId,
+                recruitment_source AS recruitmentSource
+         FROM study_sessions
+         ORDER BY created_at_iso, session_id`,
+      )
+      .all(),
+  );
+  database.close();
+  expect(sourceRows.map(({ sessionId, recruitmentSource }) => ({
+    sessionId,
+    recruitmentSource,
+  }))).toEqual([
+    { sessionId: createdDefault.session.sessionId, recruitmentSource: 'ub' },
+    { sessionId: createdUb.session.sessionId, recruitmentSource: 'ub' },
+    { sessionId: createdTu.session.sessionId, recruitmentSource: 'tu' },
+    {
+      sessionId: createdOther.session.sessionId,
+      recruitmentSource: 'other-university',
+    },
+    { sessionId: createdInvalid.session.sessionId, recruitmentSource: 'ub' },
+  ]);
+
+  await closeTrackedServer(firstServer);
+  const restartedServer = createWebServer('forced-supportive', paths.study, paths.recontact);
+  const resumedResponse = await webPost(
+    restartedServer,
+    createdTu.cookie,
+    '/api/study/session/resume',
+    {},
+  );
+  expect(webResumeResponseSchema.parse(resumedResponse.json()).session?.sessionId).toBe(
+    createdTu.session.sessionId,
+  );
+  await closeTrackedServer(restartedServer);
+
+  const resumedDatabase = new Database(paths.study, { readonly: true, fileMustExist: true });
+  expect(
+    sourceRowSchema.parse(
+      resumedDatabase
+        .prepare(
+          `SELECT session_id AS sessionId, research_code AS researchId,
+                  recruitment_source AS recruitmentSource
+           FROM study_sessions WHERE session_id = ?`,
+        )
+        .get(createdTu.session.sessionId),
+    ).recruitmentSource,
+  ).toBe('tu');
+  resumedDatabase.close();
+
+  const exportedSourceRows = sourceRows.filter(({ sessionId }) =>
+    [createdTu.session.sessionId, createdOther.session.sessionId].includes(sessionId),
+  );
+  const exportDirectory = join(paths.directory, 'research-export');
+  exportResearchData({ databasePath: paths.study, outputDirectory: exportDirectory });
+  const exportedSessionsRaw: unknown = JSON.parse(
+    readFileSync(join(exportDirectory, 'sessions.json'), 'utf8'),
+  );
+  const exportedSessions = z.array(
+    z.object({
+      researchId: z.string(),
+      recruitmentSource: recruitmentSourceSchema,
+    }).passthrough(),
+  ).parse(exportedSessionsRaw);
+  expect(
+    exportedSourceRows.map(({ researchId, recruitmentSource }) =>
+      exportedSessions.find(
+        (session) =>
+          session.researchId === researchId &&
+          session.recruitmentSource === recruitmentSource,
+      ),
+    ),
+  ).toEqual([
+    expect.objectContaining({ recruitmentSource: 'tu' }),
+    expect.objectContaining({ recruitmentSource: 'other-university' }),
+  ]);
+});
+
 for (const assignmentMode of ['forced-supportive', 'forced-reference'] as const) {
   const expectedCondition = assignmentMode === 'forced-supportive' ? 'supportive' : 'reference';
 
@@ -232,7 +335,7 @@ for (const assignmentMode of ['forced-supportive', 'forced-reference'] as const)
       outputDirectory: exportDirectory,
       exportedAtIso: '2026-08-24T13:00:00.000Z',
     });
-    expect(exported.manifest.schemaVersion).toBe('research-export-v7');
+    expect(exported.manifest.schemaVersion).toBe('research-export-v8');
     const exportedText = exported.files
       .map((file) => readFileSync(join(exportDirectory, file), 'utf8'))
       .join('\n');

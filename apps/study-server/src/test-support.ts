@@ -263,6 +263,7 @@ export async function createWebTestSession(
   server: FastifyInstance,
   identity: number,
   followUpConsent = true,
+  recruitmentId: string | null = null,
 ): Promise<CreatedWebTestSession> {
   const suffix = identity.toString().padStart(12, '0');
   const response = await webPost(
@@ -273,6 +274,7 @@ export async function createWebTestSession(
       requestId: `30000000-0000-4000-8000-${suffix}`,
       consentAccepted: true,
       followUpConsent,
+      recruitmentId,
       recontact: followUpConsent
         ? {
             requestId: `40000000-0000-4000-8000-${suffix}`,

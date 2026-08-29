@@ -35,3 +35,4 @@ Anforderung. Für Webbetrieb, Wiederaufnahme, Follow-up-Betrieb und Datenabschlu
 | `ADR 0014-Bounded-Password-Guessing` | Begrenzte lokale Passwort-Rateweganalyse | [0014-bounded-local-password-guessing-analysis.md](./0014-bounded-local-password-guessing-analysis.md) |
 | `ADR 0015-Artifact-Viewport` | Gemeinsamer Full-Bleed Artefakt-Viewport | [0015-bounded-artifact-viewport.md](./0015-bounded-artifact-viewport.md) |
 | `ADR 0016-Web-Resume-Lifecycle` | Webbetrieb, Wiederaufnahme und Datenabschluss | [0016-web-runtime-resume-and-data-lifecycle.md](./0016-web-runtime-resume-and-data-lifecycle.md) |
+| `ADR 0017-Recruitment-Source` | Minimale Rekrutierungsquellen-Erfassung | [0017-recruitment-source.md](./0017-recruitment-source.md) |

@@ -100,7 +100,10 @@ function elapsed(interval: ActiveInterval): number {
 }
 
 export function createStudyApi(
-  { apiBasePath = '' }: { readonly apiBasePath?: string } = {},
+  {
+    apiBasePath = '',
+    recruitmentSearch,
+  }: { readonly apiBasePath?: string; readonly recruitmentSearch?: string } = {},
 ): StudyApi {
   const normalizedApiBasePath = apiBasePath.endsWith('/')
     ? apiBasePath.slice(0, -1)
@@ -108,6 +111,10 @@ export function createStudyApi(
   const post = (path: string, body: unknown, keepalive = false) =>
     postJson(`${normalizedApiBasePath}${path}`, body, keepalive);
   const createRequestId = globalThis.crypto.randomUUID();
+  const recruitmentId = new URLSearchParams(
+    recruitmentSearch ??
+      (typeof globalThis.location === 'undefined' ? '' : globalThis.location.search),
+  ).get('id');
   let restorePromise: Promise<WebResumeSession | null> | null = null;
   let selectedSessionId: string | null = null;
   let pendingStartRequestId: string | null = null;
@@ -205,6 +212,7 @@ export function createStudyApi(
         requestId: createRequestId,
         consentAccepted: true,
         followUpConsent,
+        recruitmentId,
         recontact,
       });
       const response = webCreateSessionResponseSchema.parse(

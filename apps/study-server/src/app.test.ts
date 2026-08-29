@@ -1,5 +1,5 @@
 import { createHash } from 'node:crypto';
-import { mkdtempSync, rmSync } from 'node:fs';
+import { mkdtempSync, readFileSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -7,6 +7,7 @@ import {
   type AssignmentMode,
   instrumentRuntimeManifest,
   mainInstrumentBlocks,
+  recruitmentSourceSchema,
   REFERENCE_ARTIFACT_VERSION,
   SUPPORTIVE_ARTIFACT_VERSION,
 } from '@passwo/contracts';
@@ -16,6 +17,7 @@ import { afterEach, describe, expect, it } from 'vitest';
 import { z } from 'zod';
 import { buildStudyServer } from './app.js';
 import { openStudyDatabase } from './database.js';
+import { exportResearchData } from './research-export.js';
 import {
   createSession,
   createSessionBody,
@@ -152,6 +154,7 @@ describe('study server research core', () => {
       expect.arrayContaining([
         expect.objectContaining({ name: 'research_code' }),
         expect.objectContaining({ name: 'deletion_code_hash' }),
+        expect.objectContaining({ name: 'recruitment_source' }),
       ]),
     );
     expect(JSON.stringify(sessionColumns)).not.toMatch(
@@ -307,6 +310,7 @@ describe('study server research core', () => {
         `SELECT
           research_code AS researchCode,
           deletion_code_hash AS deletionCodeHash,
+          recruitment_source AS recruitmentSource,
           guardrail_form_id AS guardrailFormId,
           follow_up_consent AS followUpConsent,
           supportive_s08_resume_state_json AS supportiveS08ResumeStateJson
@@ -329,6 +333,14 @@ describe('study server research core', () => {
       )
       .all();
     migrated.close();
+    const legacyExportDirectory = join(temporaryDirectory, 'legacy-export');
+    exportResearchData({ databasePath, outputDirectory: legacyExportDirectory });
+    const legacyExportRaw: unknown = JSON.parse(
+      readFileSync(join(legacyExportDirectory, 'sessions.json'), 'utf8'),
+    );
+    const legacyExport = z.array(
+      z.object({ recruitmentSource: recruitmentSourceSchema }).passthrough(),
+    ).parse(legacyExportRaw);
 
     expect(migrationVersions).toEqual([
       { version: 1 },
@@ -340,6 +352,7 @@ describe('study server research core', () => {
       { version: 7 },
       { version: 8 },
       { version: 9 },
+      { version: 10 },
     ]);
     expect(responseColumns).toEqual(
       expect.arrayContaining([expect.objectContaining({ name: 'section_id', notnull: 1 })]),
@@ -347,10 +360,14 @@ describe('study server research core', () => {
     expect(session).toEqual({
       researchCode: 'RS-A1B2C3D4E5F60718',
       deletionCodeHash: createHash('sha256').update('PW-LEGACY01', 'utf8').digest('hex'),
+      recruitmentSource: 'ub',
       guardrailFormId: 'F1',
       followUpConsent: 0,
       supportiveS08ResumeStateJson: null,
     });
+    expect(legacyExport).toEqual([
+      expect.objectContaining({ recruitmentSource: 'ub' }),
+    ]);
     expect(guardrailSlot).toEqual({
       condition: 'supportive',
       blockNumber: 0,

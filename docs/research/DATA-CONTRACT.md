@@ -24,6 +24,7 @@ Abgrenzung von Pseudonymisierung und Anonymisierung durch den Europäischen Date
 | Klasse | Beispiele | Persistenz und Zweck |
 |---|---|---|
 | Operative Session | interne Session-UUID, Status, Versionen | `study.sqlite`; Ablauf und Tabellenbeziehungen |
+| Rekrutierungsquelle | generische ID aus 1 bis 80 alphanumerischen Zeichen, `-` oder `_`, zum Beispiel `ub`, `tu`, `rwth` oder `other-university`; `ub` als Default für fehlende, syntaktisch ungültige und ältere Werte | `study.sqlite`; einmalig beim Session-Create bestimmt und für die Auswertung exportiert |
 | Forschungsfall | zufällige, nicht angezeigte Forschungs-ID | `study.sqlite`; pseudonyme Verknüpfung während der Arbeitsphase |
 | Löschzuordnung | ausschließlich SHA-256-Hash des flüchtigen Löschcodes | `study.sqlite`; Löschanfragen bis zur Anonymisierung |
 | Zuweisung | Bedingung, Zuweisungsmodus, Guardrail-Form `F1` bis `F6` | `study.sqlite` |
@@ -195,9 +196,10 @@ individuell gelöscht werden könnte.
 ## Exporte
 
 - **Auditprofil:** geschützte pseudonymisierte Nachweisfassung einschließlich technischer
-  Zeitpunkte; nur für Datenprüfung.
+  Zeitpunkte und Rekrutierungsquelle; nur für Datenprüfung.
 - **Analyseprofil:** pseudonymisierte Arbeitsfassung ohne exakte Kalenderzeitpunkte; nur für
-  kontrollierte interne Auswertung. Der Analyseprozess selektiert ausschließlich `completed` Runs.
+  kontrollierte interne Auswertung einschließlich Rekrutierungsquelle. Der Analyseprozess
+  selektiert ausschließlich `completed` Runs.
 - **Archivfassung:** Ergebnis der Anonymisierungsprozedur; neue `analysis_case_id`, keine
   Zuordnungsmittel, vergröberte Hintergrunddaten und keine Arbeitskopien.
 

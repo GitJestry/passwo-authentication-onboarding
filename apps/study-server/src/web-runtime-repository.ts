@@ -26,6 +26,7 @@ import {
   supportiveS08BackedCheckpointSchema,
   supportiveS08ResumeStateSchema,
   type RegisterRecontactRequest,
+  type RecruitmentSource,
   type SupportiveS08ResumeState,
   type WebArtifactVisibilityRequest,
   type WebResumeSession,
@@ -142,6 +143,7 @@ export class WebRuntimeRepository {
 
   createSession(
     request: WebRuntimeCreateSessionRequest,
+    recruitmentSource: RecruitmentSource,
     tokenHash: WebResumeTokenHash,
     expiresAtIso: string,
   ): CreateSessionResponse {
@@ -173,7 +175,7 @@ export class WebRuntimeRepository {
            WHERE session_id = ? AND completion_status = 'in-progress'`,
         ).run(request.deletionCodeHash, existing.sessionId);
       }
-      const session = this.#studyRepository.createSession(request);
+      const session = this.#studyRepository.createSession(request, recruitmentSource);
       if (request.recontact !== null) {
         this.#studyRepository.registerRecontact(session.sessionId, request.recontact);
       }

@@ -4,7 +4,12 @@ import {
   instrumentSectionIdSchema,
   mainInstrumentIdSchema,
 } from './instrument-runtime.js';
-import { completionStatusSchema, researchCodeSchema, studyConditionSchema } from './study.js';
+import {
+  completionStatusSchema,
+  recruitmentSourceSchema,
+  researchCodeSchema,
+  studyConditionSchema,
+} from './study.js';
 import { timingEventSchema } from './timing.js';
 
 const versionIdSchema = z.string().trim().min(1).max(80);
@@ -13,13 +18,14 @@ export const researchIdSchema = researchCodeSchema;
 export const researchExportProfileSchema = z.enum(['audit', 'analysis']);
 export type ResearchExportProfile = z.infer<typeof researchExportProfileSchema>;
 export const researchExportSchemaProfileVersionSchema = z.enum([
-  'research-audit-v2',
-  'research-analysis-v2',
+  'research-audit-v3',
+  'research-analysis-v3',
 ]);
 
 export const researchExportSessionRecordSchema = z
   .object({
     researchId: researchIdSchema,
+    recruitmentSource: recruitmentSourceSchema,
     condition: studyConditionSchema,
     assignmentMode: z.enum(['permuted-block', 'forced-supportive', 'forced-reference']),
     studyVersion: versionIdSchema,
@@ -161,7 +167,7 @@ export type ResearchExportSessionCount = z.infer<typeof researchExportSessionCou
 
 export const researchExportManifestSchema = z
   .object({
-    schemaVersion: z.literal('research-export-v7'),
+    schemaVersion: z.literal('research-export-v8'),
     profile: researchExportProfileSchema,
     schemaProfileVersion: researchExportSchemaProfileVersionSchema,
     exportedAtIso: z.iso.datetime(),
@@ -189,7 +195,7 @@ export const researchExportManifestSchema = z
   .strict()
   .superRefine((manifest, context) => {
     const expectedVersion =
-      manifest.profile === 'audit' ? 'research-audit-v2' : 'research-analysis-v2';
+      manifest.profile === 'audit' ? 'research-audit-v3' : 'research-analysis-v3';
     if (manifest.schemaProfileVersion !== expectedVersion) {
       context.addIssue({
         code: 'custom',

@@ -300,6 +300,14 @@ const supportiveS08ResumeSchema = `
     AND progress_checkpoint = 'supportive:complete';
 `;
 
+const recruitmentSourceSchema = `
+  ALTER TABLE study_sessions ADD COLUMN recruitment_source TEXT NOT NULL DEFAULT 'ub'
+    CHECK (
+      length(recruitment_source) BETWEEN 1 AND 80
+      AND recruitment_source NOT GLOB '*[^A-Za-z0-9_-]*'
+    );
+`;
+
 const recontactSchema = `
   CREATE TABLE IF NOT EXISTS recontact.registrations (
     session_id TEXT PRIMARY KEY,
@@ -491,6 +499,10 @@ const migrations: readonly Migration[] = [
   {
     version: 9,
     apply: (database) => database.exec(supportiveS08ResumeSchema),
+  },
+  {
+    version: 10,
+    apply: (database) => database.exec(recruitmentSourceSchema),
   },
 ];
 

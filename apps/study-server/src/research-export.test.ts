@@ -83,7 +83,10 @@ describe('research export', () => {
       'manifest.json',
     ]);
     expect(readFileSync(join(outputDirectory, 'sessions.csv'), 'utf8')).toMatch(
-      /^researchId,condition,assignmentMode,studyVersion,contentVersion/u,
+      /^researchId,recruitmentSource,condition,assignmentMode,studyVersion,contentVersion/u,
+    );
+    expect(readFileSync(join(outputDirectory, 'sessions.json'), 'utf8')).toContain(
+      '"recruitmentSource": "ub"',
     );
     expect(exportedData).not.toMatch(
       /display.?name|password.?value|password.?input|password.?part|training.?input|request.?body|user.?agent|ip.?address|email.?address|score|classification|secaware.?quiz/iu,
@@ -106,9 +109,9 @@ describe('research export', () => {
     expect(readFileSync(join(outputDirectory, 'data-dictionary.json'), 'utf8')).toContain(
       '"itemId": "MR_DISTINCT_PASSWORDS"',
     );
-    expect(result.manifest.schemaVersion).toBe('research-export-v7');
+    expect(result.manifest.schemaVersion).toBe('research-export-v8');
     expect(result.manifest.profile).toBe('audit');
-    expect(result.manifest.schemaProfileVersion).toBe('research-audit-v2');
+    expect(result.manifest.schemaProfileVersion).toBe('research-audit-v3');
     for (const file of result.manifest.files) {
       expect(
         createHash('sha256')
@@ -165,9 +168,9 @@ describe('research export', () => {
     const freeTextReview = readFileSync(join(outputDirectory, 'free-text-review.json'), 'utf8');
 
     expect(result.manifest).toMatchObject({
-      schemaVersion: 'research-export-v7',
+      schemaVersion: 'research-export-v8',
       profile: 'analysis',
-      schemaProfileVersion: 'research-analysis-v2',
+      schemaProfileVersion: 'research-analysis-v3',
       freeTextReview: { recordCount: 0, status: 'pending-review' },
     });
     expect(result.files).toEqual(
