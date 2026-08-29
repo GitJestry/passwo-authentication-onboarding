@@ -353,9 +353,14 @@ export function registerWebStudyRoutes(
     async (request, reply) => {
       requireWriteRequest(request, publicOrigin);
       const { sessionId } = sessionParamsSchema.parse(request.params);
-      const auth = authenticateSession(request, sessionId);
-      repository.saveInstrumentSubmission(sessionId, instrumentSubmissionRequestSchema.parse(request.body));
-      refreshCookie(reply, auth);
+      const auth = authenticateSession(request, sessionId, true);
+      repository.saveInstrumentSubmission(
+        sessionId,
+        instrumentSubmissionRequestSchema.parse(request.body),
+      );
+      if (repository.getSessionStatus(sessionId) !== 'completed') {
+        refreshCookie(reply, auth);
+      }
       return reply.send(saveResponseResponseSchema.parse({ saved: true }));
     },
   );

@@ -6,7 +6,6 @@ import {
   artifactIntervalStartRequestSchema,
   artifactIntervalStartResponseSchema,
   type ArtifactCheckpoint,
-  completeSessionRequestSchema,
   type ConfirmArtifactCheckpointRequest,
   confirmArtifactCheckpointRequestSchema,
   confirmArtifactCheckpointResponseSchema,
@@ -14,7 +13,6 @@ import {
   instrumentSubmissionRequestSchema,
   type RegisterRecontactRequest,
   saveResponseResponseSchema,
-  sessionStatusResponseSchema,
   WEB_ARTIFACT_HEARTBEAT_INTERVAL_MS,
   WEB_STUDY_REQUEST_HEADER,
   WEB_STUDY_REQUEST_HEADER_VALUE,
@@ -356,16 +354,6 @@ export function createStudyApi(
         window.removeEventListener('pagehide', pagehide);
         window.clearInterval(timer);
       };
-    },
-
-    completeSession: async (sessionId: string) => {
-      selectSession(sessionId);
-      sessionStatusResponseSchema.parse(
-        await post(
-          `/api/study/sessions/${sessionId}/complete`,
-          completeSessionRequestSchema.parse({ debriefAcknowledged: true }),
-        ),
-      );
     },
   };
 

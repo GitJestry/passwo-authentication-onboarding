@@ -77,6 +77,7 @@ function createWebServer(
   databasePath: string,
   recontactDatabasePath: string,
   secureCookies = false,
+  nowIso = fixedNowIso,
 ): FastifyInstance {
   let resumeTokenIdentity = 0;
   const server = buildStudyServer({
@@ -87,7 +88,7 @@ function createWebServer(
     randomSource: deterministicTestRandomSource(),
     createRecontactToken: () => 'R'.repeat(43),
     referenceArtifactDirectory: referenceArtifactFixtureDirectory,
-    nowIso: () => fixedNowIso,
+    nowIso: () => nowIso,
     webRuntime: {
       resumeCloseAtIso,
       secureCookies,
@@ -254,6 +255,30 @@ for (const assignmentMode of ['forced-supportive', 'forced-reference'] as const)
         ? '81000000-0000-4000-8000-000000000101'
         : '81000000-0000-4000-8000-000000000102',
     );
+    const automaticCompletion = await server.inject({
+      method: 'GET',
+      url: `/api/study/sessions/${created.session.sessionId}/status`,
+      headers: { cookie: created.cookie },
+    });
+    expect(automaticCompletion.json()).toEqual({ completionStatus: 'completed' });
+    const finalBlock = mainInstrumentBlocks.at(-1);
+    if (finalBlock === undefined) throw new Error('missing-final-instrument-block');
+    await submitWebInstrumentBlocks(
+      server,
+      created.cookie,
+      created.session.sessionId,
+      [finalBlock],
+    );
+    expect(
+      (
+        await webPost(
+          server,
+          created.cookie,
+          `/api/study/sessions/${created.session.sessionId}/complete`,
+          { debriefAcknowledged: true },
+        )
+      ).json(),
+    ).toEqual({ completionStatus: 'completed' });
     await closeTrackedServer(server);
 
     const studyDatabase = new Database(paths.study, { readonly: true, fileMustExist: true });
@@ -403,6 +428,100 @@ for (const assignmentMode of ['forced-supportive', 'forced-reference'] as const)
 }
 
 describe('Web resume and concurrency acceptance', () => {
+  it('persists the first Reference checkpoint when its artifact interval opens', async () => {
+    const paths = temporaryDatabasePaths('passwo-reference-entry-checkpoint-');
+    const server = createWebServer('forced-reference', paths.study, paths.recontact);
+    const created = await createWebTestSession(server, 198, false);
+    const preBlocks = mainInstrumentBlocks.filter((block) => block.instrumentId === 'pre-v1');
+    await submitWebInstrumentBlocks(
+      server,
+      created.cookie,
+      created.session.sessionId,
+      preBlocks,
+    );
+    await openWebArtifactInterval(
+      server,
+      created.cookie,
+      created.session.sessionId,
+      '81000000-0000-4000-8000-000000000198',
+    );
+    await closeTrackedServer(server);
+
+    const database = new Database(paths.study, { readonly: true });
+    expect(
+      database.prepare(
+        `SELECT progress_checkpoint AS progressCheckpoint
+         FROM study_sessions WHERE session_id = ?`,
+      ).get(created.session.sessionId),
+    ).toEqual({ progressCheckpoint: 'reference:passwords' });
+    database.close();
+  });
+
+  it('reconciles a legacy data-complete session at its final submission timestamp', async () => {
+    const paths = temporaryDatabasePaths('passwo-data-complete-reconciliation-');
+    const firstServer = createWebServer('forced-reference', paths.study, paths.recontact);
+    const created = await createWebTestSession(firstServer, 199);
+    await completeWebTestStudy(
+      firstServer,
+      created,
+      '81000000-0000-4000-8000-000000000199',
+    );
+    await closeTrackedServer(firstServer);
+
+    const legacyStudyDatabase = new Database(paths.study);
+    legacyStudyDatabase.prepare(
+      `UPDATE study_sessions
+       SET completion_status = 'in-progress', completed_at_iso = NULL,
+           progress_checkpoint = 'session-closure'
+       WHERE session_id = ?`,
+    ).run(created.session.sessionId);
+    legacyStudyDatabase.prepare(
+      `UPDATE web_resume_tokens
+       SET invalidated_at_iso = NULL
+       WHERE session_id = ?`,
+    ).run(created.session.sessionId);
+    legacyStudyDatabase.close();
+    const legacyRecontactDatabase = new Database(paths.recontact);
+    legacyRecontactDatabase.prepare(
+      `UPDATE registrations
+       SET first_invitation_at_iso = NULL, reminder_at_iso = NULL, closes_at_iso = NULL
+       WHERE session_id = ?`,
+    ).run(created.session.sessionId);
+    legacyRecontactDatabase.close();
+
+    const restartedServer = createWebServer(
+      'forced-reference',
+      paths.study,
+      paths.recontact,
+      false,
+      '2026-08-29T12:00:00.000Z',
+    );
+    await closeTrackedServer(restartedServer);
+
+    const reconciledStudyDatabase = new Database(paths.study, { readonly: true });
+    expect(
+      reconciledStudyDatabase.prepare(
+        `SELECT completion_status AS completionStatus,
+                progress_checkpoint AS progressCheckpoint,
+                completed_at_iso AS completedAtIso
+         FROM study_sessions WHERE session_id = ?`,
+      ).get(created.session.sessionId),
+    ).toEqual({
+      completionStatus: 'completed',
+      progressCheckpoint: 'complete',
+      completedAtIso: fixedNowIso,
+    });
+    reconciledStudyDatabase.close();
+    const reconciledRecontactDatabase = new Database(paths.recontact, { readonly: true });
+    expect(
+      reconciledRecontactDatabase.prepare(
+        `SELECT first_invitation_at_iso AS firstInvitationAtIso
+         FROM registrations WHERE session_id = ?`,
+      ).get(created.session.sessionId),
+    ).toEqual({ firstInvitationAtIso: '2026-09-03T12:00:00.000Z' });
+    reconciledRecontactDatabase.close();
+  });
+
   it('issues only the opaque production return key as a Secure HttpOnly first-party cookie', async () => {
     const paths = temporaryDatabasePaths('passwo-secure-cookie-');
     const server = createWebServer('forced-supportive', paths.study, paths.recontact, true);
@@ -520,12 +639,6 @@ describe('Web resume and concurrency acceptance', () => {
       created.cookie,
       created.session.sessionId,
       mainInstrumentBlocks.slice(preBlocks.length),
-    );
-    await webPost(
-      restartedServer,
-      created.cookie,
-      `/api/study/sessions/${created.session.sessionId}/complete`,
-      { debriefAcknowledged: true },
     );
     await closeTrackedServer(restartedServer);
 

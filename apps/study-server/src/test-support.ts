@@ -416,10 +416,4 @@ export async function completeWebTestStudy(
     created.session.sessionId,
     mainInstrumentBlocks.slice(preBlocks.length),
   );
-  await webPost(
-    server,
-    created.cookie,
-    `/api/study/sessions/${created.session.sessionId}/complete`,
-    { debriefAcknowledged: true },
-  );
 }

@@ -36,8 +36,8 @@ Eligibility lokal prüfen
 → Guardrail-Recognition
 → Post-Guardrail-Self-Efficacy
 → retrospektive SecAware-Vorerfahrung
-→ gemeinsames Debriefing
-→ regulärer Abschluss
+→ automatischer Datenabschluss mit der letzten erforderlichen Submission
+→ gemeinsames Debriefing und Abschlussbildschirm
 ```
 
 Eligibility wird nicht persistiert. Die E-Mail-Adresse ist keine Voraussetzung. Scheitert die
@@ -82,8 +82,12 @@ Wenn die Person nicht vor `resumeCloseAt` zurückkehrt, bleibt die Sitzung unvol
 nicht ausgewertet und beim Datensatz-Freeze gelöscht. Eine vorzeitige individuelle Löschung bleibt
 bis zur Anonymisierung über den Löschcode möglich.
 
-Die reguläre Abschlussaktion nach dem Debriefing bleibt erforderlich. Erst sie setzt eine Sitzung auf
-`completed` und plant bei Opt-in die Nachbefragung.
+Sobald Artefaktabschluss und alle erforderlichen Instrumentabschnitte atomar gespeichert sind,
+setzt die letzte Submission die Sitzung in derselben Servertransaktion auf `completed`. Ihr
+persistierter Submission-Zeitpunkt ist der Abschlusszeitpunkt und plant bei Opt-in die
+Nachbefragung. Das danach angezeigte gemeinsame Debriefing mit Abschlussbildschirm verlangt keine
+weitere statusbestimmende Aktion. Ältere datenkomplette `in-progress`-Sitzungen werden beim
+Runtime-Start idempotent anhand ihrer letzten Submission abgeschlossen.
 
 ## Instrumentreihenfolge und Writes
 
@@ -93,7 +97,8 @@ Forschungsdatenfehler blockiert nur den betroffenen Übergang und erlaubt densel
 Pre muss vollständig vor dem Artefakt vorliegen. Die unmittelbaren Post-Abschnitte müssen vor den
 Guardrail-Szenarien gespeichert sein. Recognition folgt erst nach allen Szenarien. Self-Efficacy und
 die retrospektive SecAware-Frage folgen nach dem no-feedback Guardrail. Erst danach wird das
-gemeinsame Debriefing angezeigt.
+gemeinsame Debriefing angezeigt. Der erfolgreiche Write des letzten dieser Pflichtabschnitte ist
+zugleich der serverseitige Datenabschluss.
 
 Es gibt keinen offenen Post-Kommentar und kein condition-spezifisches terminales Knowledge Quiz vor
 dem gemeinsamen Guardrail. Instruktive Fragen innerhalb der Lernpfade bleiben Bestandteil des

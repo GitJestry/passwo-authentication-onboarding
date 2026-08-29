@@ -78,6 +78,8 @@ const intervalSchema = z.object({
 });
 const countSchema = z.object({ count: z.number().int().nonnegative() });
 const elapsedSchema = z.object({ elapsedMs: z.number().nonnegative() });
+const sessionIdSchema = z.object({ sessionId: z.string() });
+const submittedAtSchema = z.object({ submittedAtIso: z.string() });
 const eventSchema = z.object({
   sessionId: z.string(),
   intervalId: z.string(),
@@ -248,9 +250,36 @@ export class WebRuntimeRepository {
   saveInstrumentSubmission(sessionId: string, request: InstrumentSubmissionRequest): void {
     this.#database.transaction(() => {
       this.#studyRepository.saveInstrumentSubmission(sessionId, request);
+      if (this.getSessionStatus(sessionId) === 'completed') return;
+      const checkpoint = this.#derivedPhaseCheckpoint(sessionId);
+      if (checkpoint === 'session-closure') {
+        this.#completeSessionAt(sessionId, this.#lastSubmissionAt(sessionId));
+        return;
+      }
       this.#database.prepare(
         `UPDATE study_sessions SET progress_checkpoint = ? WHERE session_id = ?`,
-      ).run(this.#derivedPhaseCheckpoint(sessionId), sessionId);
+      ).run(checkpoint, sessionId);
+    })();
+  }
+
+  reconcileDataCompleteSessions(): number {
+    return this.#database.transaction(() => {
+      const candidates = z.array(sessionIdSchema).parse(
+        this.#database.prepare(
+          `SELECT session_id AS sessionId
+           FROM study_sessions
+           WHERE completion_status = 'in-progress'
+             AND artifact_completed_at_iso IS NOT NULL
+           ORDER BY created_at_iso, session_id`,
+        ).all(),
+      );
+      let completed = 0;
+      for (const { sessionId } of candidates) {
+        if (this.#derivedPhaseCheckpoint(sessionId) !== 'session-closure') continue;
+        this.#completeSessionAt(sessionId, this.#lastSubmissionAt(sessionId));
+        completed += 1;
+      }
+      return completed;
     })();
   }
 
@@ -369,13 +398,7 @@ export class WebRuntimeRepository {
       this.#activeInterval(sessionId, request.intervalId);
       const session = this.#checkpointSession(sessionId);
       if (request.checkpoint.startsWith('reference:')) {
-        if (session.condition !== 'reference') {
-          throw new StudyRepositoryError('artifact-checkpoint-condition-conflict', 409);
-        }
-        this.#database.prepare(
-          `UPDATE study_sessions SET progress_checkpoint = ? WHERE session_id = ?`,
-        ).run(request.checkpoint, sessionId);
-        return request.checkpoint;
+        return this.#advanceCheckpoint(sessionId, request.checkpoint);
       }
       if (request.checkpoint === 'supportive:S08') {
         if (session.condition !== 'supportive') {
@@ -484,19 +507,7 @@ export class WebRuntimeRepository {
   }
 
   completeSession(sessionId: string): CompletionStatus {
-    return this.#database.transaction(() => {
-      const status = completionStatusSchema.parse(this.#studyRepository.completeSession(sessionId));
-      const now = this.#nowIso();
-      this.#database.prepare(
-        `UPDATE study_sessions SET progress_checkpoint = 'complete' WHERE session_id = ?`,
-      ).run(sessionId);
-      this.#database.prepare(
-        `UPDATE web_resume_tokens
-         SET invalidated_at_iso = COALESCE(invalidated_at_iso, ?), last_confirmed_at_iso = ?
-         WHERE session_id = ?`,
-      ).run(now, now, sessionId);
-      return status;
-    })();
+    return this.#database.transaction(() => this.#completeSessionAt(sessionId, this.#nowIso()))();
   }
 
   #resumeTokenRow(tokenHash: WebResumeTokenHash): z.infer<typeof tokenRowSchema> | null {
@@ -638,19 +649,49 @@ export class WebRuntimeRepository {
 
   #advanceCheckpoint(sessionId: string, requested: ArtifactCheckpoint): ArtifactCheckpoint {
     const session = this.#checkpointSession(sessionId);
+    const persisted = studyProgressCheckpointSchema.parse(session.progressCheckpoint);
     const current = this.#artifactCheckpoint(session);
     if (
       (session.condition === 'supportive' && !requested.startsWith('supportive:')) ||
       (session.condition === 'reference' && !requested.startsWith('reference:'))
     ) throw new StudyRepositoryError('artifact-checkpoint-condition-conflict', 409);
     const ranks = requested.startsWith('supportive:') ? supportiveRank : referenceRank;
-    if ((ranks.get(requested) ?? -1) > (ranks.get(current) ?? -1)) {
+    if (
+      !isArtifactCheckpoint(persisted) ||
+      (ranks.get(requested) ?? -1) > (ranks.get(current) ?? -1)
+    ) {
       this.#database.prepare(
         `UPDATE study_sessions SET progress_checkpoint = ? WHERE session_id = ?`,
       ).run(requested, sessionId);
       return requested;
     }
     return current;
+  }
+
+  #lastSubmissionAt(sessionId: string): string {
+    return submittedAtSchema.parse(
+      this.#database.prepare(
+        `SELECT MAX(submitted_at_iso) AS submittedAtIso
+         FROM instrument_submissions
+         WHERE session_id = ?`,
+      ).get(sessionId),
+    ).submittedAtIso;
+  }
+
+  #completeSessionAt(sessionId: string, completedAtIso: string): CompletionStatus {
+    const status = completionStatusSchema.parse(
+      this.#studyRepository.completeSession(sessionId, completedAtIso),
+    );
+    const now = this.#nowIso();
+    this.#database.prepare(
+      `UPDATE study_sessions SET progress_checkpoint = 'complete' WHERE session_id = ?`,
+    ).run(sessionId);
+    this.#database.prepare(
+      `UPDATE web_resume_tokens
+       SET invalidated_at_iso = COALESCE(invalidated_at_iso, ?), last_confirmed_at_iso = ?
+       WHERE session_id = ?`,
+    ).run(now, now, sessionId);
+    return status;
   }
 
   #activeInterval(sessionId: string, intervalId: string): void {

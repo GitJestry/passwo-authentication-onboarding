@@ -32,7 +32,6 @@ function runtimePorts(
     recordArtifactVisibility: async () => {},
     retryArtifactTiming: async () => null,
     observeArtifactLifecycle: () => () => {},
-    completeSession: async () => {},
   };
 }
 
@@ -347,9 +346,6 @@ describe('studyMachine', () => {
       'scenarios',
     );
 
-    actor.send({ type: 'SESSION_CLOSURE_ACKNOWLEDGED' });
-    expect(actor.getSnapshot().matches({ guardrails: 'editing' })).toBe(true);
-
     await submitCurrentBlock(actor);
     expect(mainInstrumentBlocks[actor.getSnapshot().context.instrumentBlockCursor]?.sectionId).toBe(
       'recognition',
@@ -365,8 +361,7 @@ describe('studyMachine', () => {
 
     expect(actor.getSnapshot().context.pendingSubmission).toBeNull();
     expect(savedSubmissions.at(-1)?.sectionId).toBe('secaware_prior_exposure');
-    actor.send({ type: 'SESSION_CLOSURE_ACKNOWLEDGED' });
-    await waitForState(actor, () => actor.getSnapshot().matches('complete'));
+    expect(actor.getSnapshot().status).toBe('done');
     actor.stop();
   });
 });

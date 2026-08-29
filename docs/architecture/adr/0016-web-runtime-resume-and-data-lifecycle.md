@@ -2,7 +2,8 @@
 
 - **Status:** Accepted
 - **Datum:** 2026-08-17
-- **Revision:** 2026-08-26 für die segmentgenaue PassWo-Wiederaufnahme ab S08 und die
+- **Revision:** 2026-08-29 für den automatischen Datenabschluss nach der letzten erforderlichen
+  Submission; 2026-08-26 für die segmentgenaue PassWo-Wiederaufnahme ab S08 und die
   SecAware-Zusatznavigation im Web
 - **Citation label:** `ADR 0016-Web-Resume-Lifecycle`
 - **Ersetzt für den Hauptstudienbetrieb:** Reload-Abbruch aus `ADR 0008-Lease`, externen
@@ -44,10 +45,18 @@ ADR 0009 und ADR 0011 bleibt für die lokale Electron-Hülle unverändert.
 
 ### 2. Unterbrechen und Wiederaufnehmen
 
-Neue Web-Sitzungen bleiben bis zum regulären letzten Studienabschluss `in-progress`. Das Schließen
-oder Neuladen des Browsers ändert diesen Status nicht. Es gibt deshalb keinen zusätzlichen Button
-zum vorzeitigen „Beenden“, „Abbrechen“ oder „Schließen“. Die reguläre Abschlussaktion nach dem
-Debriefing bleibt bestehen.
+Neue Web-Sitzungen bleiben bis zum vollständigen Forschungsdatenabschluss `in-progress`. Das
+Schließen oder Neuladen des Browsers ändert diesen Status nicht. Es gibt deshalb keinen
+zusätzlichen Button zum vorzeitigen „Beenden“, „Abbrechen“ oder „Schließen“.
+
+Die letzte erforderliche Instrument-Submission setzt die Sitzung in derselben Servertransaktion
+auf `completed`, sobald Artefaktabschluss, Pre, Post und Guardrails vollständig vorliegen. Als
+`completed_at_iso` gilt der persistierte Zeitpunkt dieser letzten Submission. Das gemeinsame
+Debriefing und der Abschlussbildschirm werden anschließend angezeigt, enthalten aber keine weitere
+statusbestimmende Aktion. Ein verlorener Browser-Response nach dem letzten Write kann den bereits
+bestätigten Datenabschluss daher nicht zurücknehmen. Beim Runtime-Start werden ältere
+`in-progress`-Sitzungen mit bereits vollständig vorliegenden Pflichtdaten idempotent anhand des
+Zeitpunkts ihrer letzten Submission abgeschlossen.
 
 Die Wiederaufnahme verwendet einen kryptographisch zufälligen, opaken Rückkehrschlüssel:
 
@@ -89,7 +98,7 @@ Simulationszustand und wertet die inhaltsfreie Segment-ID aus. Sektion 2 `passwo
 Sektion 3 `mfa` verwenden diesen Zustand, ohne frühere Trainingsinputs wiederherzustellen. Bereits
 atomar gespeicherte Fragebogenblöcke werden nicht erneut erhoben.
 
-Nach regulärem Abschluss, individueller Löschung, Ablauf oder Datensatz-Freeze werden
+Nach vollständigem Datenabschluss, individueller Löschung, Ablauf oder Datensatz-Freeze werden
 Rückkehrschlüssel und Cookie ungültig. Geht der Rückkehrschlüssel vorher verloren oder wird das
 Cookie gelöscht, kann die Sitzung nicht über Kontaktdaten oder Forschungsantworten gesucht werden.
 Die Person kann neu beginnen oder mit ihrem Löschcode die Löschung der alten Sitzung verlangen.
@@ -156,6 +165,9 @@ dokumentierten `anonymisedAt`.
   befüllt sein und wird beim Artefaktabschluss geleert. Der bestehende inhaltsfreie
   Fortschritts-Checkpoint trägt dabei die zuletzt bestätigte Segment-ID S08 bis S17.
 - JavaScript-lesbarer Browser Storage bleibt für Teilnehmer- und Trainingszustand verboten.
+- Forschungsabschluss und Follow-up-Terminierung hängen nicht von einem zusätzlichen Klick nach
+  der letzten erforderlichen Submission ab. Der bisherige Completion-Endpunkt bleibt nur als
+  idempotente Kompatibilitätsgrenze für bereits geöffnete ältere Clients bestehen.
 - Die bestehende lokale Runtime darf als Entwicklungsstand weiterlaufen, ist aber vor dem
   Hauptstudien-Versions-Freeze an diese Entscheidung anzupassen.
 - `analysis`-Exporte vor dem Datensatz-Freeze bleiben pseudonymisierte Arbeitsdaten. Erst der

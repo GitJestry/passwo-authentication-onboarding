@@ -78,6 +78,14 @@ semantische Evidenz sind verboten. Nach Resume werden Passphrase-Strings nur aus
 versioniertem Training-Content anhand der IDs rekonstruiert. Der Zustand wird beim
 Artefaktabschluss gelöscht.
 
+Eine Web-Sitzung wird automatisch `completed`, sobald der Artefaktabschluss und sämtliche
+erforderlichen Pre-, Post- und Guardrail-Submissions persistiert sind. Statuswechsel,
+`completed_at_iso`, Invalidierung des Rückkehrschlüssels und gegebenenfalls die
+Follow-up-Terminierung erfolgen atomar mit der letzten erforderlichen Submission;
+`completed_at_iso` entspricht deren persistiertem Submission-Zeitpunkt. Das nachfolgend sichtbare
+Debriefing benötigt keinen zusätzlichen statusbestimmenden Klick. Beim Start der Runtime werden
+ältere datenkomplette `in-progress`-Sitzungen nach denselben Regeln idempotent abgeschlossen.
+
 Nur regulär `completed` Sitzungen gehen in die Hauptauswertung ein. Nicht abgeschlossene Sitzungen
 werden nicht als Nullantwort, Dropout-Outcome oder negatives Verhalten interpretiert. Sie bleiben
 bis zum Datensatz-Freeze pseudonymisiert, damit Wiederaufnahme und Löschanfragen möglich sind, und

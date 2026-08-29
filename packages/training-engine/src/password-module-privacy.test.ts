@@ -35,7 +35,6 @@ function studyRuntimePorts(requestArguments: unknown[][]): StudyRuntimePorts {
     recordArtifactVisibility: async () => {},
     retryArtifactTiming: async () => null,
     observeArtifactLifecycle: () => () => {},
-    completeSession: async () => {},
   };
 }
 

@@ -626,7 +626,7 @@ export class StudyRepository {
     return markIncomplete();
   }
 
-  completeSession(sessionId: string): string {
+  completeSession(sessionId: string, completedAtIso = this.#nowIso()): string {
     this.recoverStaleArtifactSessions();
     const complete = this.#database.transaction(() => {
       const status = this.#completionStatus(sessionId);
@@ -647,7 +647,9 @@ export class StudyRepository {
       this.#requirePostCompleted(sessionId);
       this.#requireGuardrailsCompleted(sessionId);
 
-      const completedAtIso = this.#nowIso();
+      if (!Number.isFinite(Date.parse(completedAtIso))) {
+        throw new StudyRepositoryError('invalid-server-clock', 500);
+      }
       this.#database
         .prepare(
           `UPDATE study_sessions

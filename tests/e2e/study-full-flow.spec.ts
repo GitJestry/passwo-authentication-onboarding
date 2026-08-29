@@ -17,7 +17,7 @@ import {
   type InstrumentRuntimeItem,
   type InstrumentSubmissionBlock,
 } from '@passwo/contracts';
-import { expect, type Page, type Response, test } from '@playwright/test';
+import { expect, type Page, test } from '@playwright/test';
 import { buildStudyServer } from '../../apps/study-server/src/app.js';
 
 type ForcedAssignmentMode = 'forced-supportive' | 'forced-reference';
@@ -217,17 +217,14 @@ async function skipReferenceArtifact(
   });
 }
 
-async function completeThroughUi(page: Page): Promise<Response> {
-  await page.reload();
-  await expect(page.locator('#session-closure-title')).toBeVisible();
-  const responsePromise = page.waitForResponse((response) => {
-    const path = new URL(response.url()).pathname;
-    return response.request().method() === 'POST' && path.endsWith('/complete');
-  });
-  await page.getByRole('button', { name: 'Sitzung abschließen' }).click();
-  const response = await responsePromise;
-  await expect(page.getByRole('heading', { name: 'Sitzung abgeschlossen' })).toBeVisible();
-  return response;
+async function expectServerCompletion(page: Page, sessionId: string): Promise<void> {
+  const response = await page.context().request.get(
+    apiUrl(page, `/api/study/sessions/${sessionId}/status`),
+  );
+  expect(response.ok()).toBe(true);
+  expect(sessionStatusResponseSchema.parse(await response.json()).completionStatus).toBe(
+    'completed',
+  );
 }
 
 async function completeSupportiveFromS17Resume(page: Page, sessionId: string): Promise<void> {
@@ -330,11 +327,7 @@ for (const assignmentMode of ['forced-supportive', 'forced-reference'] as const)
       mainInstrumentBlocks.filter((block) => block.instrumentId !== 'pre-v1'),
     );
 
-    const completionResponse = await completeThroughUi(page);
-    expect(completionResponse.ok()).toBe(true);
-    expect(sessionStatusResponseSchema.parse(await completionResponse.json()).completionStatus).toBe(
-      'completed',
-    );
+    await expectServerCompletion(page, session.sessionId);
     expect(pageErrors).toEqual([]);
   });
 }

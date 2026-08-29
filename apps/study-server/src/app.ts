@@ -150,6 +150,7 @@ export function buildStudyServer({
       randomUuid: () => randomSource.randomUuid(),
       resumeCloseAtIso: webRuntime.resumeCloseAtIso,
     });
+    webRepository.reconcileDataCompleteSessions();
     registerWebStudyRoutes(server, {
       repository: webRepository,
       referenceArtifactAvailable,

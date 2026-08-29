@@ -45,7 +45,6 @@ export interface StudyRuntimePorts {
   recordArtifactVisibility(sessionId: string, visible: boolean): Promise<void>;
   retryArtifactTiming(sessionId: string): Promise<number | null>;
   observeArtifactLifecycle(input: ArtifactLifecycleInput): () => void;
-  completeSession(sessionId: string): Promise<void>;
 }
 
 export interface ArtifactLifecycleInput {
@@ -113,7 +112,6 @@ export type StudyEvent =
       readonly type: 'SUBMIT_GUARDRAILS';
       readonly payload: InstrumentSubmissionFor<'guardrail-v2'>;
     }
-  | { readonly type: 'SESSION_CLOSURE_ACKNOWLEDGED' }
   | { readonly type: 'RETRY_SESSION' }
   | { readonly type: 'RETRY_PRE' }
   | { readonly type: 'RETRY_ARTIFACT_START' }
@@ -121,7 +119,6 @@ export type StudyEvent =
   | { readonly type: 'RETRY_ARTIFACT_END' }
   | { readonly type: 'RETRY_POST' }
   | { readonly type: 'RETRY_GUARDRAILS' }
-  | { readonly type: 'RETRY_COMPLETION' }
   | { readonly type: 'ARTIFACT_VISIBILITY_CHANGED'; readonly visible: boolean }
   | { readonly type: 'ARTIFACT_TIMING_WRITE_SUCCEEDED' }
   | {
@@ -320,9 +317,6 @@ export function createStudyMachine(
             onVisibilityChange: (visible) =>
               sendBack({ type: 'ARTIFACT_VISIBILITY_CHANGED', visible }),
           }),
-      ),
-      completeSession: fromPromise(async ({ input }: { input: { sessionId: string } }) =>
-        ports.completeSession(input.sessionId),
       ),
     },
     guards: {
@@ -980,27 +974,7 @@ export function createStudyMachine(
           },
         },
       },
-      sessionClosure: { on: { SESSION_CLOSURE_ACKNOWLEDGED: 'completing' } },
-      completing: {
-        invoke: {
-          id: 'completeSession',
-          src: 'completeSession',
-          input: ({ context }) => ({ sessionId: requiredSessionId(context) }),
-          onDone: { target: 'complete' },
-          onError: {
-            target: 'completionError',
-            actions: assign({
-              researchErrorCode: ({ event }) => errorCode(event.error),
-            }),
-          },
-        },
-      },
-      completionError: {
-        on: {
-          RETRY_COMPLETION: { target: 'completing', actions: 'clearResearchError' },
-        },
-      },
-      complete: { type: 'final' },
+      sessionClosure: { type: 'final' },
       fatalError: {
         on: { RESET: { target: 'consent', actions: 'resetContext' } },
       },

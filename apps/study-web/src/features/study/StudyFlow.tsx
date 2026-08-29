@@ -936,36 +936,6 @@ function HydratedStudyFlow({
             </p>
           </div>
         )}
-        <div className={styles.form}>
-          <button
-            className={styles.button}
-            type="button"
-            onClick={() => send({ type: 'SESSION_CLOSURE_ACKNOWLEDGED' })}
-          >
-            {closureContent.actionLabel}
-          </button>
-        </div>
-      </section>
-    );
-  } else if (snapshot.matches('completionError')) {
-    content = (
-      <ResearchDataError
-        titleId="completion-error-title"
-        errorCode={context.researchErrorCode}
-        onRetry={() => send({ type: 'RETRY_COMPLETION' })}
-      />
-    );
-  } else if (snapshot.matches('complete')) {
-    content = (
-      <section className={styles.sessionComplete} aria-labelledby="complete-title">
-        <h1 id="complete-title" tabIndex={-1} autoFocus>
-          Sitzung abgeschlossen
-        </h1>
-        {context.deletionCode === null ? null : (
-          <p>
-            Löschcode: <strong>{context.deletionCode}</strong>
-          </p>
-        )}
       </section>
     );
   } else if (snapshot.matches('fatalError')) {

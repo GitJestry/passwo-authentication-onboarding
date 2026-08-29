@@ -44,8 +44,21 @@ die Produktionsdatenbank verwendet.
 - **Pre-Fragebogen abgeschlossen:** Alle vorgesehenen Pre-Fragebogenabschnitte wurden gespeichert.
 - **Training gestartet:** Mindestens ein serverseitiges Trainingsintervall wurde geöffnet.
 - **Training abgeschlossen:** Das Trainingsartefakt wurde regulär bis zum Ende durchlaufen.
+- **Alle Pflichtdaten gespeichert:** Training sowie alle erforderlichen Post- und
+  Guardrail-Abschnitte liegen vor. Dieser Zustand setzt die Web-Session automatisch auf
+  `completed`; `session-closure` bleibt nur für vor der Umstellung angelegte Altstände lesbar.
 - **Studie vollständig abgeschlossen:** Training und nachgelagerte Fragebogenschritte wurden
   abgeschlossen; die Session besitzt den Status `completed`.
+- **Rekrutierungsquelle:** Anzahl der angelegten Sessions je über `id` übermittelter Source-ID;
+  Sessions ohne gespeicherten Wert werden als `ub` gezählt.
+
+„Letzter bestätigter Checkpoint“ ist ein Wiederaufnahmezustand und keine Live-Anzeige. Das Alter des
+letzten Serverkontakts macht verlassene Sessions sichtbar. Nur ein Trainingskontakt innerhalb der
+letzten zwei Minuten ist ein belastbarer Näherungswert für ein aktuell geöffnetes Training;
+Fragebogenseiten besitzen bewusst keinen eigenen Aktivitäts-Heartbeat.
+
+Die Auffälligkeitstabelle enthält ausschließlich aggregierte Konsistenzhinweise. Sie gibt keine
+Session- oder Forschungskennungen aus und verändert keine Produktivdaten.
 
 Voraussetzungen sind ein lokaler OpenSSH-Client, SSH-Zugriff auf den Server und `sqlite3` auf dem
 Server.

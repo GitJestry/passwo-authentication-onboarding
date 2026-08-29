@@ -88,34 +88,64 @@ BEGIN;
 
 SELECT 'Stand (Serverzeit UTC)' AS Kennzahl, strftime('%Y-%m-%d %H:%M:%S', 'now') AS Wert;
 
-SELECT 'Studiensessions angelegt' AS Funnel, COUNT(*) AS Anzahl
-FROM study_sessions
-UNION ALL
-SELECT 'Pre-Fragebogen abgeschlossen', COUNT(*)
-FROM study_sessions
-WHERE progress_checkpoint <> 'pre-questionnaire'
-UNION ALL
-SELECT 'Training gestartet', COUNT(*)
-FROM study_sessions AS session
-WHERE EXISTS (
-  SELECT 1
-  FROM web_artifact_intervals AS artifact_interval
-  WHERE artifact_interval.session_id = session.session_id
+WITH funnel (sort_order, label, count) AS (
+  SELECT 1, 'Studiensessions angelegt', COUNT(*)
+  FROM study_sessions
+  UNION ALL
+  SELECT 2, 'Pre-Fragebogen abgeschlossen', COUNT(*)
+  FROM study_sessions
+  WHERE progress_checkpoint <> 'pre-questionnaire'
+  UNION ALL
+  SELECT 3, 'Training gestartet', COUNT(*)
+  FROM study_sessions AS session
+  WHERE EXISTS (
+    SELECT 1
+    FROM web_artifact_intervals AS artifact_interval
+    WHERE artifact_interval.session_id = session.session_id
+  )
+  UNION ALL
+  SELECT 4, 'Training abgeschlossen', COUNT(*)
+  FROM study_sessions
+  WHERE artifact_completed_at_iso IS NOT NULL
+  UNION ALL
+  SELECT 5, 'Post-Fragebogen begonnen', COUNT(DISTINCT session_id)
+  FROM instrument_submissions
+  WHERE instrument_id = 'post-v1'
+  UNION ALL
+  SELECT 6, 'Alle Pflichtdaten gespeichert', COUNT(*)
+  FROM study_sessions
+  WHERE completion_status = 'completed'
+    OR (completion_status = 'in-progress' AND progress_checkpoint = 'session-closure')
+  UNION ALL
+  SELECT 7, 'Studie vollständig abgeschlossen', COUNT(*)
+  FROM study_sessions
+  WHERE completion_status = 'completed'
 )
-UNION ALL
-SELECT 'Training abgeschlossen', COUNT(*)
-FROM study_sessions
-WHERE artifact_completed_at_iso IS NOT NULL
-UNION ALL
-SELECT 'Post-Fragebogen begonnen', COUNT(DISTINCT session_id)
-FROM instrument_submissions
-WHERE instrument_id = 'post-v1'
-UNION ALL
-SELECT 'Studie vollständig abgeschlossen', COUNT(*)
-FROM study_sessions
-WHERE completion_status = 'completed'
-UNION ALL
-SELECT 'Follow-up-Einwilligungen', COUNT(*)
+SELECT
+  label AS Funnel,
+  count AS Anzahl,
+  CASE
+    WHEN sort_order = 1 THEN NULL
+    ELSE (
+      SELECT previous.count
+      FROM funnel AS previous
+      WHERE previous.sort_order = funnel.sort_order - 1
+    ) - count
+  END AS Verlust_zum_vorherigen_Schritt,
+  printf(
+    '%.1f %%',
+    100.0 * count / NULLIF((SELECT COUNT(*) FROM study_sessions), 0)
+  ) AS Anteil_aller_Sessions
+FROM funnel
+ORDER BY sort_order;
+
+SELECT
+  'Follow-up-Einwilligungen' AS Kennzahl,
+  COUNT(*) AS Anzahl,
+  printf(
+    '%.1f %%',
+    100.0 * COUNT(*) / NULLIF((SELECT COUNT(*) FROM study_sessions), 0)
+  ) AS Anteil_aller_Sessions
 FROM study_sessions
 WHERE follow_up_consent = 1;
 
@@ -133,13 +163,134 @@ FROM study_sessions
 GROUP BY completion_status
 ORDER BY completion_status;
 
+WITH activity_events AS (
+  SELECT session_id, created_at_iso AS activity_at_iso
+  FROM study_sessions
+  UNION ALL
+  SELECT session_id, last_confirmed_at_iso
+  FROM web_resume_tokens
+  UNION ALL
+  SELECT session_id, last_confirmed_at_iso
+  FROM web_artifact_intervals
+  UNION ALL
+  SELECT session_id, submitted_at_iso
+  FROM instrument_submissions
+),
+last_activity AS (
+  SELECT session_id, MAX(activity_at_iso) AS last_activity_at_iso
+  FROM activity_events
+  GROUP BY session_id
+),
+aged_checkpoints AS (
+  SELECT
+    session.condition,
+    session.progress_checkpoint,
+    CASE
+      WHEN julianday('now') - julianday(activity.last_activity_at_iso) <= 2.0 / 1440
+        THEN 'bis 2 Minuten'
+      WHEN julianday('now') - julianday(activity.last_activity_at_iso) <= 15.0 / 1440
+        THEN '2 bis 15 Minuten'
+      WHEN julianday('now') - julianday(activity.last_activity_at_iso) <= 1
+        THEN '15 Minuten bis 24 Stunden'
+      WHEN julianday('now') - julianday(activity.last_activity_at_iso) <= 2
+        THEN '1 bis 2 Tage'
+      ELSE 'mehr als 2 Tage'
+    END AS activity_age,
+    CASE
+      WHEN julianday('now') - julianday(activity.last_activity_at_iso) <= 2.0 / 1440 THEN 1
+      WHEN julianday('now') - julianday(activity.last_activity_at_iso) <= 15.0 / 1440 THEN 2
+      WHEN julianday('now') - julianday(activity.last_activity_at_iso) <= 1 THEN 3
+      WHEN julianday('now') - julianday(activity.last_activity_at_iso) <= 2 THEN 4
+      ELSE 5
+    END AS activity_rank
+  FROM study_sessions AS session
+  JOIN last_activity AS activity ON activity.session_id = session.session_id
+  WHERE session.completion_status = 'in-progress'
+)
 SELECT
-  progress_checkpoint AS Aktueller_Checkpoint,
-  COUNT(*) AS Anzahl
+  condition AS Bedingung,
+  progress_checkpoint AS Letzter_bestaetigter_Checkpoint,
+  activity_age AS Alter_des_letzten_Serverkontakts,
+  COUNT(*) AS Sessions
+FROM aged_checkpoints
+GROUP BY condition, progress_checkpoint, activity_age, activity_rank
+ORDER BY condition, progress_checkpoint, activity_rank;
+
+WITH last_artifact_contact AS (
+  SELECT session_id, MAX(last_confirmed_at_iso) AS last_contact_at_iso
+  FROM web_artifact_intervals
+  GROUP BY session_id
+)
+SELECT
+  session.condition AS Bedingung,
+  COUNT(*) AS Unvollstaendige_Trainingssessions,
+  SUM(
+    CASE WHEN julianday('now') - julianday(contact.last_contact_at_iso) <= 2.0 / 1440
+      THEN 1 ELSE 0 END
+  ) AS Kontakt_bis_2_Minuten,
+  SUM(
+    CASE WHEN julianday('now') - julianday(contact.last_contact_at_iso) > 2.0 / 1440
+      AND julianday('now') - julianday(contact.last_contact_at_iso) <= 15.0 / 1440
+      THEN 1 ELSE 0 END
+  ) AS Kontakt_2_bis_15_Minuten,
+  SUM(
+    CASE WHEN julianday('now') - julianday(contact.last_contact_at_iso) > 15.0 / 1440
+      THEN 1 ELSE 0 END
+  ) AS Kontakt_aelter_als_15_Minuten
+FROM study_sessions AS session
+JOIN last_artifact_contact AS contact ON contact.session_id = session.session_id
+WHERE session.completion_status = 'in-progress'
+  AND session.artifact_completed_at_iso IS NULL
+GROUP BY session.condition
+ORDER BY session.condition;
+
+SELECT 'Training gestartet, Checkpoint noch artifact-preparation' AS Auffaelligkeit, COUNT(*) AS Anzahl
+FROM study_sessions AS session
+WHERE session.completion_status = 'in-progress'
+  AND session.artifact_completed_at_iso IS NULL
+  AND session.progress_checkpoint = 'artifact-preparation'
+  AND EXISTS (
+    SELECT 1 FROM web_artifact_intervals AS artifact_interval
+    WHERE artifact_interval.session_id = session.session_id
+  )
+UNION ALL
+SELECT 'Reference gestartet, aber ohne reference-Checkpoint', COUNT(*)
+FROM study_sessions AS session
+WHERE session.condition = 'reference'
+  AND session.completion_status = 'in-progress'
+  AND session.artifact_completed_at_iso IS NULL
+  AND session.progress_checkpoint NOT LIKE 'reference:%'
+  AND EXISTS (
+    SELECT 1 FROM web_artifact_intervals AS artifact_interval
+    WHERE artifact_interval.session_id = session.session_id
+  )
+UNION ALL
+SELECT 'SecAware-Ende bestätigt, Training noch nicht abgeschlossen', COUNT(*)
+FROM study_sessions
+WHERE condition = 'reference'
+  AND completion_status = 'in-progress'
+  AND artifact_completed_at_iso IS NULL
+  AND progress_checkpoint = 'reference:mfa'
+UNION ALL
+SELECT 'Alle Pflichtdaten vorhanden, Status noch in-progress', COUNT(*)
 FROM study_sessions
 WHERE completion_status = 'in-progress'
-GROUP BY progress_checkpoint
-ORDER BY progress_checkpoint;
+  AND progress_checkpoint = 'session-closure'
+UNION ALL
+SELECT 'Offenes Trainingsintervall ohne Kontakt seit mehr als 2 Minuten', COUNT(DISTINCT session_id)
+FROM web_artifact_intervals
+WHERE closed_at_iso IS NULL
+  AND julianday('now') - julianday(last_confirmed_at_iso) > 2.0 / 1440
+UNION ALL
+SELECT 'Training abgeschlossen, Post-Fragebogen noch nicht begonnen', COUNT(*)
+FROM study_sessions AS session
+WHERE session.completion_status = 'in-progress'
+  AND session.artifact_completed_at_iso IS NOT NULL
+  AND NOT EXISTS (
+    SELECT 1 FROM instrument_submissions AS submission
+    WHERE submission.session_id = session.session_id
+      AND submission.instrument_id = 'post-v1'
+  );
 
 SELECT
   condition AS Bedingung,
@@ -154,10 +305,21 @@ SELECT
   SUM(CASE WHEN artifact_completed_at_iso IS NOT NULL THEN 1 ELSE 0 END)
     AS Training_abgeschlossen,
   SUM(CASE WHEN completion_status = 'completed' THEN 1 ELSE 0 END)
-    AS Studie_abgeschlossen
+    AS Studie_abgeschlossen,
+  printf(
+    '%.1f %%',
+    100.0 * SUM(CASE WHEN completion_status = 'completed' THEN 1 ELSE 0 END) / COUNT(*)
+  ) AS Abschlussquote
 FROM study_sessions AS session
 GROUP BY condition
 ORDER BY condition;
+
+SELECT
+  COALESCE(recruitment_source, 'ub') AS Rekrutierungsquelle,
+  COUNT(*) AS Sessions
+FROM study_sessions
+GROUP BY COALESCE(recruitment_source, 'ub')
+ORDER BY Rekrutierungsquelle;
 
 SELECT
   MIN(created_at_iso) AS Erste_Session_UTC,
