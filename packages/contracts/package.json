@@ -7,6 +7,10 @@
     ".": {
       "types": "./src/index.ts",
       "import": "./src/index.ts"
+    },
+    "./follow-up": {
+      "types": "./src/follow-up.ts",
+      "import": "./src/follow-up.ts"
     }
   },
   "scripts": {

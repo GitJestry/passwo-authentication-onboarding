@@ -4,8 +4,7 @@ Dieses pnpm-Monorepo enthält das **Supportive Authentication Onboarding** und d
 gekoppelte Between-Subjects-Studie. Der technische Studienpfad, die visuelle Trainingsplattform,
 die Segmente S00 bis S17 und die pilot-versionierten Forschungsinstrumente sind integriert. Für
 die Hauptstudie ist ein same-origin Webbetrieb mit sicherer Wiederaufnahme implementiert. Die
-same-origin Follow-up-Route ist noch offen; der Hauptstudienlauf bleibt davon vollständig
-ausführbar.
+freiwillige Nachbefragung wird über eine getrennte tokenisierte same-origin Route ausgeliefert.
 
 ## Aktueller Stand
 
@@ -18,13 +17,13 @@ ausführbar.
   Passwortmanager und Wiederherstellung bis zur Zwei-Faktor-Authentifizierung.
 - **Instrumente:** Pre, unmittelbarer Post-Fragebogen, gemeinsamer Guardrail, post-guardrail
   Self-Efficacy und retrospektive SecAware-Vorerfahrung laufen als versionierte atomare Submissions.
-  Die freiwillige Nachbefragung besitzt eine getrennte Recontact-Registry und einen Schedule-Export.
+  Die freiwillige Nachbefragung besitzt eine getrennte Recontact-Registry, eine einmalig nutzbare
+  tokenisierte Route und einen geschützten Schedule-Export.
   `consent-v14-pilot` ist der Zieltext für den Webbetrieb.
 - **Web-Runtime:** Browser schließen oder neu laden unterbricht eine neue
   Web-Sitzung, beendet sie aber nicht. Der letzte sichere inhaltsfreie Checkpoint wird im selben
   Browser wiederaufgenommen; ausgewertet werden nur regulär abgeschlossene Runs.
-- **Als Nächstes:** die same-origin Follow-up-Route gemäß ADR 0016 fertigstellen und die manuellen
-  Hauptstudien-Freeze-Prüfungen abschließen.
+- **Als Nächstes:** die manuellen Hauptstudien-Freeze- und Ziel-VM-Prüfungen abschließen.
 
 `apps/study-desktop` verpackt die Anwendung für Apple Silicon ohne Adresszeile und startet die
 vorhandene Runtime intern. `apps/study-web` ist der einzige React-/Vite-Renderer.
@@ -112,22 +111,53 @@ Archivdatensatz wird getrennt nach der Prozedur in `docs/research/DATA-CONTRACT.
 defensive Ausgabe `free-text-review` bleibt für mögliche Altbestände erhalten; das aktuelle
 Pilotinstrument erhebt keinen Freitext.
 
-Der Versand der optionalen Nachbefragung erfolgt nicht automatisch. Die Studienleitung erzeugt den
-geschützten Schedule nur bei Bedarf und versendet Einladung und höchstens eine Erinnerung einzeln
-über das freigegebene Universitätskonto. Der Link führt im Zielmodell zu einer tokenisierten Route
-desselben Study-Webdeployments; eine externe Plattform, ein Antwortimport und eine verzögerte
-Debrief-Mail entfallen:
+Eine getrennte Follow-up-Operations-Schicht ermittelt idempotent fällige Einladungen ab Tag 10 und
+höchstens eine Erinnerung 48 Stunden nach dem tatsächlich bestätigten Erstversand. Bereits
+beantwortete oder geschlossene Follow-ups werden ausgeschlossen. Ohne ausdrücklich eingerichteten
+Mailtransport sendet sie nichts: `dry-run` zählt nur, `file` schreibt je stabiler Operations-ID
+höchstens eine geschützte Nachrichtendatei. Der kontrollierte manuelle Versand über das
+freigegebene Universitätskonto bleibt der Fallback. Der Link führt zur kanonischen tokenisierten
+Route desselben Study-Webdeployments; eine externe Plattform, ein Antwortimport und eine
+verzögerte Debrief-Mail entfallen:
 
 ```bash
-pnpm followup:export-schedule -- --output ./followup-schedule.csv --base-url https://example.invalid/follow-up
+pnpm followup:run-scheduler
+pnpm followup:export-schedule -- --output ./followup-schedule.csv --base-url https://study.statisticslab.de/follow-up
+```
+
+Der Schedule enthält zusätzlich die aus dem versionierten Follow-up-Instrument erzeugten Betreff-
+und Nachrichtentexte für Einladung und Erinnerung. Die Platzhalter für individuellen Link,
+Stichtag und Fensterschluss sind bereits ersetzt. Jede Nachricht wird einzeln versendet; der
+Export selbst sendet nichts. Vor einem manuellen Einzelversand wird die im Schedule oder in der
+Nachrichtendatei enthaltene Operations-ID schreibfrei auf aktuelle Berechtigung geprüft. Nur bei
+`eligible` wird die Nachricht versendet und unmittelbar danach einmalig bestätigt:
+
+```bash
+pnpm followup:confirm-delivery -- --operation OPERATION_ID
+pnpm followup:confirm-delivery -- --operation OPERATION_ID --confirm
 ```
 
 Die E-Mail-Adresse und der Raw-Follow-up-Token liegen ausschließlich in der getrennten
 `recontact.sqlite`; im Produktionsbetrieb ist das
 `/var/lib/passwo-study/recontact.sqlite`. Für den manuellen Versand wird nicht direkt in der
 Datenbank gearbeitet: Der obige Befehl schreibt die benötigten Felder `email`, `tokenLink`,
-`firstInvitationAtIso`, `reminderAtIso` und `closesAtIso` in die explizit angegebene geschützte
-Schedule-Datei.
+`firstInvitationAtIso`, `reminderAtIso`, `closesAtIso`, Versandstatus, Operations-IDs und die
+Nachrichtentexte in die explizit angegebene geschützte Schedule-Datei. Scheduler-Ausgaben enthalten
+nur aggregierte Anzahlen.
+
+Die globale Kontaktlöschung ist standardmäßig ein reiner Dry-Run. Sie prüft, ob alle
+Follow-up-Fenster geschlossen sind, und gibt ausschließlich Fristen und aggregierte Anzahlen aus:
+
+```bash
+pnpm followup:delete-contacts
+pnpm followup:delete-contacts -- --database /pfad/recontact.sqlite
+pnpm followup:delete-contacts -- --database /pfad/recontact.sqlite --confirm
+pnpm followup:operations-dry-run
+```
+
+`--confirm` wird erst nach Schließung des letzten Fensters verwendet. Schedule-Dateien und
+versandte Nachrichten im projektkontrollierten Postfach werden anschließend separat manuell
+gelöscht und ohne E-Mail-Adressen oder Tokens dokumentiert.
 
 Eine einzelne Session kann ausschließlich lokal über ihren Löschcode geprüft oder gelöscht werden.
 Der Code wird verdeckt über die Standardeingabe gelesen und nie als Kommandozeilenargument

@@ -302,6 +302,11 @@ PASSWO_PORT=3000
 PASSWO_ALLOW_DESIGN_LAB=false
 STUDY_ASSIGNMENT_MODE=permuted-block
 STUDY_DATA_DIR=/var/lib/passwo-study
+PASSWO_FOLLOWUP_BASE_URL=https://study.statisticslab.de/follow-up
+PASSWO_FOLLOWUP_SENDER_NAME=Julian Meyer
+PASSWO_FOLLOWUP_SENDER_ADDRESS=s27jmeye@uni-bonn.de
+PASSWO_FOLLOWUP_TRANSPORT=file
+PASSWO_FOLLOWUP_OUTBOX_DIR=/var/lib/passwo-study/followup-outbox
 ```
 
 ## 9. Systemzeit prüfen
@@ -331,10 +336,17 @@ cp /opt/passwo-study/current/deploy/systemd/passwo-study.service \
   /etc/systemd/system/passwo-study.service
 cp /opt/passwo-study/current/deploy/systemd/passwo-study-qa.service \
   /etc/systemd/system/passwo-study-qa.service
+cp /opt/passwo-study/current/deploy/systemd/passwo-followup-operations.service \
+  /etc/systemd/system/passwo-followup-operations.service
+cp /opt/passwo-study/current/deploy/systemd/passwo-followup-operations.timer \
+  /etc/systemd/system/passwo-followup-operations.timer
+install -d -o passwo -g passwo -m 0700 /var/lib/passwo-study/followup-outbox
 
 systemctl daemon-reload
 systemctl enable --now passwo-study passwo-study-qa
+systemctl enable --now passwo-followup-operations.timer
 systemctl --no-pager --full status passwo-study passwo-study-qa
+systemctl --no-pager --full status passwo-followup-operations.timer
 ```
 
 Lokale Health-Checks auf der VM:
@@ -585,8 +597,99 @@ Ab `PASSWO_RESUME_CLOSE_AT` lehnt die Runtime neue und wiederaufgenommene Haupts
 3. Follow-up und spätere Anonymisierung nach den Forschungsdokumenten durchführen.
 4. Den Dienst erst abschalten, wenn kein zulässiger Haupt- oder Follow-up-Zugriff mehr benötigt wird.
 
+### 16.1 Follow-up-Operations und manueller Versand
+
+Der Timer prüft alle 15 Minuten. Ab `first_invitation_at_iso` wird genau eine geschützte
+Nachrichtendatei pro stabiler Operations-ID vorbereitet. Eine Erinnerung wird erst 48 Stunden nach
+dem tatsächlich bestätigten Erstversand fällig, nur ohne Follow-up-Abgabe und nur vor
+`closes_at_iso`. Wiederholte Läufe überschreiben nichts und markieren im `file`- oder `dry-run`-Modus
+nichts als versendet. Status- und Journal-Ausgaben enthalten nur aggregierte Anzahlen.
+
+Der automatische Lauf kann kontrolliert manuell angestoßen werden:
+
+```bash
+systemctl start passwo-followup-operations.service
+systemctl --no-pager --full status passwo-followup-operations.service
+```
+
+Jede Datei unter `/var/lib/passwo-study/followup-outbox` enthält genau eine Empfängeradresse, den
+Link und den fertigen Nachrichtentext. Die sichtbare Linkbezeichnung lautet „Zur freiwilligen
+Nachbefragung“; der Token wird nicht separat dargestellt oder erklärt. Vor dem Einzelversand über
+das freigegebene Universitätskonto die enthaltene `operationId` schreibfrei prüfen. Nur beim
+Ergebnis `eligible` versenden und unmittelbar danach mit dem zweiten Befehl bestätigen:
+
+```bash
+sudo -u passwo env PATH=/usr/local/bin:/usr/bin:/bin \
+  STUDY_DATA_DIR=/var/lib/passwo-study \
+  pnpm --dir /opt/passwo-study/current followup:confirm-delivery -- \
+  --operation REPLACE_WITH_OPERATION_ID
+
+sudo -u passwo env PATH=/usr/local/bin:/usr/bin:/bin \
+  STUDY_DATA_DIR=/var/lib/passwo-study \
+  pnpm --dir /opt/passwo-study/current followup:confirm-delivery -- \
+  --operation REPLACE_WITH_OPERATION_ID --confirm
+```
+
+Erst `--confirm` setzt das zugehörige `*_sent_at_iso` einmalig. Dadurch wird die Erinnerung relativ
+zum tatsächlichen Erstversand freigegeben und ein zweiter Versand derselben Stufe ausgeschlossen.
+
+Als unveränderter manueller Fallback kann weiterhin ein vollständiger geschützter Schedule erzeugt
+werden:
+
+Den geschützten JSON-Schedule auf der VM ausschließlich bei Bedarf erzeugen:
+
+```bash
+install -d -o passwo -g passwo -m 0700 /var/lib/passwo-study/followup-operations
+sudo -u passwo env PATH=/usr/local/bin:/usr/bin:/bin \
+  pnpm --dir /opt/passwo-study/current followup:export-schedule -- \
+  --database /var/lib/passwo-study/recontact.sqlite \
+  --output /var/lib/passwo-study/followup-operations/followup-schedule.json \
+  --base-url https://study.statisticslab.de/follow-up
+```
+
+Die Datei enthält pro Person individuelle Links, Operations-IDs, Versandstatus sowie fertig
+eingesetzte Betreff- und Nachrichtentexte. Sie wird nicht hochgeladen, nicht an eine externe
+Plattform importiert und nicht als gemeinsamer BCC-Verteiler verwendet.
+
+Ein produktiver SMTP-Transport ist bewusst nicht implementiert: Im Repository und in der
+Deployment-Umgebung ist kein verifizierter sicherer Mailtransport vorhanden. Für einen späteren
+Adapter müssen die Universität beziehungsweise der Mailanbieter mindestens Host, Port,
+Transportmodus (`TLS` oder `STARTTLS`), Benutzername, Absenderfreigabe und ein Secret über eine
+geschützte Credential-Datei verbindlich bereitstellen. Vorgesehene ENV-Namen wären
+`PASSWO_FOLLOWUP_SMTP_HOST`, `PASSWO_FOLLOWUP_SMTP_PORT`,
+`PASSWO_FOLLOWUP_SMTP_SECURITY`, `PASSWO_FOLLOWUP_SMTP_USERNAME` und
+`PASSWO_FOLLOWUP_SMTP_PASSWORD_FILE`. Diese Variablen werden aktuell absichtlich nicht konsumiert;
+vor Aktivierung braucht der Adapter außerdem anbieterseitige Idempotenz anhand der stabilen
+`operationId`. Es wurden keine Uni-Bonn-Serverdaten geraten und keine Credentials hinterlegt.
+
+### 16.2 Kontaktlöschung
+
+Nach Schließung des letzten Follow-up-Fensters zuerst den nicht schreibenden Dry-Run ausführen:
+
+```bash
+sudo -u passwo env PATH=/usr/local/bin:/usr/bin:/bin \
+  pnpm --dir /opt/passwo-study/current followup:delete-contacts -- \
+  --database /var/lib/passwo-study/recontact.sqlite
+```
+
+Erst wenn `Löschung zulässig: ja` ausgegeben wird, den Study-Dienst stoppen und die bestätigte
+Löschung ausführen:
+
+```bash
+systemctl stop passwo-study
+sudo -u passwo env PATH=/usr/local/bin:/usr/bin:/bin \
+  pnpm --dir /opt/passwo-study/current followup:delete-contacts -- \
+  --database /var/lib/passwo-study/recontact.sqlite \
+  --confirm
+systemctl start passwo-study
+```
+
+Danach die lokale Schedule-Datei sowie Einladungs- und Erinnerungsnachrichten im
+projektkontrollierten Postfach löschen. Nur Datum, ausführende Person und Anzahl vor/nach der
+Löschung dokumentieren; keine E-Mail-Adresse und keinen Token übernehmen.
+
 Dienst abschalten:
 
 ```bash
-systemctl disable --now passwo-study passwo-study-qa
+systemctl disable --now passwo-followup-operations.timer passwo-study passwo-study-qa
 ```

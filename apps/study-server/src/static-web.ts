@@ -3,6 +3,7 @@ import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import fastifyStatic from '@fastify/static';
 import {
+  FOLLOW_UP_PATH,
   designLabPaths,
   isLiveQaPath,
   REFERENCE_ARTIFACT_ENTRY_POINT,
@@ -136,6 +137,16 @@ export async function registerStudyWeb(
             : 'no-cache',
       );
     },
+  });
+
+  server.get(FOLLOW_UP_PATH, (request, reply) => {
+    reply.header('X-Robots-Tag', 'noindex, nofollow, noarchive');
+    return sendSinglePageApp(
+      request,
+      reply,
+      webBuildDirectory,
+      (pathname) => pathname === FOLLOW_UP_PATH,
+    );
   });
 
   if (allowDesignLab) {

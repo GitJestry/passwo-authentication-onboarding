@@ -357,6 +357,7 @@ export async function completeWebArtifact(
   server: FastifyInstance,
   created: CreatedWebTestSession,
   intervalRequestId: string,
+  firstSegmentEventIdentity = 2,
 ): Promise<void> {
   const { cookie, session } = created;
   const interval = await openWebArtifactInterval(
@@ -379,7 +380,7 @@ export async function completeWebArtifact(
       session.sessionId,
       interval.intervalId,
       SUPPORTIVE_ARTIFACT_SEGMENT_IDS,
-      2,
+      firstSegmentEventIdentity,
     );
     await webPost(server, cookie, `/api/study/sessions/${session.sessionId}/artifact-checkpoint`, {
       intervalId: interval.intervalId,
@@ -406,10 +407,11 @@ export async function completeWebTestStudy(
   server: FastifyInstance,
   created: CreatedWebTestSession,
   intervalRequestId: string,
+  firstSegmentEventIdentity = 2,
 ): Promise<void> {
   const preBlocks = mainInstrumentBlocks.filter((block) => block.instrumentId === 'pre-v1');
   await submitWebInstrumentBlocks(server, created.cookie, created.session.sessionId, preBlocks);
-  await completeWebArtifact(server, created, intervalRequestId);
+  await completeWebArtifact(server, created, intervalRequestId, firstSegmentEventIdentity);
   await submitWebInstrumentBlocks(
     server,
     created.cookie,

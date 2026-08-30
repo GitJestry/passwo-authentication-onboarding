@@ -13,6 +13,7 @@ import {
   SUPPORTIVE_ARTIFACT_SEGMENT_IDS,
 } from './training.js';
 
+export const FOLLOW_UP_PATH = '/follow-up';
 export const WEB_RESUME_COOKIE_MAX_AGE_SECONDS = 30 * 24 * 60 * 60;
 export const WEB_ARTIFACT_HEARTBEAT_INTERVAL_MS = 15_000;
 export const WEB_ARTIFACT_MAX_INTERVAL_MS = 6 * 60 * 60 * 1000;

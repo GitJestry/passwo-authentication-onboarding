@@ -1,5 +1,8 @@
 import { z } from 'zod';
 
+export const FOLLOW_UP_INSTRUMENT_ID = 'follow-up-v1';
+export const FOLLOW_UP_SECTION_ID = 'actions';
+
 export const recontactEmailSchema = z.string().trim().min(3).max(254).email();
 export type RecontactEmail = z.infer<typeof recontactEmailSchema>;
 

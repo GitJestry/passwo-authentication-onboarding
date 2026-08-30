@@ -4,6 +4,7 @@ import {
   instrumentSectionIdSchema,
   mainInstrumentIdSchema,
 } from './instrument-runtime.js';
+import { FOLLOW_UP_INSTRUMENT_ID } from './recontact.js';
 import {
   completionStatusSchema,
   recruitmentSourceSchema,
@@ -13,6 +14,10 @@ import {
 import { timingEventSchema } from './timing.js';
 
 const versionIdSchema = z.string().trim().min(1).max(80);
+export const researchResponseInstrumentIdSchema = z.union([
+  mainInstrumentIdSchema,
+  z.literal(FOLLOW_UP_INSTRUMENT_ID),
+]);
 
 export const researchIdSchema = researchCodeSchema;
 export const researchExportProfileSchema = z.enum(['audit', 'analysis']);
@@ -71,7 +76,7 @@ export type ResearchAnalysisTimingRecord = z.infer<typeof researchAnalysisTiming
 export const researchExportResponseRecordSchema = z
   .object({
     researchId: researchIdSchema,
-    instrumentId: mainInstrumentIdSchema,
+    instrumentId: researchResponseInstrumentIdSchema,
     instrumentVersion: versionIdSchema,
     sectionId: instrumentSectionIdSchema,
     itemId: z.string().trim().min(1).max(80),

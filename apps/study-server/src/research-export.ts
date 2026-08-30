@@ -3,6 +3,9 @@ import { existsSync, mkdirSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import {
   completionStatusSchema,
+  FOLLOW_UP_INSTRUMENT_ID,
+  FOLLOW_UP_SECTION_ID,
+  followUpInstrument,
   instrumentRuntimeManifest,
   type ResearchAnalysisPresentationRecord,
   type ResearchAnalysisResponseRecord,
@@ -129,22 +132,15 @@ function toPresentationRecord(row: unknown): ResearchExportPresentationRecord {
 }
 
 function toSessionRecord(row: unknown): ResearchExportSessionRecord {
-  const {
-    sessionId,
-    researchCode,
-    deletionCodeHash,
-    followUpTokenHash,
-    ...session
-  } = mapSessionRow(row);
+  const { sessionId, researchCode, deletionCodeHash, followUpTokenHash, ...session } =
+    mapSessionRow(row);
   void sessionId;
   void deletionCodeHash;
   void followUpTokenHash;
   return researchExportSessionRecordSchema.parse({ researchId: researchCode, ...session });
 }
 
-function toAnalysisSession(
-  session: ResearchExportSessionRecord,
-): ResearchAnalysisSessionRecord {
+function toAnalysisSession(session: ResearchExportSessionRecord): ResearchAnalysisSessionRecord {
   const { createdAtIso, completedAtIso, ...analysisSession } = session;
   void createdAtIso;
   void completedAtIso;
@@ -154,12 +150,7 @@ function toAnalysisSession(
 function toAnalysisTiming(
   event: z.infer<typeof researchExportTimingRecordSchema>,
 ): ResearchAnalysisTimingRecord {
-  const {
-    clientMonotonicMs,
-    clientWallClockIso,
-    serverReceivedAtIso,
-    ...analysisEvent
-  } = event;
+  const { clientMonotonicMs, clientWallClockIso, serverReceivedAtIso, ...analysisEvent } = event;
   void clientMonotonicMs;
   void clientWallClockIso;
   void serverReceivedAtIso;
@@ -285,7 +276,12 @@ function dataDictionary(): ResearchExportDataDictionaryRecord[] {
       block.items.map((item) => ({ ...item, type: 'singleChoice' })),
     ),
   );
-  return [...pre, ...post, ...guardrail];
+  const followUp = dictionaryRowsForItems(
+    FOLLOW_UP_INSTRUMENT_ID,
+    FOLLOW_UP_SECTION_ID,
+    followUpInstrument.questionnaire.items,
+  );
+  return [...pre, ...post, ...guardrail, ...followUp];
 }
 
 function assertEmptyExportTarget(
@@ -445,22 +441,48 @@ export function exportResearchData({
         fileName: 'sessions.csv',
         content: csvFile(
           [
-            'researchId', 'recruitmentSource', 'condition', 'assignmentMode', 'studyVersion',
+            'researchId',
+            'recruitmentSource',
+            'condition',
+            'assignmentMode',
+            'studyVersion',
             'contentVersion',
-            'questionnaireVersion', 'guardrailVersion', 'guardrailFormId', 'consentVersion',
-            'referenceArtifactVersion', 'consentAccepted', 'followUpConsent', 'followUpVersion',
-            'completionStatus', 'technicalErrorCode', 'artifactSessionElapsedMs',
-            'webInterruptionCount', 'createdAtIso', 'completedAtIso',
+            'questionnaireVersion',
+            'guardrailVersion',
+            'guardrailFormId',
+            'consentVersion',
+            'referenceArtifactVersion',
+            'consentAccepted',
+            'followUpConsent',
+            'followUpVersion',
+            'completionStatus',
+            'technicalErrorCode',
+            'artifactSessionElapsedMs',
+            'webInterruptionCount',
+            'createdAtIso',
+            'completedAtIso',
           ],
           sessions.map((session) => [
-            session.researchId, session.recruitmentSource, session.condition,
-            session.assignmentMode, session.studyVersion, session.contentVersion,
-            session.questionnaireVersion, session.guardrailVersion,
-            session.guardrailFormId, session.consentVersion, session.referenceArtifactVersion,
-            session.consentAccepted, session.followUpConsent, session.followUpVersion,
-            session.completionStatus, session.technicalErrorCode,
-            session.artifactSessionElapsedMs, session.webInterruptionCount,
-            session.createdAtIso, session.completedAtIso,
+            session.researchId,
+            session.recruitmentSource,
+            session.condition,
+            session.assignmentMode,
+            session.studyVersion,
+            session.contentVersion,
+            session.questionnaireVersion,
+            session.guardrailVersion,
+            session.guardrailFormId,
+            session.consentVersion,
+            session.referenceArtifactVersion,
+            session.consentAccepted,
+            session.followUpConsent,
+            session.followUpVersion,
+            session.completionStatus,
+            session.technicalErrorCode,
+            session.artifactSessionElapsedMs,
+            session.webInterruptionCount,
+            session.createdAtIso,
+            session.completedAtIso,
           ]),
         ),
       },
@@ -468,14 +490,30 @@ export function exportResearchData({
         fileName: 'timing.csv',
         content: csvFile(
           [
-            'researchId', 'sequence', 'phase', 'sectionId', 'segmentId', 'eventType',
-            'clientMonotonicMs', 'clientWallClockIso', 'elapsedMs', 'reasonCode',
+            'researchId',
+            'sequence',
+            'phase',
+            'sectionId',
+            'segmentId',
+            'eventType',
+            'clientMonotonicMs',
+            'clientWallClockIso',
+            'elapsedMs',
+            'reasonCode',
             'serverReceivedAtIso',
           ],
           timing.map((event) => [
-            event.researchId, event.sequence, event.phase, event.sectionId, event.segmentId,
-            event.eventType, event.clientMonotonicMs, event.clientWallClockIso, event.elapsedMs,
-            event.reasonCode, event.serverReceivedAtIso,
+            event.researchId,
+            event.sequence,
+            event.phase,
+            event.sectionId,
+            event.segmentId,
+            event.eventType,
+            event.clientMonotonicMs,
+            event.clientWallClockIso,
+            event.elapsedMs,
+            event.reasonCode,
+            event.serverReceivedAtIso,
           ]),
         ),
       },
@@ -483,12 +521,22 @@ export function exportResearchData({
         fileName: 'responses.csv',
         content: csvFile(
           [
-            'researchId', 'instrumentId', 'instrumentVersion', 'sectionId', 'itemId', 'value',
+            'researchId',
+            'instrumentId',
+            'instrumentVersion',
+            'sectionId',
+            'itemId',
+            'value',
             'createdAtIso',
           ],
           responses.map((response) => [
-            response.researchId, response.instrumentId, response.instrumentVersion,
-            response.sectionId, response.itemId, compactJson(response.value), response.createdAtIso,
+            response.researchId,
+            response.instrumentId,
+            response.instrumentVersion,
+            response.sectionId,
+            response.itemId,
+            compactJson(response.value),
+            response.createdAtIso,
           ]),
         ),
       },
@@ -496,13 +544,24 @@ export function exportResearchData({
         fileName: 'response-presentations.csv',
         content: csvFile(
           [
-            'researchId', 'instrumentId', 'instrumentVersion', 'sectionId', 'itemId', 'formId',
-            'displayedOptionIds', 'createdAtIso',
+            'researchId',
+            'instrumentId',
+            'instrumentVersion',
+            'sectionId',
+            'itemId',
+            'formId',
+            'displayedOptionIds',
+            'createdAtIso',
           ],
           presentations.map((presentation) => [
-            presentation.researchId, presentation.instrumentId, presentation.instrumentVersion,
-            presentation.sectionId, presentation.itemId, presentation.formId,
-            compactJson(presentation.displayedOptionIds), presentation.createdAtIso,
+            presentation.researchId,
+            presentation.instrumentId,
+            presentation.instrumentVersion,
+            presentation.sectionId,
+            presentation.itemId,
+            presentation.formId,
+            compactJson(presentation.displayedOptionIds),
+            presentation.createdAtIso,
           ]),
         ),
       },
@@ -525,21 +584,44 @@ export function exportResearchData({
         fileName: 'sessions.csv',
         content: csvFile(
           [
-            'researchId', 'recruitmentSource', 'condition', 'assignmentMode', 'studyVersion',
+            'researchId',
+            'recruitmentSource',
+            'condition',
+            'assignmentMode',
+            'studyVersion',
             'contentVersion',
-            'questionnaireVersion', 'guardrailVersion', 'guardrailFormId', 'consentVersion',
-            'referenceArtifactVersion', 'consentAccepted', 'followUpConsent', 'followUpVersion',
-            'completionStatus', 'technicalErrorCode', 'artifactSessionElapsedMs',
+            'questionnaireVersion',
+            'guardrailVersion',
+            'guardrailFormId',
+            'consentVersion',
+            'referenceArtifactVersion',
+            'consentAccepted',
+            'followUpConsent',
+            'followUpVersion',
+            'completionStatus',
+            'technicalErrorCode',
+            'artifactSessionElapsedMs',
             'webInterruptionCount',
           ],
           analysisSessions.map((session) => [
-            session.researchId, session.recruitmentSource, session.condition,
-            session.assignmentMode, session.studyVersion, session.contentVersion,
-            session.questionnaireVersion, session.guardrailVersion,
-            session.guardrailFormId, session.consentVersion, session.referenceArtifactVersion,
-            session.consentAccepted, session.followUpConsent, session.followUpVersion,
-            session.completionStatus, session.technicalErrorCode,
-            session.artifactSessionElapsedMs, session.webInterruptionCount,
+            session.researchId,
+            session.recruitmentSource,
+            session.condition,
+            session.assignmentMode,
+            session.studyVersion,
+            session.contentVersion,
+            session.questionnaireVersion,
+            session.guardrailVersion,
+            session.guardrailFormId,
+            session.consentVersion,
+            session.referenceArtifactVersion,
+            session.consentAccepted,
+            session.followUpConsent,
+            session.followUpVersion,
+            session.completionStatus,
+            session.technicalErrorCode,
+            session.artifactSessionElapsedMs,
+            session.webInterruptionCount,
           ]),
         ),
       },
@@ -557,8 +639,14 @@ export function exportResearchData({
             'reasonCode',
           ],
           analysisTiming.map((event) => [
-            event.researchId, event.sequence, event.phase, event.sectionId, event.segmentId,
-            event.eventType, event.elapsedMs, event.reasonCode,
+            event.researchId,
+            event.sequence,
+            event.phase,
+            event.sectionId,
+            event.segmentId,
+            event.eventType,
+            event.elapsedMs,
+            event.reasonCode,
           ]),
         ),
       },
@@ -567,8 +655,12 @@ export function exportResearchData({
         content: csvFile(
           ['researchId', 'instrumentId', 'instrumentVersion', 'sectionId', 'itemId', 'value'],
           analysisResponses.map((response) => [
-            response.researchId, response.instrumentId, response.instrumentVersion,
-            response.sectionId, response.itemId, compactJson(response.value),
+            response.researchId,
+            response.instrumentId,
+            response.instrumentVersion,
+            response.sectionId,
+            response.itemId,
+            compactJson(response.value),
           ]),
         ),
       },
@@ -576,12 +668,21 @@ export function exportResearchData({
         fileName: 'response-presentations.csv',
         content: csvFile(
           [
-            'researchId', 'instrumentId', 'instrumentVersion', 'sectionId', 'itemId', 'formId',
+            'researchId',
+            'instrumentId',
+            'instrumentVersion',
+            'sectionId',
+            'itemId',
+            'formId',
             'displayedOptionIds',
           ],
           analysisPresentations.map((presentation) => [
-            presentation.researchId, presentation.instrumentId, presentation.instrumentVersion,
-            presentation.sectionId, presentation.itemId, presentation.formId,
+            presentation.researchId,
+            presentation.instrumentId,
+            presentation.instrumentVersion,
+            presentation.sectionId,
+            presentation.itemId,
+            presentation.formId,
             compactJson(presentation.displayedOptionIds),
           ]),
         ),
@@ -591,12 +692,22 @@ export function exportResearchData({
         fileName: 'free-text-review.csv',
         content: csvFile(
           [
-            'researchId', 'instrumentId', 'instrumentVersion', 'sectionId', 'itemId', 'value',
+            'researchId',
+            'instrumentId',
+            'instrumentVersion',
+            'sectionId',
+            'itemId',
+            'value',
             'reviewStatus',
           ],
           freeTextReview.map((review) => [
-            review.researchId, review.instrumentId, review.instrumentVersion, review.sectionId,
-            review.itemId, review.value, review.reviewStatus,
+            review.researchId,
+            review.instrumentId,
+            review.instrumentVersion,
+            review.sectionId,
+            review.itemId,
+            review.value,
+            review.reviewStatus,
           ]),
         ),
       },
@@ -620,8 +731,7 @@ export function exportResearchData({
     const manifest = researchExportManifestSchema.parse({
       schemaVersion: 'research-export-v8',
       profile,
-      schemaProfileVersion:
-        profile === 'audit' ? 'research-audit-v3' : 'research-analysis-v3',
+      schemaProfileVersion: profile === 'audit' ? 'research-audit-v3' : 'research-analysis-v3',
       exportedAtIso,
       runtimeManifestVersion: instrumentRuntimeManifest.runtimeManifestVersion,
       versions: {

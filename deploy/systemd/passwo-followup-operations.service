@@ -1,0 +1,27 @@
+[Unit]
+Description=PassWo follow-up operations scheduler
+After=passwo-study.service
+
+[Service]
+Type=oneshot
+User=passwo
+Group=passwo
+WorkingDirectory=/opt/passwo-study/current
+Environment=NODE_ENV=production
+EnvironmentFile=/etc/passwo-study/passwo-study.env
+ExecStartPre=/usr/bin/test -f /var/lib/passwo-study/study.sqlite
+ExecStartPre=/usr/bin/test -f /var/lib/passwo-study/recontact.sqlite
+ExecStart=/usr/local/bin/pnpm --dir /opt/passwo-study/current followup:run-scheduler
+UMask=0077
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/var/lib/passwo-study
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+RestrictSUIDSGID=true
+RestrictRealtime=true
+LockPersonality=true
+RestrictAddressFamilies=AF_UNIX

@@ -1,15 +1,23 @@
 import { chmodSync, existsSync, mkdirSync, writeFileSync } from 'node:fs';
 import { dirname, extname } from 'node:path';
-import { followUpRawTokenSchema } from '@passwo/contracts';
+import {
+  followUpInstrument,
+  followUpRawTokenSchema,
+  followUpTokenHashSchema,
+} from '@passwo/contracts';
 import Database from 'better-sqlite3';
 import { z } from 'zod';
+import { followUpOperationId, followUpUrl, renderFollowUpEmailBody } from './followup-message.js';
 
 const scheduledRegistrationRowSchema = z.object({
   email: z.string(),
   rawToken: followUpRawTokenSchema,
+  tokenHash: followUpTokenHashSchema,
   firstInvitationAtIso: z.iso.datetime(),
   reminderAtIso: z.iso.datetime(),
   closesAtIso: z.iso.datetime(),
+  firstInvitationSentAtIso: z.iso.datetime().nullable(),
+  reminderSentAtIso: z.iso.datetime().nullable(),
 });
 
 export interface FollowUpScheduleExportOptions {
@@ -25,9 +33,17 @@ export interface FollowUpScheduleExportResult {
 interface FollowUpScheduleRecord {
   readonly email: string;
   readonly tokenLink: string;
+  readonly firstInvitationOperationId: string;
+  readonly reminderOperationId: string;
   readonly firstInvitationAtIso: string;
   readonly reminderAtIso: string;
   readonly closesAtIso: string;
+  readonly firstInvitationSentAtIso: string | null;
+  readonly reminderSentAtIso: string | null;
+  readonly firstInvitationSubject: string;
+  readonly firstInvitationBody: string;
+  readonly reminderSubject: string;
+  readonly reminderBody: string;
 }
 
 function protectedOutputDirectory(outputPath: string): void {
@@ -35,21 +51,6 @@ function protectedOutputDirectory(outputPath: string): void {
   if (existsSync(outputDirectory)) return;
   mkdirSync(outputDirectory, { recursive: true, mode: 0o700 });
   chmodSync(outputDirectory, 0o700);
-}
-
-function followUpUrl(baseUrl: string, token: string): string {
-  const url = new URL(baseUrl);
-  if (
-    url.protocol !== 'https:' ||
-    url.hostname.length === 0 ||
-    url.username.length > 0 ||
-    url.password.length > 0
-  ) {
-    throw new Error('followup-base-url-must-be-https');
-  }
-  url.hash = '';
-  url.searchParams.set('token', token);
-  return url.href;
 }
 
 function csvCell(value: string): string {
@@ -61,15 +62,23 @@ function csvContent(records: readonly FollowUpScheduleRecord[]): string {
     [
       record.email,
       record.tokenLink,
+      record.firstInvitationOperationId,
+      record.reminderOperationId,
       record.firstInvitationAtIso,
       record.reminderAtIso,
       record.closesAtIso,
+      record.firstInvitationSentAtIso ?? '',
+      record.reminderSentAtIso ?? '',
+      record.firstInvitationSubject,
+      record.firstInvitationBody,
+      record.reminderSubject,
+      record.reminderBody,
     ]
       .map(csvCell)
       .join(','),
   );
   return [
-    'email,tokenLink,firstInvitationAtIso,reminderAtIso,closesAtIso',
+    'email,tokenLink,firstInvitationOperationId,reminderOperationId,firstInvitationAtIso,reminderAtIso,closesAtIso,firstInvitationSentAtIso,reminderSentAtIso,firstInvitationSubject,firstInvitationBody,reminderSubject,reminderBody',
     ...rows,
     '',
   ].join('\n');
@@ -95,9 +104,12 @@ export function exportFollowUpSchedule({
         `SELECT
           email,
           raw_token AS rawToken,
+          token_hash AS tokenHash,
           first_invitation_at_iso AS firstInvitationAtIso,
           reminder_at_iso AS reminderAtIso,
-          closes_at_iso AS closesAtIso
+          closes_at_iso AS closesAtIso,
+          first_invitation_sent_at_iso AS firstInvitationSentAtIso,
+          reminder_sent_at_iso AS reminderSentAtIso
          FROM registrations
          WHERE first_invitation_at_iso IS NOT NULL
            AND reminder_at_iso IS NOT NULL
@@ -106,13 +118,38 @@ export function exportFollowUpSchedule({
       )
       .all()
       .map((row) => scheduledRegistrationRowSchema.parse(row));
-    const records = rows.map((row) => ({
-      email: row.email,
-      tokenLink: followUpUrl(baseUrl, row.rawToken),
-      firstInvitationAtIso: row.firstInvitationAtIso,
-      reminderAtIso: row.reminderAtIso,
-      closesAtIso: row.closesAtIso,
-    }));
+    const records = rows.map((row) => {
+      const tokenLink = followUpUrl(baseUrl, row.rawToken);
+      return {
+        email: row.email,
+        tokenLink,
+        firstInvitationOperationId: followUpOperationId(
+          row.tokenHash,
+          'first-invitation',
+          row.firstInvitationAtIso,
+        ),
+        reminderOperationId: followUpOperationId(row.tokenHash, 'reminder', row.reminderAtIso),
+        firstInvitationAtIso: row.firstInvitationAtIso,
+        reminderAtIso: row.reminderAtIso,
+        closesAtIso: row.closesAtIso,
+        firstInvitationSentAtIso: row.firstInvitationSentAtIso,
+        reminderSentAtIso: row.reminderSentAtIso,
+        firstInvitationSubject: followUpInstrument.email.subject,
+        firstInvitationBody: renderFollowUpEmailBody(
+          followUpInstrument.email.body,
+          tokenLink,
+          row.firstInvitationAtIso,
+          row.closesAtIso,
+        ),
+        reminderSubject: followUpInstrument.reminderEmail.subject,
+        reminderBody: renderFollowUpEmailBody(
+          followUpInstrument.reminderEmail.body,
+          tokenLink,
+          row.firstInvitationAtIso,
+          row.closesAtIso,
+        ),
+      };
+    });
     const content =
       extension === '.json' ? `${JSON.stringify(records, null, 2)}\n` : csvContent(records);
 

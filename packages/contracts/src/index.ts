@@ -1,5 +1,22 @@
 export * from './character.js';
 export * from './design-lab.js';
+export {
+  type FollowUpAccessRequest,
+  type FollowUpAccessResponse,
+  type FollowUpContactDeletionReport,
+  type FollowUpInstrument,
+  type FollowUpItem,
+  type FollowUpSubmissionRequest,
+  type FollowUpSubmissionResponse,
+  followUpAccessRequestSchema,
+  followUpAccessResponseSchema,
+  followUpContactDeletionReportSchema,
+  followUpInstrument,
+  followUpInstrumentSchema,
+  followUpSubmissionRequestSchema,
+  followUpSubmissionResponseSchema,
+  normalizeFollowUpSubmission,
+} from './follow-up.js';
 export * from './instrument-runtime.js';
 export * from './live-qa.js';
 export * from './password-consequence.js';

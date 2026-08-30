@@ -22,6 +22,7 @@ export default defineConfig({
       'packages/training-engine/src/password-module-controller.test.ts',
       'packages/training-engine/src/password-module-privacy.test.ts',
       'apps/study-server/src/app.test.ts',
+      'apps/study-server/src/followup-operations.test.ts',
       'apps/study-server/src/recontact.test.ts',
       'apps/study-server/src/research-export.test.ts',
       'apps/study-server/src/runtime-restart.test.ts',

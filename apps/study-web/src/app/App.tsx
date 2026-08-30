@@ -1,4 +1,5 @@
 import {
+  FOLLOW_UP_PATH,
   designLabScenarioForPath,
   isDesignLabPath,
   isLiveQaPath,
@@ -18,6 +19,10 @@ const LiveQa = lazy(async () => {
   const module = await import('../live-qa/LiveQa.js');
   return { default: module.LiveQa };
 });
+const FollowUpFlow = lazy(async () => {
+  const module = await import('../features/follow-up/FollowUpFlow.js');
+  return { default: module.FollowUpFlow };
+});
 
 function RouteLoadingBoundary() {
   return (
@@ -27,8 +32,19 @@ function RouteLoadingBoundary() {
   );
 }
 
-export function App() {
+export function App({
+  initialFollowUpToken = null,
+}: {
+  readonly initialFollowUpToken?: string | null;
+}) {
   const { pathname } = window.location;
+  if (pathname === FOLLOW_UP_PATH) {
+    return (
+      <Suspense fallback={<RouteLoadingBoundary />}>
+        <FollowUpFlow initialToken={initialFollowUpToken} />
+      </Suspense>
+    );
+  }
   const liveQaRoute = liveQaRouteForPath(pathname);
   if (liveQaRoute !== null) {
     return (

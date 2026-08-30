@@ -3,6 +3,11 @@ import {
   type AssignmentMode,
   type CreateSessionRequest,
   type CreateSessionResponse,
+  FOLLOW_UP_INSTRUMENT_ID,
+  FOLLOW_UP_SECTION_ID,
+  type FollowUpAccessResponse,
+  type FollowUpSubmissionRequest,
+  followUpInstrument,
   type GuardrailFormId,
   guardrailFormIdSchema,
   guardrailPresentationForForm,
@@ -11,6 +16,7 @@ import {
   instrumentRuntimeManifest,
   type InstrumentSubmissionRequest,
   mainInstrumentBlocks,
+  normalizeFollowUpSubmission,
   normalizeInstrumentSubmission,
   type PersistedSessionRecord,
   type RecruitmentSource,
@@ -102,6 +108,15 @@ const followUpSessionSchema = z.object({
   completionStatus: z.string(),
   completedAtIso: z.string().nullable(),
 });
+const followUpRegistrationAccessSchema = z.object({
+  sessionId: z.string(),
+  completionStatus: z.string(),
+  followUpConsent: z.union([z.literal(0), z.literal(1)]),
+  followUpVersion: z.string(),
+  tokenHash: followUpTokenHashSchema,
+  firstInvitationAtIso: z.string().nullable(),
+  closesAtIso: z.string().nullable(),
+});
 
 export const artifactLeaseExpiresAfterMs = 5 * 60 * 1000;
 
@@ -114,7 +129,7 @@ function toCreateResponse(session: PersistedSessionRecord): CreateSessionRespons
   };
 }
 
-function submissionFingerprint(request: InstrumentSubmissionRequest): string {
+function submissionFingerprint(request: unknown): string {
   return createHash('sha256').update(jsonString(request), 'utf8').digest('hex');
 }
 
@@ -453,6 +468,128 @@ export class StudyRepository {
     save();
   }
 
+  followUpAccess(token: string): FollowUpAccessResponse {
+    const registration = this.#followUpRegistrationForToken(token);
+    if (registration === null) return { status: 'invalid' };
+
+    const submitted = this.#database
+      .prepare(
+        `SELECT 1
+         FROM instrument_submissions
+         WHERE session_id = ? AND instrument_id = ? AND section_id = ?`,
+      )
+      .get(registration.sessionId, FOLLOW_UP_INSTRUMENT_ID, FOLLOW_UP_SECTION_ID);
+    if (submitted !== undefined) return { status: 'submitted' };
+    if (
+      registration.followUpConsent !== 1 ||
+      registration.completionStatus !== 'completed' ||
+      registration.followUpVersion !== followUpInstrument.version ||
+      registration.firstInvitationAtIso === null ||
+      registration.closesAtIso === null
+    )
+      return { status: 'invalid' };
+
+    const now = Date.parse(this.#nowIso());
+    const opensAt = Date.parse(registration.firstInvitationAtIso);
+    const closesAt = Date.parse(registration.closesAtIso);
+    if (!Number.isFinite(now) || !Number.isFinite(opensAt) || !Number.isFinite(closesAt)) {
+      return { status: 'invalid' };
+    }
+    if (now < opensAt) {
+      return { status: 'not-yet-open', opensAtIso: registration.firstInvitationAtIso };
+    }
+    if (now >= closesAt) return { status: 'expired' };
+    return {
+      status: 'available',
+      reportingCutoffAtIso: registration.firstInvitationAtIso,
+      closesAtIso: registration.closesAtIso,
+    };
+  }
+
+  submitFollowUp(request: FollowUpSubmissionRequest): void {
+    const normalized = normalizeFollowUpSubmission(request);
+    const registration = this.#followUpRegistrationForToken(normalized.token);
+    if (registration === null) throw new StudyRepositoryError('follow-up-token-invalid', 404);
+    const fingerprint = submissionFingerprint({
+      voluntaryConfirmation: normalized.voluntaryConfirmation,
+      responses: normalized.responses,
+    });
+
+    const submit = this.#database.transaction(() => {
+      const existing = submissionFingerprintSchema.nullable().parse(
+        this.#database
+          .prepare(
+            `SELECT payload_fingerprint AS payloadFingerprint
+             FROM instrument_submissions
+             WHERE session_id = ? AND instrument_id = ? AND section_id = ?`,
+          )
+          .get(registration.sessionId, FOLLOW_UP_INSTRUMENT_ID, FOLLOW_UP_SECTION_ID) ?? null,
+      );
+      if (existing !== null) {
+        if (existing.payloadFingerprint !== fingerprint) {
+          throw new StudyRepositoryError('follow-up-already-submitted', 409);
+        }
+        return;
+      }
+
+      const access = this.followUpAccess(normalized.token);
+      if (access.status === 'not-yet-open') {
+        throw new StudyRepositoryError('follow-up-not-yet-open', 409);
+      }
+      if (access.status === 'expired') {
+        throw new StudyRepositoryError('follow-up-expired', 410);
+      }
+      if (access.status !== 'available') {
+        throw new StudyRepositoryError('follow-up-token-invalid', 404);
+      }
+
+      const submittedAtIso = this.#nowIso();
+      const insertResponse = this.#database.prepare(
+        `INSERT INTO responses (
+          session_id,
+          instrument_id,
+          instrument_version,
+          section_id,
+          item_id,
+          json_value,
+          created_at_iso
+        ) VALUES (?, ?, ?, ?, ?, ?, ?)`,
+      );
+      for (const response of normalized.responses) {
+        insertResponse.run(
+          registration.sessionId,
+          FOLLOW_UP_INSTRUMENT_ID,
+          registration.followUpVersion,
+          FOLLOW_UP_SECTION_ID,
+          response.itemId,
+          jsonString(response.value),
+          submittedAtIso,
+        );
+      }
+      this.#database
+        .prepare(
+          `INSERT INTO instrument_submissions (
+            session_id,
+            instrument_id,
+            instrument_version,
+            section_id,
+            payload_fingerprint,
+            submitted_at_iso
+          ) VALUES (?, ?, ?, ?, ?, ?)`,
+        )
+        .run(
+          registration.sessionId,
+          FOLLOW_UP_INSTRUMENT_ID,
+          registration.followUpVersion,
+          FOLLOW_UP_SECTION_ID,
+          fingerprint,
+          submittedAtIso,
+        );
+    });
+
+    submit();
+  }
+
   recordTiming(sessionId: string, event: StudyTimingEvent): TimingWriteResponse {
     this.recoverStaleArtifactSessions();
     const record = this.#database.transaction(() => {
@@ -739,6 +876,32 @@ export class StudyRepository {
       throw new StudyRepositoryError('session-not-found', 404);
     }
     return followUpSessionSchema.parse(row);
+  }
+
+  #followUpRegistrationForToken(
+    token: string,
+  ): z.infer<typeof followUpRegistrationAccessSchema> | null {
+    const parsedToken = followUpRawTokenSchema.safeParse(token);
+    if (!parsedToken.success) return null;
+    const tokenHash = createHash('sha256').update(parsedToken.data, 'utf8').digest('hex');
+    const row = this.#database
+      .prepare(
+        `SELECT
+          session.session_id AS sessionId,
+          session.completion_status AS completionStatus,
+          session.follow_up_consent AS followUpConsent,
+          session.follow_up_version AS followUpVersion,
+          registration.token_hash AS tokenHash,
+          registration.first_invitation_at_iso AS firstInvitationAtIso,
+          registration.closes_at_iso AS closesAtIso
+         FROM recontact.registrations AS registration
+         INNER JOIN study_sessions AS session
+           ON session.session_id = registration.session_id
+          AND session.follow_up_token_hash = registration.token_hash
+         WHERE registration.token_hash = ?`,
+      )
+      .get(tokenHash);
+    return row === undefined ? null : followUpRegistrationAccessSchema.parse(row);
   }
 
   #findRecontactRegistration(

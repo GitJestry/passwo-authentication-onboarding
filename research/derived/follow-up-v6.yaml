@@ -20,7 +20,7 @@ email:
 
     vor ungefähr zehn Tagen hast du an unserer Studie zu einem digitalen Lernangebot über Passwörter und den Schutz von Online-Konten teilgenommen. Die freiwillige kurze Nachbefragung ist jetzt verfügbar und dauert etwa zwei Minuten.
 
-    Zur Nachbefragung: [TOKEN_LINK]
+    Zur freiwilligen Nachbefragung: [TOKEN_LINK]
 
     Dieser freiwillige Folgefragebogen untersucht, ob du seit deiner Teilnahme konkrete Schritte zum Schutz deiner Online-Konten unternommen hast und welche Gründe eine Umsetzung erleichtert oder verhindert haben. Deine Teilnahme ist freiwillig. Wenn du nicht teilnimmst, entstehen dir keine Nachteile.
 
@@ -35,7 +35,7 @@ reminderEmail:
 
     dies ist die einmalige Erinnerung an die freiwillige Nachbefragung zu deiner Studienteilnahme. Falls du bereits teilgenommen hast, kannst du diese Nachricht ignorieren.
 
-    Zur Nachbefragung: [TOKEN_LINK]
+    Zur freiwilligen Nachbefragung: [TOKEN_LINK]
 
     Die Bearbeitung dauert etwa zwei Minuten. Deine Teilnahme ist freiwillig. Wenn du nicht teilnimmst, entstehen dir keine Nachteile. Bitte beziehe deine Angaben ausschließlich auf Handlungen, die du nach der Studie und bereits vor [STICHTAG] durchgeführt hattest. Der Link ist bis [CLOSES_AT] gültig und darf nicht weitergegeben werden.
 landingPage:
@@ -43,6 +43,25 @@ landingPage:
   disclosure: |-
     Dieser freiwillige Folgefragebogen untersucht, ob du seit deiner Teilnahme konkrete Schritte zum Schutz deiner Online-Konten unternommen hast und welche Gründe eine Umsetzung erleichtert oder verhindert haben. Die Bearbeitung dauert etwa zwei Minuten. Deine Teilnahme ist freiwillig. Wenn du nicht teilnimmst, entstehen dir keine Nachteile.
   voluntaryConfirmation: Ich habe die Informationen gelesen und möchte freiwillig an der Nachbefragung teilnehmen.
+interface:
+  loading: Nachbefragung wird geladen …
+  startLabel: Zur Nachbefragung
+  submitLabel: Antworten absenden
+  submittingLabel: Antworten werden gespeichert …
+  validationError: Bitte beantworte die beiden Fragen zu deinen Handlungen.
+  submitError: Deine Antworten konnten nicht gespeichert werden. Bitte versuche es erneut.
+  submittedHeading: Vielen Dank für deine Teilnahme.
+  submittedBody: Deine Antworten wurden gespeichert.
+  alreadySubmittedHeading: Die Nachbefragung wurde bereits abgeschlossen.
+  alreadySubmittedBody: Über diesen Link können keine weiteren Antworten abgegeben werden.
+  notYetOpenHeading: Die Nachbefragung ist noch nicht geöffnet.
+  notYetOpenBody: Bitte öffne den Link zum angegebenen Einladungszeitpunkt erneut.
+  expiredHeading: Die Nachbefragung ist beendet.
+  expiredBody: Über diesen Link können keine Antworten mehr abgegeben werden.
+  invalidHeading: Der Link ist nicht gültig.
+  invalidBody: Über diesen Link kann die Nachbefragung nicht geöffnet werden.
+  loadErrorHeading: Die Nachbefragung konnte nicht geladen werden.
+  loadErrorBody: Bitte versuche es später erneut.
 questionnaire:
   title: Freiwillige Nachbefragung
   reportingInstruction: Bitte beziehe dich ausschließlich auf Handlungen, die du nach deiner Studienteilnahme und bereits vor [STICHTAG] durchgeführt hattest.
@@ -50,6 +69,7 @@ questionnaire:
   items:
     - id: FU_PASSWORD_PM_ACTIONS
       type: multiChoice
+      heading: Passwörter und Passwortmanager
       prompt: Welche der folgenden Handlungen hast du nach der Studie und vor dem oben genannten Zeitpunkt durchgeführt?
       instruction: Mehrfachauswahl ist möglich. Integrierte und separat installierte Passwortmanager zählen gleichermaßen.
       options:
@@ -68,6 +88,7 @@ questionnaire:
       exclusiveOptions: [none]
     - id: FU_MFA_ACTIONS
       type: multiChoice
+      heading: MFA/2FA
       prompt: Welche der folgenden Handlungen hast du nach der Studie und vor dem oben genannten Zeitpunkt durchgeführt?
       instruction: Mehrfachauswahl ist möglich.
       options:

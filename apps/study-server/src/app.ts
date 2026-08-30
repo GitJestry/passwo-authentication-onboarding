@@ -153,6 +153,7 @@ export function buildStudyServer({
     webRepository.reconcileDataCompleteSessions();
     registerWebStudyRoutes(server, {
       repository: webRepository,
+      followUpRepository: repository,
       referenceArtifactAvailable,
       forcedSupportive: assignmentMode === 'forced-supportive',
       resumeCloseAtIso: webRuntime.resumeCloseAtIso,

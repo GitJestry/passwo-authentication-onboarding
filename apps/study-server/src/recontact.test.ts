@@ -3,13 +3,26 @@ import { mkdtempSync, readFileSync, rmSync, statSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { instrumentRuntimeManifest, mainInstrumentBlocks } from '@passwo/contracts';
+import {
+  followUpInstrument,
+  instrumentRuntimeManifest,
+  mainInstrumentBlocks,
+} from '@passwo/contracts';
 import Database from 'better-sqlite3';
 import type { FastifyInstance } from 'fastify';
 import { afterEach, describe, expect, it } from 'vitest';
 import { buildStudyServer } from './app.js';
 import { exportFollowUpSchedule } from './followup-schedule-export.js';
-import { createSession, savePreAndStartArtifact, submitBlock } from './test-support.js';
+import { runFollowUpContactDeletion } from './followup-contact-deletion.js';
+import { exportResearchData } from './research-export.js';
+import {
+  completeWebTestStudy,
+  createSession,
+  createWebTestSession,
+  savePreAndStartArtifact,
+  submitBlock,
+  webPost,
+} from './test-support.js';
 
 const servers: FastifyInstance[] = [];
 const temporaryDirectories: string[] = [];
@@ -277,7 +290,7 @@ describe('follow-up recontact boundary', () => {
       }),
     ).toEqual({ recordCount: 1 });
     const exported: unknown = JSON.parse(readFileSync(outputPath, 'utf8'));
-    expect(exported).toEqual([
+    expect(exported).toMatchObject([
       {
         email: 'followup@example.org',
         tokenLink: `https://survey.example.org/follow-up?token=${token}`,
@@ -286,6 +299,11 @@ describe('follow-up recontact boundary', () => {
         closesAtIso: '2026-08-07T12:00:00.000Z',
       },
     ]);
+    expect(JSON.stringify(exported)).toContain(followUpInstrument.email.subject);
+    expect(JSON.stringify(exported)).toContain(
+      `https://survey.example.org/follow-up?token=${token}`,
+    );
+    expect(JSON.stringify(exported)).not.toMatch(/\[(?:TOKEN_LINK|STICHTAG|CLOSES_AT)\]/u);
     expect(readFileSync(outputPath, 'utf8')).not.toMatch(/condition/iu);
     expect(statSync(outputPath).mode & 0o777).toBe(0o600);
     expect(readFileSync(outputPath, 'utf8')).not.toMatch(/smtp|gmail|credential/iu);
@@ -299,9 +317,167 @@ describe('follow-up recontact boundary', () => {
       }),
     ).toEqual({ recordCount: 1 });
     expect(readFileSync(csvOutputPath, 'utf8')).toContain(
-      'email,tokenLink,firstInvitationAtIso,reminderAtIso,closesAtIso',
+      'email,tokenLink,firstInvitationOperationId,reminderOperationId,firstInvitationAtIso,reminderAtIso,closesAtIso',
     );
     expect(statSync(csvOutputPath).mode & 0o777).toBe(0o600);
+
+    expect(
+      runFollowUpContactDeletion({
+        databasePath: paths.recontact,
+        mode: 'dry-run',
+        nowIso: '2026-08-07T11:59:59.999Z',
+      }),
+    ).toMatchObject({
+      eligible: false,
+      contactCountBefore: 1,
+      contactCountAfter: 1,
+    });
+    expect(
+      runFollowUpContactDeletion({
+        databasePath: paths.recontact,
+        mode: 'dry-run',
+        nowIso: '2026-08-07T12:00:00.000Z',
+      }),
+    ).toMatchObject({
+      eligible: true,
+      contactCountBefore: 1,
+      contactCountAfter: 1,
+      deletionDeadlineAtIso: '2026-08-14T12:00:00.000Z',
+    });
+    await server.close();
+    servers.splice(servers.indexOf(server), 1);
+    expect(
+      runFollowUpContactDeletion({
+        databasePath: paths.recontact,
+        mode: 'delete',
+        nowIso: '2026-08-07T12:00:00.000Z',
+      }),
+    ).toMatchObject({
+      contactCountBefore: 1,
+      contactCountAfter: 0,
+    });
+  });
+
+  it('accepts a token only in its window and stores one idempotent follow-up submission', async () => {
+    const paths = temporaryDatabasePaths();
+    let nowIso = '2026-07-24T12:00:00.000Z';
+    const tokens = ['A'.repeat(43), 'B'.repeat(43)];
+    const server = buildStudyServer({
+      version: '0.1.2',
+      assignmentMode: 'forced-supportive',
+      databasePath: paths.study,
+      recontactDatabasePath: paths.recontact,
+      nowIso: () => nowIso,
+      createRecontactToken: () => {
+        const token = tokens.shift();
+        if (token === undefined) throw new Error('missing-test-follow-up-token');
+        return token;
+      },
+      webRuntime: {
+        resumeCloseAtIso: '2026-08-01T12:00:00.000Z',
+        secureCookies: false,
+      },
+    });
+    servers.push(server);
+    const first = await createWebTestSession(server, 31);
+    const second = await createWebTestSession(server, 32);
+    await completeWebTestStudy(server, first, '81000000-0000-4000-8000-000000000031');
+    await completeWebTestStudy(server, second, '81000000-0000-4000-8000-000000000032', 100);
+
+    expect(
+      (await webPost(server, null, '/api/follow-up/access', { token: 'A'.repeat(43) })).json(),
+    ).toEqual({ status: 'not-yet-open', opensAtIso: '2026-08-03T12:00:00.000Z' });
+
+    nowIso = '2026-08-03T12:00:00.000Z';
+    expect(
+      (await webPost(server, null, '/api/follow-up/access', { token: 'A'.repeat(43) })).json(),
+    ).toEqual({
+      status: 'available',
+      reportingCutoffAtIso: '2026-08-03T12:00:00.000Z',
+      closesAtIso: '2026-08-07T12:00:00.000Z',
+    });
+
+    const submission = {
+      token: 'A'.repeat(43),
+      voluntaryConfirmation: true,
+      responses: [
+        { itemId: 'FU_PASSWORD_PM_ACTIONS', value: ['generated_stored_account_specific'] },
+        { itemId: 'FU_MFA_ACTIONS', value: ['enabled_mfa'] },
+        { itemId: 'FU_PASSWORD_PM_NONE_REASON', value: null },
+        { itemId: 'FU_MFA_NONE_REASON', value: null },
+      ],
+    };
+    expect((await webPost(server, null, '/api/follow-up/submissions', submission)).json()).toEqual({
+      submitted: true,
+    });
+    expect((await webPost(server, null, '/api/follow-up/submissions', submission)).json()).toEqual({
+      submitted: true,
+    });
+    await webPost(
+      server,
+      null,
+      '/api/follow-up/submissions',
+      {
+        ...submission,
+        responses: submission.responses.map((response) =>
+          response.itemId === 'FU_PASSWORD_PM_ACTIONS'
+            ? { ...response, value: ['inspected_available_manager'] }
+            : response,
+        ),
+      },
+      409,
+    );
+    expect(
+      (await webPost(server, null, '/api/follow-up/access', { token: 'A'.repeat(43) })).json(),
+    ).toEqual({ status: 'submitted' });
+
+    nowIso = '2026-08-07T12:00:00.000Z';
+    expect(
+      (await webPost(server, null, '/api/follow-up/access', { token: 'B'.repeat(43) })).json(),
+    ).toEqual({ status: 'expired' });
+
+    const studyDatabase = new Database(paths.study, { readonly: true });
+    expect(
+      studyDatabase
+        .prepare(
+          `SELECT instrument_id AS instrumentId, instrument_version AS instrumentVersion,
+                  section_id AS sectionId
+           FROM instrument_submissions
+           WHERE session_id = ? AND instrument_id = 'follow-up-v1'`,
+        )
+        .get(first.session.sessionId),
+    ).toEqual({
+      instrumentId: 'follow-up-v1',
+      instrumentVersion: 'follow-up-v6-pilot',
+      sectionId: 'actions',
+    });
+    expect(
+      studyDatabase
+        .prepare(
+          `SELECT COUNT(*) AS count FROM responses
+           WHERE session_id = ? AND instrument_id = 'follow-up-v1'`,
+        )
+        .get(first.session.sessionId),
+    ).toEqual({ count: 4 });
+    expect(
+      JSON.stringify(studyDatabase.prepare('PRAGMA table_info(study_sessions)').all()),
+    ).not.toMatch(/raw_token|\bemail\b/iu);
+    studyDatabase.close();
+
+    const exportDirectory = join(paths.directory, 'follow-up-analysis-export');
+    exportResearchData({
+      databasePath: paths.study,
+      outputDirectory: exportDirectory,
+      exportedAtIso: nowIso,
+      profile: 'analysis',
+    });
+    const exportedResponses = readFileSync(join(exportDirectory, 'responses.json'), 'utf8');
+    const exportedDictionary = readFileSync(join(exportDirectory, 'data-dictionary.json'), 'utf8');
+    expect(exportedResponses).toContain('follow-up-v1');
+    expect(exportedDictionary).toContain('FU_PASSWORD_PM_ACTIONS');
+    expect(`${exportedResponses}\n${exportedDictionary}`).not.toMatch(
+      /web-participant|raw_token|AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA/iu,
+    );
   });
 
   it('completes the main study without a recontact registration', async () => {

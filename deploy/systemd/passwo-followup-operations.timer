@@ -1,0 +1,11 @@
+[Unit]
+Description=Run PassWo follow-up operations every 15 minutes
+
+[Timer]
+OnCalendar=*:0/15
+Persistent=true
+RandomizedDelaySec=30
+Unit=passwo-followup-operations.service
+
+[Install]
+WantedBy=timers.target

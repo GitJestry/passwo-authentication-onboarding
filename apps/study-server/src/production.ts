@@ -50,10 +50,6 @@ function absolutePath(value: string): string {
 async function startProductionRuntime(): Promise<StudyRuntime> {
   const environment = productionEnvironmentSchema.parse(process.env);
   const origin = publicOrigin(environment.PASSWO_PUBLIC_ORIGIN);
-  const resumeCloseAtMs = Date.parse(environment.PASSWO_RESUME_CLOSE_AT);
-  if (resumeCloseAtMs <= Date.now()) {
-    throw new Error('PASSWO_RESUME_CLOSE_AT must be in the future when the service starts.');
-  }
 
   process.env.STUDY_DATA_DIR = absolutePath(environment.STUDY_DATA_DIR);
   const webBuildDirectory = absolutePath(

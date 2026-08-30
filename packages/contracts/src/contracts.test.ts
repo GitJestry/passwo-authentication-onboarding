@@ -3,6 +3,14 @@ import { describe, expect, it } from 'vitest';
 import reviewedInstrumentRuntimeManifest from '../../../research/derived/instruments-v1.runtime.json' with {
   type: 'json',
 };
+import reviewedFollowUpInstrument from '../../../research/derived/follow-up-v6.runtime.json' with {
+  type: 'json',
+};
+import {
+  followUpAccessResponseSchema,
+  followUpInstrument,
+  followUpSubmissionRequestSchema,
+} from './follow-up.js';
 import {
   type AuthoredStructureDemonstration,
   type LocalPasswordDisposition,
@@ -44,6 +52,54 @@ import {
 const validDeletionCodeHash = 'a'.repeat(64);
 
 describe('research-safe contracts', () => {
+  it('keeps the reviewed follow-up runtime projection exact and token responses identity-free', () => {
+    expect(followUpInstrument).toEqual(reviewedFollowUpInstrument);
+    expect(followUpInstrument.version).toBe('follow-up-v6-pilot');
+    expect(followUpInstrument.questionnaire.items).toHaveLength(4);
+    expect(
+      followUpAccessResponseSchema.parse({
+        status: 'available',
+        reportingCutoffAtIso: '2026-08-03T12:00:00.000Z',
+        closesAtIso: '2026-08-07T12:00:00.000Z',
+      }),
+    ).not.toHaveProperty('sessionId');
+  });
+
+  it('validates complete follow-up answers and conditional optional reasons', () => {
+    const token = 'A'.repeat(43);
+    const valid = {
+      token,
+      voluntaryConfirmation: true,
+      responses: [
+        { itemId: 'FU_PASSWORD_PM_ACTIONS', value: ['none'] },
+        { itemId: 'FU_MFA_ACTIONS', value: ['enabled_mfa'] },
+        { itemId: 'FU_PASSWORD_PM_NONE_REASON', value: null },
+        { itemId: 'FU_MFA_NONE_REASON', value: null },
+      ],
+    };
+    expect(followUpSubmissionRequestSchema.safeParse(valid).success).toBe(true);
+    expect(
+      followUpSubmissionRequestSchema.safeParse({
+        ...valid,
+        responses: valid.responses.map((response) =>
+          response.itemId === 'FU_PASSWORD_PM_ACTIONS'
+            ? { ...response, value: ['none', 'inspected_available_manager'] }
+            : response,
+        ),
+      }).success,
+    ).toBe(false);
+    expect(
+      followUpSubmissionRequestSchema.safeParse({
+        ...valid,
+        responses: valid.responses.map((response) =>
+          response.itemId === 'FU_MFA_NONE_REASON'
+            ? { ...response, value: 'no_opportunity' }
+            : response,
+        ),
+      }).success,
+    ).toBe(false);
+  });
+
   it('allows only approved session fields and excludes local training data', () => {
     const forbiddenPersonalizationField = ['display', 'Name'].join('');
     const result = createSessionRequestSchema.safeParse({

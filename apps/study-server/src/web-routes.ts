@@ -13,6 +13,10 @@ import {
   createSessionResponseSchema,
   deletionCodeHashSchema,
   deletionCodeSchema,
+  followUpAccessRequestSchema,
+  followUpAccessResponseSchema,
+  followUpSubmissionRequestSchema,
+  followUpSubmissionResponseSchema,
   instrumentSubmissionRequestSchema,
   recruitmentSourceSchema,
   type RecruitmentSource,
@@ -35,17 +39,21 @@ import {
 } from '@passwo/contracts';
 import type { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify';
 import { z } from 'zod';
-import { StudyRepositoryError } from './study-repository.js';
+import { type StudyRepository, StudyRepositoryError } from './study-repository.js';
 import type { WebRuntimeRepository } from './web-runtime-repository.js';
 
 const sessionParamsSchema = z.object({ sessionId: z.uuid() });
 const emptyRequestSchema = z.object({}).strict();
 const secureCookieName = '__Host-passwo-resume';
 const localCookieName = 'passwo-resume';
-const cookieNameSchema = z.string().regex(/^[A-Za-z0-9_-]+$/u).max(80);
+const cookieNameSchema = z
+  .string()
+  .regex(/^[A-Za-z0-9_-]+$/u)
+  .max(80);
 
 export interface WebStudyRouteOptions {
   readonly repository: WebRuntimeRepository;
+  readonly followUpRepository: StudyRepository;
   readonly referenceArtifactAvailable: boolean;
   readonly forcedSupportive: boolean;
   readonly resumeCloseAtIso: string;
@@ -71,9 +79,7 @@ function parseCookies(header: string | undefined): ReadonlyMap<string, string> {
 }
 
 function hashToken(token: WebResumeRawToken): WebResumeTokenHash {
-  return webResumeTokenHashSchema.parse(
-    createHash('sha256').update(token, 'utf8').digest('hex'),
-  );
+  return webResumeTokenHashSchema.parse(createHash('sha256').update(token, 'utf8').digest('hex'));
 }
 
 function newToken(factory?: () => WebResumeRawToken): WebResumeRawToken {
@@ -98,7 +104,10 @@ function hashDeletionCode(deletionCode: ReturnType<typeof deletionCodeForToken>)
   );
 }
 
-function expiryFor(nowIso: string, closeAtIso: string): {
+function expiryFor(
+  nowIso: string,
+  closeAtIso: string,
+): {
   readonly expiresAtIso: string;
   readonly maxAgeSeconds: number;
 } {
@@ -183,6 +192,7 @@ export function registerWebStudyRoutes(
 ): void {
   const {
     repository,
+    followUpRepository,
     referenceArtifactAvailable,
     forcedSupportive,
     resumeCloseAtIso,
@@ -195,10 +205,26 @@ export function registerWebStudyRoutes(
   } = options;
   const cookieName = resolvedCookieName(secureCookies, resumeCookieName);
 
+  server.post('/api/follow-up/access', async (request, reply) => {
+    requireWriteRequest(request, publicOrigin);
+    const { token } = followUpAccessRequestSchema.parse(request.body);
+    return reply.send(followUpAccessResponseSchema.parse(followUpRepository.followUpAccess(token)));
+  });
+
+  server.post('/api/follow-up/submissions', async (request, reply) => {
+    requireWriteRequest(request, publicOrigin);
+    followUpRepository.submitFollowUp(followUpSubmissionRequestSchema.parse(request.body));
+    return reply.send(followUpSubmissionResponseSchema.parse({ submitted: true }));
+  });
+
   const authenticate = (
     request: FastifyRequest,
     allowCompleted = false,
-  ): { readonly sessionId: string; readonly token: WebResumeRawToken; readonly hash: WebResumeTokenHash } => {
+  ): {
+    readonly sessionId: string;
+    readonly token: WebResumeRawToken;
+    readonly hash: WebResumeTokenHash;
+  } => {
     const token = rawToken(request, cookieName);
     if (token === null) throw new StudyRepositoryError('resume-token-required', 401);
     const hash = hashToken(token);
@@ -269,14 +295,7 @@ export function registerWebStudyRoutes(
       binding.deletionCodeHash === hashDeletionCode(deletionCode) ? deletionCode : null,
     );
     repository.refreshToken(binding.sessionId, hash, expiry.expiresAtIso);
-    setCookie(
-      reply,
-      token,
-      expiry.expiresAtIso,
-      expiry.maxAgeSeconds,
-      secureCookies,
-      cookieName,
-    );
+    setCookie(reply, token, expiry.expiresAtIso, expiry.maxAgeSeconds, secureCookies, cookieName);
     return reply.send(webResumeResponseSchema.parse({ session }));
   });
 
@@ -296,13 +315,9 @@ export function registerWebStudyRoutes(
     }
     const body = webCreateSessionRequestSchema.parse(request.body);
     const cookieToken = rawToken(request, cookieName);
-    const cookieBinding = cookieToken === null
-      ? null
-      : repository.resumeTokenBinding(hashToken(cookieToken));
-    if (
-      cookieBinding?.active === true &&
-      cookieBinding.createRequestId !== body.requestId
-    ) {
+    const cookieBinding =
+      cookieToken === null ? null : repository.resumeTokenBinding(hashToken(cookieToken));
+    if (cookieBinding?.active === true && cookieBinding.createRequestId !== body.requestId) {
       throw new StudyRepositoryError('active-session-already-exists', 409);
     }
     const token =
@@ -311,10 +326,7 @@ export function registerWebStudyRoutes(
         : cookieToken;
     const deletionCode = deletionCodeForToken(token);
     const deletionCodeHash = hashDeletionCode(deletionCode);
-    if (
-      cookieBinding?.active === true &&
-      cookieBinding.deletionCodeHash !== deletionCodeHash
-    ) {
+    if (cookieBinding?.active === true && cookieBinding.deletionCodeHash !== deletionCodeHash) {
       throw new StudyRepositoryError('resume-token-deletion-code-mismatch', 409);
     }
     const hash = hashToken(token);
@@ -335,17 +347,10 @@ export function registerWebStudyRoutes(
         expiry.expiresAtIso,
       ),
     );
-    setCookie(
-      reply,
-      token,
-      expiry.expiresAtIso,
-      expiry.maxAgeSeconds,
-      secureCookies,
-      cookieName,
-    );
-    return reply.status(201).send(
-      webCreateSessionResponseSchema.parse({ ...session, deletionCode }),
-    );
+    setCookie(reply, token, expiry.expiresAtIso, expiry.maxAgeSeconds, secureCookies, cookieName);
+    return reply
+      .status(201)
+      .send(webCreateSessionResponseSchema.parse({ ...session, deletionCode }));
   });
 
   server.post<{ Params: { sessionId: string } }>(
@@ -370,9 +375,11 @@ export function registerWebStudyRoutes(
     async (request, reply) => {
       const { sessionId } = sessionParamsSchema.parse(request.params);
       authenticateSession(request, sessionId, true);
-      return reply.send(sessionStatusResponseSchema.parse({
-        completionStatus: repository.getSessionStatus(sessionId),
-      }));
+      return reply.send(
+        sessionStatusResponseSchema.parse({
+          completionStatus: repository.getSessionStatus(sessionId),
+        }),
+      );
     },
   );
 
