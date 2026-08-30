@@ -11,6 +11,7 @@ import {
   PasswordModuleController,
   type PasswordModuleResumeSegmentId,
   type PasswordModuleSnapshot,
+  type PasswordModuleTransientResumeState,
   type RetrievalResult,
   type SegmentTimingPort,
 } from '@passwo/training-engine';
@@ -49,6 +50,12 @@ import {
   preloadTrainingSegmentImages,
   type TrainingSegmentId,
 } from './training-runtime-assets.js';
+import {
+  clearSupportiveReloadCheckpoint,
+  type SupportiveReloadCheckpoint,
+  type SupportiveReloadSegmentId,
+  writeSupportiveReloadCheckpoint,
+} from './supportive-reload-checkpoint.js';
 
 const loadS01Training = () => import('./S01Training.js');
 const loadS02Training = () => import('./segments/S02/S02AccountExplorationTraining.js');
@@ -164,16 +171,52 @@ function TrainingSegmentLoadingBoundary() {
 }
 
 export interface PasswordModuleTrainingProps {
+  readonly sessionId?: string;
+  readonly reloadCheckpointEnabled?: boolean;
   readonly timingPort?: SegmentTimingPort;
   readonly externalTimingError?: string | null;
   readonly onRetryExternalTiming?: () => void;
   readonly resumeSegmentId?: PasswordModuleResumeSegmentId;
+  readonly reloadCheckpoint?: SupportiveReloadCheckpoint;
   readonly resumeState?: SupportiveS08ResumeState;
   readonly onS08Checkpoint?: (resumeState: SupportiveS08ResumeState) => Promise<void>;
   readonly onPostS08Checkpoint?: (
     segmentId: SupportivePostS08SegmentId,
   ) => Promise<void>;
   readonly onComplete?: () => void;
+}
+
+function reloadSegmentForSnapshot(
+  snapshot: PasswordModuleSnapshot,
+): SupportiveReloadSegmentId | null {
+  if (snapshot.matches('s01')) return 'S01';
+  if (snapshot.matches('s02')) return 'S02';
+  if (snapshot.matches('s03')) return 'S03';
+  if (snapshot.matches('s04')) return 'S04';
+  if (snapshot.matches('strengthTransition') || snapshot.matches('s05')) return 'S05';
+  if (snapshot.matches('uniquenessTransition') || snapshot.matches('s06')) return 'S06';
+  if (
+    snapshot.matches('changeTransition') ||
+    snapshot.matches('s07') ||
+    snapshot.matches('awaiting-s08')
+  ) {
+    return 'S07';
+  }
+  return null;
+}
+
+function transientResumeStateForSnapshot(
+  snapshot: PasswordModuleSnapshot,
+): PasswordModuleTransientResumeState | null {
+  if (snapshot.context.displayName === null) return null;
+  return {
+    displayName: snapshot.context.displayName,
+    activeAccountId: snapshot.context.activeAccountId,
+    passwordValues: { ...snapshot.context.passwordValues },
+    configuredAccountIds: [...snapshot.context.configuredAccountIds],
+    s02ContentCompleted: snapshot.context.s02ContentCompleted,
+    retrievalResults: { ...snapshot.context.retrievalResults },
+  };
 }
 
 function lateTrainingInitialStage(
@@ -218,17 +261,20 @@ export function PasswordModuleTraining(props: PasswordModuleTrainingProps) {
 }
 
 function PasswordModuleTrainingContent({
+  sessionId,
+  reloadCheckpointEnabled = false,
   timingPort,
   externalTimingError = null,
   onRetryExternalTiming,
   resumeSegmentId,
+  reloadCheckpoint,
   resumeState,
   onS08Checkpoint,
   onPostS08Checkpoint,
   onComplete,
 }: PasswordModuleTrainingProps) {
   const [snapshot, setSnapshot] = useState<PasswordModuleSnapshot | null>(null);
-  const [platform, setPlatform] = useState<DesktopPlatform>('mac');
+  const [platform, setPlatform] = useState<DesktopPlatform>(reloadCheckpoint?.platform ?? 'mac');
   const [lateTrainingTools, setLateTrainingTools] = useState<LateTrainingTools | null>(null);
   const [campusgramPassphraseId, setCampusgramPassphraseId] =
     useState<PredefinedPassphraseId | null>(null);
@@ -243,8 +289,9 @@ function PasswordModuleTrainingContent({
   // Local intervention evidence only; never copied into machine context or research exports.
   const [semanticEvidenceByAccount, setSemanticEvidenceByAccount] = useState<
     Partial<Record<S06AccountId, TransientPasswordSemanticEvidence>>
-  >({});
+  >(reloadCheckpoint?.semanticEvidenceByAccount ?? {});
   const controllerRef = useRef<PasswordModuleController | null>(null);
+  const storedReloadSegmentRef = useRef<SupportiveReloadSegmentId | null>(null);
   const s08BoundaryStartedRef = useRef(resumeState !== undefined);
   const entrySceneRef = useRef<HTMLDivElement | null>(null);
   const entryCharacterRef = useRef<HTMLImageElement | null>(null);
@@ -363,10 +410,16 @@ function PasswordModuleTrainingContent({
       accountIds: s01Content.browser.accounts.map(({ id }) => id),
       ...(timingPort === undefined ? {} : { timingPort }),
       ...(resumeSegmentId === undefined ? {} : { resumeSegmentId }),
+      ...(reloadCheckpoint === undefined
+        ? {}
+        : { transientResumeState: reloadCheckpoint.transientState }),
     });
     const unsubscribe = controller.subscribe(setSnapshot);
     controllerRef.current = controller;
+    storedReloadSegmentRef.current = null;
     s08BoundaryStartedRef.current = resumeState !== undefined;
+    setPlatform(reloadCheckpoint?.platform ?? 'mac');
+    setSemanticEvidenceByAccount(reloadCheckpoint?.semanticEvidenceByAccount ?? {});
     setPostS08DisplayName('');
     setS08ResumeState(resumeState ?? null);
     setS08CheckpointStatus(resumeState === undefined ? 'idle' : 'ready');
@@ -377,7 +430,42 @@ function PasswordModuleTrainingContent({
       controller.dispose();
       controllerRef.current = null;
     };
-  }, [resumeSegmentId, resumeState, timingPort]);
+  }, [reloadCheckpoint, resumeSegmentId, resumeState, timingPort]);
+
+  const reloadSegmentId = snapshot === null ? null : reloadSegmentForSnapshot(snapshot);
+
+  useEffect(() => {
+    if (
+      !reloadCheckpointEnabled ||
+      sessionId === undefined ||
+      snapshot === null ||
+      reloadSegmentId === null ||
+      storedReloadSegmentRef.current === reloadSegmentId
+    ) {
+      return;
+    }
+    const transientState = transientResumeStateForSnapshot(snapshot);
+    if (transientState === null) return;
+    const stored = writeSupportiveReloadCheckpoint({
+      sessionId,
+      segmentId: reloadSegmentId,
+      platform,
+      transientState,
+      semanticEvidenceByAccount,
+    });
+    if (stored) storedReloadSegmentRef.current = reloadSegmentId;
+  }, [
+    platform,
+    reloadCheckpointEnabled,
+    reloadSegmentId,
+    semanticEvidenceByAccount,
+    sessionId,
+    snapshot,
+  ]);
+
+  useEffect(() => {
+    if (resumeState !== undefined) clearSupportiveReloadCheckpoint();
+  }, [resumeState]);
 
   useEffect(() => {
     if (
@@ -398,12 +486,16 @@ function PasswordModuleTrainingContent({
     setSemanticEvidenceByAccount({});
     controllerRef.current?.enterS08();
     if (onS08Checkpoint === undefined) {
+      clearSupportiveReloadCheckpoint();
       setS08CheckpointStatus('ready');
       return;
     }
     setS08CheckpointStatus('pending');
     void onS08Checkpoint(minimalResumeState).then(
-      () => setS08CheckpointStatus('ready'),
+      () => {
+        clearSupportiveReloadCheckpoint();
+        setS08CheckpointStatus('ready');
+      },
       () => setS08CheckpointStatus('error'),
     );
   }, [campusgramPassphraseId, onS08Checkpoint, s06Plan, snapshot]);
@@ -797,7 +889,10 @@ function PasswordModuleTrainingContent({
               if (onS08Checkpoint === undefined) return;
               setS08CheckpointStatus('pending');
               void onS08Checkpoint(s08ResumeState).then(
-                () => setS08CheckpointStatus('ready'),
+                () => {
+                  clearSupportiveReloadCheckpoint();
+                  setS08CheckpointStatus('ready');
+                },
                 () => setS08CheckpointStatus('error'),
               );
             }}

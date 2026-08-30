@@ -40,11 +40,14 @@ Lies private Rohquellen nie pauschal.
 
 ## 2. Nicht verhandelbare Forschungs- und Datenschutzgrenzen
 
-- Sende oder speichere niemals Anzeigenamen, fiktive Passwörter, Passwortteile,
-  Ähnlichkeitsbefunde oder sonstige Trainingsentscheidungen.
-- Verwende weder `localStorage`, `sessionStorage`, IndexedDB noch Service Worker für
-  Teilnehmer- oder Trainingszustand. Zulässig ist ausschließlich der in ADR 0016 festgelegte
-  opake, `Secure`- und `HttpOnly`-geschützte first-party Rückkehrschlüssel.
+- Sende Anzeigenamen, fiktive Passwörter, Passwortteile, Ähnlichkeitsbefunde oder sonstige
+  Trainingsentscheidungen niemals an den Server und persistiere sie nicht als Forschungsdaten.
+  Die einzige enge lokale Ausnahme ist der in ADR 0016 festgelegte, versionierte S01–S07-
+  Reload-Checkpoint in tab-lokalem `sessionStorage`: nur minimal nötiger Trainingszustand,
+  zweistündige TTL, keine Netzwerkübertragung und Löschung nach bestätigtem S08-Checkpoint.
+- `localStorage`, IndexedDB und Service Worker bleiben für Teilnehmer- oder Trainingszustand
+  unzulässig. `sessionStorage` ist ausschließlich für den vorgenannten Reload-Checkpoint erlaubt;
+  der langfristige Rückkehrschlüssel bleibt opak, `Secure` und `HttpOnly` geschützt.
 - Persistierbar sind nur die im Data Contract benannten Datenklassen: pseudonyme Session- und
   Forschungskennungen, Bedingung und Form, Versionen, Einwilligungsstatus, Instrumentantworten,
   Timingereignisse, Abschlussstatus, notwendige technische Fehlercodes sowie der Hash des

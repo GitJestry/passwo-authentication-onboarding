@@ -30,6 +30,43 @@ function reachAwaitingIncidentOpen(controller: PasswordModuleController): void {
 }
 
 describe('PasswordModuleController', () => {
+  it('records the exact resumed S05 start boundary for a hydrated reload checkpoint', async () => {
+    const timingEvents: SegmentTimingEvent[] = [];
+    const controller = new PasswordModuleController({
+      accountIds: ['master-campus', 'campus-email', 'campusgram'],
+      resumeSegmentId: 'S05',
+      transientResumeState: {
+        displayName: 'Alex',
+        activeAccountId: 'campusgram',
+        passwordValues: {
+          'master-campus': 'MasterCampus!23',
+          'campus-email': 'CampusMail!45',
+          campusgram: 'Campusgram!67',
+        },
+        configuredAccountIds: ['master-campus', 'campus-email', 'campusgram'],
+        s02ContentCompleted: true,
+        retrievalResults: {
+          'master-campus': 'assisted',
+          'campus-email': 'retrievable',
+          campusgram: 'retrievable',
+        },
+      },
+      timingPort: {
+        record: async (event) => {
+          timingEvents.push(event);
+        },
+      },
+    });
+
+    expect(controller.getSnapshot().matches({ s05: 'writingStart' })).toBe(true);
+    await flushMicrotasks();
+    expect(timingEvents).toEqual([
+      { eventType: 'segment-start', segmentId: 'S05', sectionId: 'passwords' },
+    ]);
+    expect(controller.getSnapshot().matches({ s05: 'active' })).toBe(true);
+    controller.dispose();
+  });
+
   it('records S01–S07 boundaries around the transition into S07', async () => {
     const timingEvents: SegmentTimingEvent[] = [];
     const controller = new PasswordModuleController({

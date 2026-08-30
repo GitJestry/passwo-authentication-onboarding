@@ -73,7 +73,7 @@ export interface S05DesignLabFixture {
   readonly startSection: 'intro' | 'components' | 'structure';
 }
 
-export const S05_CONTENT_VERSION = '2.136.0';
+export const S05_CONTENT_VERSION = '2.136.1';
 
 export const s05Content = {
   version: S05_CONTENT_VERSION,
@@ -234,7 +234,7 @@ export const s05Content = {
         'Angreifer können damit nach öffentlich verfügbaren Angaben wie Name, Geburtsdatum oder Interessen suchen und diese als mögliche Passwortbestandteile ausprobieren.',
       ],
       explanation: [
-        'Deine Auswahl wird weder gespeichert noch exportiert. Markiere für den Selbstcheck mögliche persönliche Angaben im fiktiven Passwort.',
+        'Deine Auswahl wird weder dauerhaft gespeichert noch exportiert. Markiere für den Selbstcheck mögliche persönliche Angaben im fiktiven Passwort.',
       ],
       machine: {
         conveyorBlocks: [

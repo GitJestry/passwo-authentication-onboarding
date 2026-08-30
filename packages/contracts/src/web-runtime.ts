@@ -191,6 +191,7 @@ export const webResumeSessionSchema = z
     assignmentMode: assignmentModeSchema,
     guardrailFormId: guardrailFormIdSchema,
     followUpConsent: z.boolean(),
+    consentVersion: z.string().trim().min(1).max(80),
     checkpoint: studyProgressCheckpointSchema,
     resumeTarget: studyResumeTargetSchema,
     nextInstrumentBlockIndex: z.number().int().min(0).max(mainInstrumentBlocks.length),

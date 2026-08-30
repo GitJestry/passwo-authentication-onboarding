@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-export const SUPPORTIVE_ARTIFACT_VERSION = 'supportive-s00-s17-1.27.1';
+export const SUPPORTIVE_ARTIFACT_VERSION = 'supportive-s00-s17-1.27.2';
 export const REFERENCE_ARTIFACT_VERSION =
   'secaware-passwords-authentication-v9-study-adapted-2026-07-30-r16';
 export const REFERENCE_ARTIFACT_SNAPSHOT_ID = 'secaware-passwords-authentication-2026-07-26';
@@ -108,11 +108,7 @@ export const supportivePostS08SegmentIdSchema = z.enum(
 export type SupportivePostS08SegmentId = z.infer<
   typeof supportivePostS08SegmentIdSchema
 >;
-export type SupportiveResumeSegmentId =
-  | 'S00'
-  | 'S01'
-  | 'S08'
-  | SupportivePostS08SegmentId;
+export type SupportiveResumeSegmentId = SegmentId;
 
 export const trainingSectionIdSchema = z.enum(['passwords', 'password-manager', 'mfa']);
 export type TrainingSectionId = z.infer<typeof trainingSectionIdSchema>;
@@ -179,10 +175,13 @@ export function supportiveSectionResumeTargetFor(
 }
 
 /**
- * S00–S07 checkpoints contain no training input. S01 creates the fictional identity and passwords
- * needed by the rest of that transient section, so an interrupted later segment safely rebuilds
- * it from S01. From S08 onward each content-free checkpoint resumes at its own segment entry while
- * the separately typed minimal S08 state reconstructs only predefined simulation values.
+ * This is the privacy-safe server fallback when no matching tab-local reload checkpoint exists.
+ * S01 creates the fictional identity and passwords needed by the rest of the section, so S02–S07
+ * can still rebuild from S01 after a longer interruption or unavailable browser state. The web
+ * client may resume S01–S07 at the exact checkpoint only when a matching short-lived
+ * tab-local reload snapshot is available. From S08 onward each content-free checkpoint resumes at
+ * its own segment entry while the separately typed minimal S08 state reconstructs only predefined
+ * simulation values.
  */
 export function supportiveResumeSegmentFor(checkpoint: SegmentId): SupportiveResumeSegmentId {
   return supportiveSectionResumeTargets[checkpoint].segmentId;

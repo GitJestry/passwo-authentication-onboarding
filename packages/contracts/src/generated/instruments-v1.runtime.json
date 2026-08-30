@@ -3,9 +3,9 @@
   "instrumentVersion": "3.0.0-pilot",
   "questionnaireVersion": "questionnaire-v4-pilot",
   "guardrailVersion": "guardrail-v6-pilot",
-  "consentVersion": "consent-v13-pilot",
+  "consentVersion": "consent-v14-pilot",
   "followUpVersion": "follow-up-v6-pilot",
-  "runtimeManifestVersion": "instrument-runtime-v9-pilot",
+  "runtimeManifestVersion": "instrument-runtime-v10-pilot",
   "language": "de-DE",
   "participantTerm": "Lernangebot",
   "scales": {
@@ -139,7 +139,7 @@
           "heading": "Welche Daten werden verarbeitet?",
           "paragraphs": [
             "Gespeichert werden deine Fragebogenantworten sowie technische Angaben zum Studienablauf, etwa Bearbeitungszeiten, der letzte gespeicherte Abschnitt und der Abschlussstatus.",
-            "Reale Passwörter, Kontonamen, Sicherheitscodes oder Zugangsdaten werden nicht erhoben. Fiktive Passwörter aus dem Lernangebot werden weder gespeichert noch übertragen.",
+            "Reale Passwörter, Kontonamen, Sicherheitscodes oder Zugangsdaten werden nicht erhoben. Fiktive Passwörter aus dem Lernangebot werden nur vorübergehend im Browser gespeichert, nicht an unseren Server übertragen und nicht als Forschungsdaten gespeichert.",
             "Die Forschungsdaten werden unter einer zufälligen Studien-ID gespeichert. Name und E-Mail-Adresse sind nicht Teil des Forschungsdatensatzes. Ein zufälliger technischer Rückkehrschlüssel wird in deinem Browser gespeichert, damit du eine unterbrochene Teilnahme während des Erhebungszeitraums im selben Browser fortsetzen kannst. Er enthält keine Antworten oder Kontaktdaten.",
             "Zugriff auf die gespeicherten Daten haben nur die für Durchführung, Auswertung und Aufbewahrung zuständigen Personen an der Universität Bonn."
           ]
@@ -202,7 +202,7 @@
       "essentialSummaryParagraphs": [
         "Dauer: etwa 30 Minuten",
         "Freiwilligkeit: jederzeit unterbrechbar; unvollständige Teilnahmen werden nicht ausgewertet",
-        "Datenschutz: pseudonymisierte Forschungsdaten; keine realen Passwörter oder Zugangsdaten; fiktive Passwörter werden nicht gespeichert",
+        "Datenschutz: pseudonymisierte Forschungsdaten; keine realen Passwörter oder Zugangsdaten; fiktive Passwörter werden nur vorübergehend im Browser gespeichert und nicht an unseren Server übertragen",
         "Optionale Nachbefragung: etwa zwei Minuten nach ca. zehn Tagen"
       ]
     },

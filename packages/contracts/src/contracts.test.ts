@@ -199,6 +199,7 @@ describe('research-safe contracts', () => {
         assignmentMode: 'forced-supportive',
         guardrailFormId: 'F1',
         followUpConsent: false,
+        consentVersion: 'consent-v14-pilot',
         checkpoint: 'pre-questionnaire',
         resumeTarget: 'pre-questionnaire',
         nextInstrumentBlockIndex: 0,
@@ -239,7 +240,7 @@ describe('research-safe contracts', () => {
   });
 
   it('keeps canonical artifact versions and the S00–S07 segment order', () => {
-    expect(SUPPORTIVE_ARTIFACT_VERSION).toBe('supportive-s00-s17-1.27.1');
+    expect(SUPPORTIVE_ARTIFACT_VERSION).toBe('supportive-s00-s17-1.27.2');
     expect(SUPPORTIVE_ARTIFACT_VERSION).not.toBe(REFERENCE_ARTIFACT_VERSION);
     expect(SUPPORTIVE_ARTIFACT_SEGMENT_IDS).toEqual([
       'S00',
@@ -366,6 +367,7 @@ describe('research-safe contracts', () => {
       assignmentMode: 'forced-supportive',
       guardrailFormId: 'F1',
       followUpConsent: false,
+      consentVersion: 'consent-v14-pilot',
       checkpoint: 'supportive:S08',
       resumeTarget: 'artifact',
       nextInstrumentBlockIndex: 2,
@@ -747,9 +749,9 @@ describe('research-safe contracts', () => {
       instrumentVersion: '3.0.0-pilot',
       questionnaireVersion: 'questionnaire-v4-pilot',
       guardrailVersion: 'guardrail-v6-pilot',
-      consentVersion: 'consent-v13-pilot',
+      consentVersion: 'consent-v14-pilot',
       followUpVersion: 'follow-up-v6-pilot',
-      runtimeManifestVersion: 'instrument-runtime-v9-pilot',
+      runtimeManifestVersion: 'instrument-runtime-v10-pilot',
     });
     expect(Object.keys(instrumentRuntimeManifest.instruments)).toEqual([
       'pre-v1',
@@ -894,7 +896,7 @@ describe('research-safe contracts', () => {
       'Bis zum Abschluss der Datenauswertung und Prüfung des Datensatzes bleiben die Forschungsdaten pseudonymisiert.',
     );
     expect(participantInformation).toContain(
-      'Fiktive Passwörter aus dem Lernangebot werden weder gespeichert noch übertragen.',
+      'Fiktive Passwörter aus dem Lernangebot werden nur vorübergehend im Browser gespeichert, nicht an unseren Server übertragen und nicht als Forschungsdaten gespeichert.',
     );
     expect(participantInformation).not.toMatch(
       /\[OFFEN|Sciebo|zugewiesenen Bedingung|Einzelheiten zum Vergleich|20 bis 30 Minuten|verpflichtender zweiter Teil/u,

@@ -39,6 +39,12 @@ import {
 } from '../artifact-loaders.js';
 import { prefetchReferenceArtifact } from '../reference/reference-prefetch.js';
 import { TrainingClipboardBoundary } from '../training/TrainingClipboardBoundary.js';
+import {
+  clearSupportiveReloadCheckpoint,
+  isSupportiveReloadSegmentId,
+  readSupportiveReloadCheckpoint,
+  type SupportiveReloadCheckpoint,
+} from '../training/supportive-reload-checkpoint.js';
 import { GuardrailBlockForm, QuestionnaireSectionForm } from './InstrumentForm.js';
 import styles from './StudyFlow.module.css';
 
@@ -463,20 +469,26 @@ function RecontactError({
 }
 
 function SupportiveArtifact({
+  sessionId,
+  reloadCheckpointEnabled,
   timingPort,
   timingError,
   onRetryTiming,
   resumeSegmentId,
   resumeState,
+  reloadCheckpoint,
   onS08Checkpoint,
   onPostS08Checkpoint,
   onComplete,
 }: {
+  readonly sessionId: string;
+  readonly reloadCheckpointEnabled: boolean;
   readonly timingPort: BrowserSegmentTimingAdapter;
   readonly timingError: string | null;
   readonly onRetryTiming: () => void;
   readonly resumeSegmentId?: SupportiveResumeSegmentId;
   readonly resumeState?: SupportiveS08ResumeState;
+  readonly reloadCheckpoint?: SupportiveReloadCheckpoint;
   readonly onS08Checkpoint: (resumeState: SupportiveS08ResumeState) => Promise<void>;
   readonly onPostS08Checkpoint: (
     segmentId: SupportivePostS08SegmentId,
@@ -486,11 +498,14 @@ function SupportiveArtifact({
   return (
     <TrainingClipboardBoundary allowCopy={false}>
       <PasswordModuleTraining
+        sessionId={sessionId}
+        reloadCheckpointEnabled={reloadCheckpointEnabled}
         timingPort={timingPort}
         externalTimingError={timingError}
         onRetryExternalTiming={onRetryTiming}
         {...(resumeSegmentId === undefined ? {} : { resumeSegmentId })}
         {...(resumeState === undefined ? {} : { resumeState })}
+        {...(reloadCheckpoint === undefined ? {} : { reloadCheckpoint })}
         onS08Checkpoint={onS08Checkpoint}
         onPostS08Checkpoint={onPostS08Checkpoint}
         onComplete={onComplete}
@@ -579,20 +594,52 @@ function HydratedStudyFlow({
   const currentBlock = mainInstrumentBlocks[context.instrumentBlockCursor];
   const currentQuestionnaireBlock = mainInstrumentBlocks[context.questionnaireBlockCursor];
   const completeArtifact = useCallback(() => send({ type: 'ARTIFACT_COMPLETED' }), [send]);
+  const supportiveCheckpointSegment = useMemo(() => {
+    if (!context.interrupted || context.artifactCheckpoint === null) return undefined;
+    const parsed = supportiveCheckpointSchema.safeParse(context.artifactCheckpoint);
+    if (
+      !parsed.success ||
+      parsed.data === 'supportive:complete' ||
+      parsed.data === 'supportive:entry'
+    ) {
+      return undefined;
+    }
+    return segmentIdSchema.parse(parsed.data.slice('supportive:'.length));
+  }, [context.artifactCheckpoint, context.interrupted]);
+  const supportiveReloadCheckpointEnabled =
+    resumeSession === null ||
+    resumeSession.consentVersion === instrumentRuntimeManifest.consentVersion;
+  const supportiveReloadCheckpoint = useMemo(() => {
+    if (
+      !supportiveReloadCheckpointEnabled ||
+      context.sessionId === null ||
+      supportiveCheckpointSegment === undefined ||
+      !isSupportiveReloadSegmentId(supportiveCheckpointSegment)
+    ) {
+      return undefined;
+    }
+    return (
+      readSupportiveReloadCheckpoint(context.sessionId, supportiveCheckpointSegment) ?? undefined
+    );
+  }, [context.sessionId, supportiveCheckpointSegment, supportiveReloadCheckpointEnabled]);
   const supportiveResumeSegment = useMemo(() => {
     if (!context.interrupted || context.artifactCheckpoint === null) return undefined;
     const parsed = supportiveCheckpointSchema.safeParse(context.artifactCheckpoint);
     if (!parsed.success || parsed.data === 'supportive:complete') return undefined;
     if (parsed.data === 'supportive:entry') return 'S00';
-    if (parsed.data === 'supportive:S08') return 'S08';
-    return supportiveResumeSegmentFor(
-      segmentIdSchema.parse(parsed.data.slice('supportive:'.length)),
-    );
-  }, [context.artifactCheckpoint, context.interrupted]);
+    const checkpointSegment = segmentIdSchema.parse(parsed.data.slice('supportive:'.length));
+    if (
+      isSupportiveReloadSegmentId(checkpointSegment) &&
+      supportiveReloadCheckpoint?.segmentId === checkpointSegment
+    ) {
+      return checkpointSegment;
+    }
+    return supportiveResumeSegmentFor(checkpointSegment);
+  }, [context.artifactCheckpoint, context.interrupted, supportiveReloadCheckpoint]);
   const supportiveResumeState =
     supportiveResumeSegment !== undefined &&
     supportiveResumeSegment !== 'S00' &&
-    supportiveResumeSegment !== 'S01'
+    !isSupportiveReloadSegmentId(supportiveResumeSegment)
       ? (resumeSession?.supportiveS08ResumeState ?? undefined)
       : undefined;
   const finishSupportiveArtifact = useCallback(() => {
@@ -624,6 +671,7 @@ function HydratedStudyFlow({
   }, [context.artifactCheckpoint, context.interrupted]);
   useEffect(() => {
     if (context.condition !== 'reference') return;
+    clearSupportiveReloadCheckpoint();
     prefetchReferenceArtifact();
   }, [context.condition]);
   useEffect(() => {
@@ -743,11 +791,15 @@ function HydratedStudyFlow({
           errorCode={supportiveCompletionError}
           onRetry={finishSupportiveArtifact}
         />
-      ) : segmentTimingPort === null ? (
-        <ConfigurationError errorCode="missing-segment-timing-port" />
+      ) : segmentTimingPort === null || context.sessionId === null ? (
+        <ConfigurationError
+          errorCode={context.sessionId === null ? 'missing-session' : 'missing-segment-timing-port'}
+        />
       ) : (
         <Suspense fallback={<ArtifactRendererLoadingBoundary />}>
           <SupportiveArtifact
+            sessionId={context.sessionId}
+            reloadCheckpointEnabled={supportiveReloadCheckpointEnabled}
             timingPort={segmentTimingPort}
             timingError={
               context.artifactTimingErrorKind === 'visibility' ? context.researchErrorCode : null
@@ -757,6 +809,9 @@ function HydratedStudyFlow({
               ? {}
               : { resumeSegmentId: supportiveResumeSegment })}
             {...(supportiveResumeState === undefined ? {} : { resumeState: supportiveResumeState })}
+            {...(supportiveReloadCheckpoint === undefined
+              ? {}
+              : { reloadCheckpoint: supportiveReloadCheckpoint })}
             onS08Checkpoint={async (resumeState) => {
               if (context.sessionId === null) throw new Error('missing-session');
               await api.confirmArtifactCheckpoint(context.sessionId, {

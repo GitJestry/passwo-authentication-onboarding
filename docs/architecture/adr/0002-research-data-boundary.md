@@ -2,7 +2,7 @@
 
 - **Status:** Accepted
 - **Datum:** 2026-07-23
-- **Revision:** 2026-08-26 gemäß der segmentgenauen Resume-Ergänzung in ADR 0016
+- **Revision:** 2026-08-30 gemäß dem tab-lokalen S01–S07-Reload-Checkpoint in ADR 0016
 
 ## Entscheidung
 
@@ -11,7 +11,9 @@ pseudonyme Session- und Forschungskennungen, Condition und Guardrail-Form, Versi
 Einwilligungsstatus, Instrumentantworten, Timingintervalle, Abschlussstatus, notwendige technische
 Fehlercodes sowie der Hash eines opaken Rückkehrschlüssels und ein stabiler inhaltsfreier
 Fortschritts-Checkpoint. Anzeigename, fiktive Passwörter, Passwortteile und semantische
-Detailbefunde verlassen den flüchtigen Rendererzustand nicht. Die einzige enge Ausnahme für eine
+Detailbefunde werden nie an den Server gesendet oder als Forschungsdaten persistiert. Für einen
+unmittelbaren Reload darf ADR 0016 zusätzlich einen minimalen, mit zweistündiger TTL versehenen
+S01–S07-Zustand im tab-lokalen `sessionStorage` halten. Die einzige serverseitige Ausnahme für eine
 operative Trainingswiederaufnahme ist der in ADR 0016 definierte Zustand
 `supportive-s08-resume-v1`: ausschließlich IDs vorgegebener Passphrasen sowie kanonische
 Konten-/Relationsflags, niemals frei eingegebene Strings oder Teilstrings. Dieser Zustand wird
@@ -22,9 +24,11 @@ S09 bis S17 ergänzen; dadurch entsteht keine weitere persistierte Inhaltsdatenk
 ## Konsequenzen
 
 - Der Server importiert nur `@passwo/contracts`, nicht Trainingscontent oder Passwortanalyse.
-- JavaScript-lesbarer Browser Storage und Request-Logging sind für Teilnehmerzustand untersagt.
-  Ausschließlich der in ADR 0016 festgelegte `Secure`- und `HttpOnly`-geschützte first-party
-  Rückkehrschlüssel ist zulässig.
+- JavaScript-lesbarer Browser Storage bleibt für Teilnehmerzustand grundsätzlich untersagt. Die
+  einzige Ausnahme ist der in ADR 0016 eng definierte tab-lokale S01–S07-Reload-Checkpoint in
+  `sessionStorage`; `localStorage`, IndexedDB und Service Worker bleiben unzulässig. Der
+  langfristige Rückkehrschlüssel bleibt `Secure` und `HttpOnly` geschützt. Request-Logging von
+  Trainingswerten bleibt untersagt.
 - Neue Datenklassen oder persistierte Inhalte benötigen Forschungsprüfung und ein neues ADR. Die in
   ADR 0016 autorisierten Resume-Felder gelten nicht als offene Entscheidung.
 - Pseudonymisierte Arbeitsdaten werden erst nach der vollständigen Prozedur im Data Contract als

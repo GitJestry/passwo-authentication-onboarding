@@ -1,23 +1,23 @@
-# Teilnahmeinformation und Einwilligung — Pilotkandidat v13
+# Teilnahmeinformation und Einwilligung — Pilotkandidat v14
 
 Status: **Zieltextkandidat für den Web-Pilot und die Hauptstudie.** Die Fassung darf erst
 teilnehmerseitig eingesetzt werden, wenn Wiederaufnahme, `resumeCloseAt` und Datensatzabschluss
 gemäß ADR 0016 implementiert und geprüft sind. Die ausführbare Projektion liegt in
 `research/derived/instruments-v1.runtime.json`.
 
-## Änderungsnachweis 2026-08-17
+## Änderungsnachweis 2026-08-30
 
 - **Textrolle:** Teilnahmeinformation, Einwilligung und optionale Kontaktaufnahme.
 - **Quelle:** Entscheidung zum Webbetrieb und Datenlebenszyklus in
   `ADR 0016-Web-Resume-Lifecycle` und `DATA-CONTRACT.md`.
-- **Änderung:** Browser-Schließen wird als Unterbrechung mit Wiederaufnahme beschrieben.
-  Unvollständige Teilnahmen werden nicht ausgewertet. Kontaktlöschung und Anonymisierung erhalten
-  konkrete relative Fristen. Die Follow-up-Einwilligung umfasst ausdrücklich Einladung und höchstens
-  eine Erinnerung.
-- **Bedeutungsänderung:** ja; der frühere lokale Reload-Abbruch wird durch einen transparenten
-  Web-Resume-Ablauf ersetzt. Erhobene Forschungsinhalte, Randomisierung und Instrumentreihenfolge
+- **Änderung:** Die bereits vorgesehene Wiederaufnahme wird für S01–S07 nach einem Reload im selben
+  Tab technisch segmentgenau. Die Information zu fiktiven Passwörtern wird präzisiert: Sie können
+  dafür vorübergehend im Browser liegen, werden nicht an den Server übertragen und nicht als
+  Forschungsdaten gespeichert.
+- **Bedeutungsänderung:** nur operative Präzisierung der Reload-Recovery und ihrer transparenten
+  Beschreibung; erhobene Forschungsinhalte, Randomisierung, Messitems und Instrumentreihenfolge
   bleiben unverändert.
-- **Versionen:** `consent-v13-pilot`, `instrument-runtime-v9-pilot`.
+- **Versionen:** `consent-v14-pilot`, `instrument-runtime-v10-pilot`.
 
 Ältere Copy-Deltas bleiben über die Git-Historie nachvollziehbar und werden hier nicht als zweite
 aktuelle Textquelle wiederholt.
@@ -44,7 +44,7 @@ optionale Nachbefragung werden vor der Einwilligung beschrieben.
 - **Dauer:** etwa 30 Minuten
 - **Freiwilligkeit:** jederzeit unterbrechbar; unvollständige Teilnahmen werden nicht ausgewertet
 - **Datenschutz:** pseudonymisierte Forschungsdaten; keine realen Passwörter oder Zugangsdaten;
-  fiktive Passwörter werden nicht gespeichert
+  fiktive Passwörter werden nur vorübergehend im Browser gespeichert und nicht an unseren Server übertragen
 - **Optionale Nachbefragung:** etwa zwei Minuten nach ca. zehn Tagen
 
 ## Ausführliche Teilnahmeinformationen
@@ -67,7 +67,8 @@ Gespeichert werden deine Fragebogenantworten sowie technische Angaben zum Studie
 Bearbeitungszeiten, der letzte gespeicherte Abschnitt und der Abschlussstatus.
 
 Reale Passwörter, Kontonamen, Sicherheitscodes oder Zugangsdaten werden nicht erhoben. Fiktive
-Passwörter aus dem Lernangebot werden weder gespeichert noch übertragen.
+Passwörter aus dem Lernangebot werden nur vorübergehend im Browser gespeichert, nicht an unseren
+Server übertragen und nicht als Forschungsdaten gespeichert.
 
 Die Forschungsdaten werden unter einer zufälligen Studien-ID gespeichert. Name und E-Mail-Adresse
 sind nicht Teil des Forschungsdatensatzes. Ein zufälliger technischer Rückkehrschlüssel wird in

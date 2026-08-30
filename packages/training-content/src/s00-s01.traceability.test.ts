@@ -7,7 +7,7 @@ const canonicalAccountIds = ['master-campus', 'campus-email', 'campusgram'] as c
 
 describe('S00 to S02 training-content traceability', () => {
   it('keeps S00 linked to its named source page and canonical accounts', () => {
-    expect(S00_CONTENT_VERSION).toBe('1.25.0');
+    expect(S00_CONTENT_VERSION).toBe('1.25.1');
     expect(s00Content.source).toMatchObject({
       document: 'research/private/training-script.pdf',
       internalPage: 2,
@@ -45,7 +45,7 @@ describe('S00 to S02 training-content traceability', () => {
       'Bitte keine echten Passwörter oder Varianten davon verwenden.',
     );
     expect(s00Content.narration.safetyWarning).toContain(
-      'nur für diese Übung verarbeitet und nicht gespeichert',
+      'nur für diese Übung verarbeitet und nicht dauerhaft gespeichert',
     );
   });
 

@@ -2,7 +2,7 @@
 
 - **Status:** Accepted
 - **Datum:** 2026-07-30
-- **Aktuelle Revision:** 2026-08-17
+- **Aktuelle Revision:** 2026-08-30
 - **Citation label:** `ADR 0012-Instrument-Submissions`
 - **Ergänzt:** ADR 0002, ADR 0003 und ADR 0005
 - **Zusammen lesen mit:** `MEASUREMENT-INSTRUMENT.md`, `PARTICIPANT-INFORMATION.md` und ADR 0016
@@ -17,9 +17,9 @@ und die folgende Versionskombination:
 | Instrument | `3.0.0-pilot` |
 | Fragebogen | `questionnaire-v4-pilot` |
 | Guardrail | `guardrail-v6-pilot` |
-| Einwilligung | `consent-v13-pilot` |
+| Einwilligung | `consent-v14-pilot` |
 | Follow-up | `follow-up-v6-pilot` |
-| Runtime-Manifest | `instrument-runtime-v9-pilot` |
+| Runtime-Manifest | `instrument-runtime-v10-pilot` |
 
 Frühere Revisionen dieser ADR dokumentierten Zwischenstände. Sie sind über die Git-Historie
 nachvollziehbar, aber keine parallelen Anforderungen und keine offenen Versions-Freeze-Eingaben.
@@ -66,22 +66,18 @@ Pass-Fail-Schwelle und kein Correctness Feedback vor Abschluss aller In-Session-
 
 ### Aktuelle Teilnehmer- und Lifecycle-Revision
 
-`consent-v13-pilot` und `instrument-runtime-v9-pilot` aktualisieren ausschließlich
-Teilnahmeinformation, Einwilligung und Runtime-Texte zum entschiedenen Webbetrieb:
+`consent-v14-pilot` und `instrument-runtime-v10-pilot` präzisieren ausschließlich
+Teilnahmeinformation und Runtime-Texte für den S01–S07-Reload-Checkpoint:
 
-- Browser-Schließen oder Reload unterbricht einen Run und beendet ihn nicht regulär;
-- im selben Browser kann am letzten sicheren inhaltsfreien Checkpoint fortgesetzt werden;
-- unvollständige Runs werden nicht ausgewertet und beim Datensatz-Freeze gelöscht;
-- Kontaktregister und projektkontrollierte Kontaktkopien werden spätestens sieben Kalendertage nach
-  dem letzten Follow-up-Fenster gelöscht;
-- der Datensatz-Freeze mit Anonymisierung erfolgt spätestens 30 Kalendertage nach dem letzten
-  Follow-up-Fenster beziehungsweise ohne Follow-up ab Datenerhebungsschluss;
-- die zehnjährige Aufbewahrung beginnt erst mit `anonymisedAt` für den anonymen Archivdatensatz.
+- fiktive Passwörter können für die unmittelbare Wiederherstellung vorübergehend im Browser liegen;
+- sie werden weiterhin nicht an den Server übertragen und nicht als Forschungsdaten gespeichert;
+- ein passender tab-lokaler Snapshot erlaubt Resume am bestätigten Segment-Einstieg S01 bis S07;
+- fehlt dieser Snapshot, bleibt der bisherige S01-Fallback bestehen;
+- Messitems, Skalen, Guardrail-Formen, Antwortoptionen und Erhebungsreihenfolge bleiben unverändert.
 
 Diese Revision verändert keine Messitems, Skalen, Guardrail-Formen, Antwortoptionen oder
-Erhebungsreihenfolgen. Solange die Web-Wiederaufnahme noch nicht implementiert ist, bleibt diese
-Consent-Fassung ein internes Zielmanifest und darf nicht für teilnehmerseitige Pilot- oder
-Hauptstudiensitzungen freigegeben werden.
+Erhebungsreihenfolgen. Die Consent-Fassung und der zugehörige Reload-Checkpoint gehören zur selben
+Release-Einheit und dürfen nicht getrennt voneinander ausgeliefert werden.
 
 ## Persistierte Forschungsfelder
 

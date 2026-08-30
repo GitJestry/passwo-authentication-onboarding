@@ -85,8 +85,10 @@ export interface PasswordSemanticReflection {
 
 /**
  * Transient, participant-confirmed relations between spans of one fictional password. These
- * relations are local training evidence only. They must never be persisted, exported or treated
- * as an objective password-strength measurement.
+ * relations are local training evidence only. They must never be sent to the server, included in
+ * research persistence/exports or treated as an objective password-strength measurement. The web
+ * runtime may keep the minimum required evidence in short-lived tab-local session storage solely
+ * to reconstruct an S01–S07 checkpoint after a page reload.
  */
 export type TransientPasswordSemanticRelationKind =
   | 'personal-context'

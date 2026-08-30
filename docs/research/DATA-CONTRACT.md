@@ -31,13 +31,13 @@ Abgrenzung von Pseudonymisierung und Anonymisierung durch den Europäischen Date
 | Instrumentdaten | Pre, Post, Guardrail, Self-Efficacy, retrospektive SecAware-Frage | `study.sqlite` |
 | Präsentation | Form-ID und tatsächlich angezeigte Guardrail-Option-IDs | `study.sqlite` |
 | Timing | Artefakt-Sitzungsintervalle, Abschnitt/Segment, Dauer, Sichtbarkeit, technische Reason Codes | `study.sqlite`; keine passive Aktivitätsüberwachung |
-| Fortschritt | stabiler inhaltsfreier Checkpoint | `study.sqlite`; bis S07 sicherer Sektionseinstieg, ab S08 zuletzt bestätigte Segment-ID ohne Trainingswerte |
+| Fortschritt | stabiler inhaltsfreier Checkpoint | `study.sqlite`; S01–S07 zuletzt bestätigte Segment-ID mit S01 als serverseitigem Fallback, ab S08 zuletzt bestätigte Segment-ID ohne freie Trainingswerte |
 | S08-Simulationsresume | Schema-Version, drei IDs vorgegebener Passphrasen, notwendige kanonische Schwäche- und Relationsflags | temporär in `study.sqlite`; nur für S08 bis Artefaktabschluss, nie im Forschungs- oder Analyseexport |
 | Rückkehrschlüssel | Hash und Ablaufzeit eines zufälligen Resume-Tokens | `study.sqlite`; nur operative Wiederaufnahme |
 | Follow-up-Verknüpfung | Einwilligung, Follow-up-Version, Token-Hash, Follow-up-Antworten | `study.sqlite`; pseudonyme Verbindung bis zur Anonymisierung |
 | Kontaktregister | E-Mail, Raw Token, Consent-Version, Versandzeitpunkte | ausschließlich getrennte `recontact.sqlite` |
 | Flüchtige Teilnehmerdaten | Anzeigename, roher Löschcode, Raw-Resume-Token | Löschcode nur im flüchtigen Study-State beziehungsweise in der aktuellen Antwort; Resume-Token nur im `HttpOnly`-Cookie |
-| Trainingsinput und lokale Detailanalyse | fiktive Passwörter, Passwortteile, Spans, Gruppen, Strukturmarkierungen, Wiederholungen und semantische Evidenz | nie persistieren oder senden; in S01–S07 ausschließlich Browser-RAM |
+| Trainingsinput und lokale Detailanalyse | fiktive Passwörter, Passwortteile, Spans, Gruppen, Strukturmarkierungen, Wiederholungen und semantische Evidenz | nie an den Server senden oder als Forschungsdaten persistieren; für Reload-Recovery S01–S07 minimal mit zweistündiger TTL im tab-lokalen `sessionStorage`, sonst Browser-RAM; nach bestätigtem S08-Checkpoint löschen |
 | Reale Sicherheitsdaten | reale Konten, Passwörter, Tokens, Wiederherstellungscodes, Vorfälle | nie erheben |
 | Passive Metadaten | IP, User-Agent, vollständige Request-Bodies | nicht persistieren oder in Anwendungslogs schreiben |
 

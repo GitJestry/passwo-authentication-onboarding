@@ -2,9 +2,9 @@
 
 - **Status:** Accepted
 - **Datum:** 2026-08-17
-- **Revision:** 2026-08-29 für den automatischen Datenabschluss nach der letzten erforderlichen
-  Submission; 2026-08-26 für die segmentgenaue PassWo-Wiederaufnahme ab S08 und die
-  SecAware-Zusatznavigation im Web
+- **Revision:** 2026-08-30 für den tab-lokalen S01–S07-Reload-Checkpoint; 2026-08-29 für den
+  automatischen Datenabschluss nach der letzten erforderlichen Submission; 2026-08-26 für die
+  segmentgenaue PassWo-Wiederaufnahme ab S08 und die SecAware-Zusatznavigation im Web
 - **Citation label:** `ADR 0016-Web-Resume-Lifecycle`
 - **Ersetzt für den Hauptstudienbetrieb:** Reload-Abbruch aus `ADR 0008-Lease`, externen
   Follow-up-Import und verzögerten Debrief-Versand aus `ADR 0011-Follow-up-Recontact`
@@ -14,8 +14,10 @@
 
 Die Hauptstudie soll als Webanwendung betrieben werden. Ein geschlossenes Browserfenster ist dabei
 keine verlässliche Erklärung eines Teilnahmeabbruchs. Gleichzeitig dürfen fiktive Passwörter,
-Passwortteile und semantische Detailbefunde weiterhin weder an den Server gesendet noch persistent
-gespeichert werden. Für die späteren Passwortmanager-Segmente müssen nach Abschluss von S07 jedoch
+Passwortteile und semantische Detailbefunde weiterhin weder an den Server gesendet noch dauerhaft
+oder als Forschungsdaten gespeichert werden. Für einen unmittelbaren Reload im selben Tab ist eine
+kurze lokale Wiederherstellung dagegen erforderlich. Für die späteren Passwortmanager-Segmente
+müssen nach Abschluss von S07 zudem
 wenige nicht rekonstruierende Simulationsmerkmale konsistent wiederherstellbar sein.
 
 Bisherige Dokumente vermischten außerdem drei unterschiedliche Zeitpunkte: den technischen
@@ -71,8 +73,18 @@ Die Wiederaufnahme verwendet einen kryptographisch zufälligen, opaken Rückkehr
   abgeleitet werden; zurückgegeben wird er nur bei Übereinstimmung mit dem gespeicherten
   Löschcode-Hash, während weder Raw Token noch Rohcode persistiert werden;
 - bis einschließlich S07 speichert der Server nur einen stabilen, inhaltsfreien
-  Fortschritts-Checkpoint, etwa den nächsten Fragebogenabschnitt oder einen freigegebenen
-  Trainingssegment-Einstieg;
+  Fortschritts-Checkpoint mit der zuletzt bestätigten Segment-ID;
+- ausschließlich für S01 bis S07 darf der Web-Client zusätzlich einen versionierten Reload-Snapshot
+  im tab-lokalen `sessionStorage` halten. Er enthält nur den für den Einstieg des bestätigten
+  Segments notwendigen Trainingszustand, wird nie an den Server übertragen, läuft nach höchstens
+  zwei Stunden ab und wird nach bestätigtem S08-Checkpoint gelöscht;
+- der Snapshot ist nur gültig, wenn Session-ID und Segment-ID exakt mit dem serverseitigen
+  Checkpoint übereinstimmen. Fehlt er, ist er abgelaufen oder inkonsistent, bleibt S01 der sichere
+  serverseitige Fallback für S02 bis S07;
+- diese lokale Ausnahme gilt nur für Sessions, die mit der zugehörigen aktuellen
+  Teilnahmeinformation (`consent-v14-pilot`) begonnen wurden. Bereits zuvor gestartete Sessions
+  behalten auch nach einem späteren Resume den bisherigen S01-Fallback und schreiben keinen neuen
+  S01–S07-Reload-Snapshot;
 - beim atomaren Eintritt in S08 darf zusätzlich genau ein versionierter
   `supportive-s08-resume-v1`-Zustand gespeichert werden. Er enthält ausschließlich IDs von drei
   vorgegebenen Passphrasen, die IDs der weiterhin als schwach dargestellten Konten und höchstens
@@ -89,14 +101,17 @@ Die Wiederaufnahme verwendet einen kryptographisch zufälligen, opaken Rückkehr
   Segment-ID und keine Eingaben, Entscheidungen oder rekonstruierten Trainingsinhalte.
 
 Bei der Rückkehr im selben Browser wird der letzte serverseitig bestätigte Checkpoint ausgewertet.
-SecAware öffnet den letzten bestätigten Seiteneinstieg. PassWo setzt bis S07 nicht an einem
-einzelnen Segment fort, sondern rekonstruiert Sektion 1 `passwords` ab ihrem festgelegten Einstieg:
-Während des einmaligen S00-Einstiegs wird S00 wiederholt, danach beginnt diese Sektion bei S01 neu.
-Ab dem bestätigten S08-Checkpoint beginnt PassWo dagegen am Einstieg des zuletzt bestätigten
-Segments S08 bis S17. Dafür rekonstruiert die Runtime nur den oben festgelegten minimalen
-Simulationszustand und wertet die inhaltsfreie Segment-ID aus. Sektion 2 `password-manager` und
-Sektion 3 `mfa` verwenden diesen Zustand, ohne frühere Trainingsinputs wiederherzustellen. Bereits
-atomar gespeicherte Fragebogenblöcke werden nicht erneut erhoben.
+SecAware öffnet den letzten bestätigten Seiteneinstieg. Während des einmaligen PassWo-S00-Einstiegs
+wird S00 wiederholt. Für S01 bis S07 setzt PassWo nach einem Reload am Einstieg der zuletzt
+bestätigten Segment-ID fort, wenn ein passender tab-lokaler Reload-Snapshot derselben Session
+vorliegt. Dabei wird nur der Zustand rekonstruiert, der bereits am Segment-Einstieg benötigt wird;
+halb ausgefüllte Unterdialoge oder einzelne UI-Zwischenzustände werden nicht konserviert. Ohne
+passenden Snapshot beginnt Sektion 1 weiterhin bei S01 neu. Ab dem bestätigten S08-Checkpoint beginnt
+PassWo am Einstieg des zuletzt bestätigten Segments S08 bis S17. Dafür rekonstruiert die Runtime nur
+den oben festgelegten minimalen Simulationszustand und wertet die inhaltsfreie Segment-ID aus.
+Sektion 2 `password-manager` und Sektion 3 `mfa` verwenden diesen Zustand, ohne frühere freie
+Trainingsinputs wiederherzustellen. Bereits atomar gespeicherte Fragebogenblöcke werden nicht erneut
+erhoben.
 
 Nach vollständigem Datenabschluss, individueller Löschung, Ablauf oder Datensatz-Freeze werden
 Rückkehrschlüssel und Cookie ungültig. Geht der Rückkehrschlüssel vorher verloren oder wird das
@@ -164,7 +179,9 @@ dokumentierten `anonymisedAt`.
   S08-Resume-Zustand. Sie darf ab `supportive:S08` bis einschließlich `supportive:complete`
   befüllt sein und wird beim Artefaktabschluss geleert. Der bestehende inhaltsfreie
   Fortschritts-Checkpoint trägt dabei die zuletzt bestätigte Segment-ID S08 bis S17.
-- JavaScript-lesbarer Browser Storage bleibt für Teilnehmer- und Trainingszustand verboten.
+- JavaScript-lesbarer Browser Storage bleibt grundsätzlich verboten. Die einzige enge Ausnahme ist
+  der versionierte, tab-lokale S01–S07-Reload-Checkpoint in `sessionStorage`; `localStorage`,
+  IndexedDB und Service Worker bleiben für Teilnehmer- und Trainingszustand unzulässig.
 - Forschungsabschluss und Follow-up-Terminierung hängen nicht von einem zusätzlichen Klick nach
   der letzten erforderlichen Submission ab. Der bisherige Completion-Endpunkt bleibt nur als
   idempotente Kompatibilitätsgrenze für bereits geöffnete ältere Clients bestehen.

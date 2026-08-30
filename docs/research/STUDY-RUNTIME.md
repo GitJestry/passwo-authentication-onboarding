@@ -62,21 +62,30 @@ Die Runtime stellt den letzten bestätigten sicheren Checkpoint wieder her:
 - atomar gespeicherte Fragebogenblöcke bleiben abgeschlossen;
 - der nächste noch nicht abgeschlossene Fragebogenabschnitt wird geöffnet;
 - SecAware öffnet den letzten bestätigten Seiteneinstieg;
-- PassWo beginnt bis einschließlich S07 erneut am sicheren S00-/S01-Einstieg, weil die dafür
-  nötigen flüchtigen fiktiven Werte und lokalen Detailbefunde nicht persistiert werden;
+- PassWo setzt S01–S07 nach einem Reload am zuletzt bestätigten Segment-Einstieg fort, wenn im
+  selben Tab ein passender, mit zweistündiger TTL versehener `sessionStorage`-Reload-Checkpoint für
+  dieselbe Session vorliegt; fehlt er oder ist er ungültig, bleibt S01 der sichere Fallback;
+- Sessions, die noch mit einer Teilnahmeinformation vor `consent-v14-pilot` begonnen wurden,
+  verwenden diese lokale Ausnahme nicht und behalten auch nach einem Resume den bisherigen
+  S01-Fallback;
 - beim Eintritt in S08 verwirft der Client alle frei eingegebenen Passwortstrings, Teilstrings und
   semantischen Detailbefunde und bestätigt atomar den minimalen S08-Resume-Zustand;
 - Resume ab S08 rekonstruiert ausschließlich vorgegebene Passphrasen über Content-IDs sowie die
   noch erforderlichen kanonischen Schwäche-/Relationsflags;
 - ab S08 öffnet Resume den Einstieg des zuletzt bestätigten Segments S08 bis S17; dafür wird neben
   dem minimalen S08-Zustand nur die inhaltsfreie Segment-ID fortgeschrieben;
-- Trainingsinputs werden für die Wiederaufnahme weder gesendet noch gespeichert.
+- Trainingsinputs werden für die Wiederaufnahme nie an den Server gesendet oder als Forschungsdaten
+  gespeichert. Der enge S01–S07-Reload-Checkpoint bleibt ausschließlich tab-lokal und wird nach
+  bestätigtem S08-Checkpoint gelöscht.
 
 Im aktuell integrierten PassWo-Lauf gehören S00 bis S07 zur flüchtigen Sektion 1 `passwords`. Eine
-Unterbrechung im einmaligen S00-Einstieg beginnt wieder bei S00; danach beginnt diese Sektion
-datenschutzkonform bei S01 neu. Der bestätigte Checkpoint `supportive:S08` ist die harte
-Datengrenze. Danach wird bei jedem neuen Segment ausschließlich dessen inhaltsfreie ID S09 bis S17
-bestätigt, sodass die Wiederaufnahme am Einstieg des zuletzt erreichten Segments beginnt.
+Unterbrechung im einmaligen S00-Einstieg beginnt wieder bei S00. Für S01 bis S07 kann ein Reload im
+selben Tab den zuletzt bestätigten Segment-Einstieg exakt rekonstruieren, sofern der dazugehörige
+kurzlebige lokale Snapshot vorhanden und zur serverseitigen Segment-ID konsistent ist. Ohne diesen
+Snapshot beginnt die Sektion weiterhin bei S01 neu. Der bestätigte Checkpoint `supportive:S08` ist
+die harte Grenze für frei eingegebene Trainingswerte. Danach wird bei jedem neuen Segment
+ausschließlich dessen inhaltsfreie ID S09 bis S17 bestätigt, sodass die Wiederaufnahme am Einstieg
+des zuletzt erreichten Segments beginnt.
 
 Wenn die Person nicht vor `resumeCloseAt` zurückkehrt, bleibt die Sitzung unvollständig. Sie wird
 nicht ausgewertet und beim Datensatz-Freeze gelöscht. Eine vorzeitige individuelle Löschung bleibt
@@ -139,12 +148,14 @@ eine Löschung anfragen möchten.
 ## Zustands- und Datenschutzgrenzen
 
 - Anzeigename, fiktive Passwörter, Passwortteile, lokale Detailfindings und semantische Evidenz
-  bleiben flüchtig; Passwortdaten und Analysezustand werden spätestens beim Eintritt in S08
-  verworfen;
-- `localStorage`, `sessionStorage`, IndexedDB und Service Worker sind für Teilnehmer- und
-  Trainingszustand unzulässig;
-- einzige Browserpersistenz ist der opake, JavaScript-unlesbare Rückkehrschlüssel im
-  `HttpOnly`-Cookie;
+  werden nie an den Server übertragen oder als Forschungsdaten gespeichert. Für S01–S07 darf nur
+  der minimal erforderliche Reload-Zustand höchstens zwei Stunden im tab-lokalen `sessionStorage`
+  liegen; nach bestätigtem S08-Checkpoint wird er gelöscht;
+- `localStorage`, IndexedDB und Service Worker sind für Teilnehmer- und Trainingszustand
+  unzulässig; `sessionStorage` ist ausschließlich für diesen versionierten Reload-Checkpoint
+  erlaubt;
+- langfristige Browserpersistenz ist weiterhin ausschließlich der opake, JavaScript-unlesbare
+  Rückkehrschlüssel im `HttpOnly`-Cookie;
 - Session, Zuweisung, Versionen, atomare Antworten, Timing, inhaltsfreier Checkpoint und
   Abschlussstatus liegen serverseitig. Zwischen S08 und Artefaktabschluss kommt ausschließlich der
   in ADR 0016 abschließend typisierte, nicht rekonstruierende Simulationsresume-Zustand hinzu; der

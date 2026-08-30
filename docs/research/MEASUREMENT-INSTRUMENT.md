@@ -11,11 +11,11 @@ bytegleich sein.
 - Instrument: `3.0.0-pilot`
 - Fragebogen: `questionnaire-v4-pilot`
 - Guardrail: `guardrail-v6-pilot`
-- Einwilligung: `consent-v13-pilot`
+- Einwilligung: `consent-v14-pilot`
 - Follow-up: `follow-up-v6-pilot`
-- Runtime-Manifest: `instrument-runtime-v9-pilot`
+- Runtime-Manifest: `instrument-runtime-v10-pilot`
 
-`consent-v13-pilot` und `instrument-runtime-v9-pilot` sind das Zielmanifest für den Web-Pilot.
+`consent-v14-pilot` und `instrument-runtime-v10-pilot` sind das Zielmanifest für den Web-Pilot.
 Sie werden erst nach Umsetzung und Prüfung der Wiederaufnahme teilnehmerseitig freigegeben.
 
 ## Evidenzarchitektur

@@ -3,18 +3,26 @@ set -euo pipefail
 
 remote_host="${PASSWO_STATS_HOST:-${PASSWO_DEPLOY_HOST:-root@193.23.254.118}}"
 database_path="${PASSWO_STATS_DATABASE:-/var/lib/passwo-study/study.sqlite}"
+recontact_database_path="${PASSWO_STATS_RECONTACT_DATABASE:-/var/lib/passwo-study/recontact.sqlite}"
 identity_file="${PASSWO_STATS_SSH_KEY:-}"
+show_emails=false
 
 usage() {
   cat <<'USAGE'
 Verwendung:
   show-current-stats.sh [--identity-file PFAD] [--host USER@HOST] [--database PFAD]
+  show-current-stats.sh --show-emails [--identity-file PFAD] [--host USER@HOST]
+                        [--recontact-database PFAD]
 
 Optionen:
   -i, --identity-file PFAD  Privater SSH-Key; andernfalls gelten SSH-Agent und SSH-Konfiguration.
       --host USER@HOST      SSH-Ziel (Standard: root@193.23.254.118).
       --database PFAD       Datenbank auf dem Server
                             (Standard: /var/lib/passwo-study/study.sqlite).
+      --show-emails         E-Mail-Adressen und Follow-up-Zeitraum anzeigen.
+      --recontact-database PFAD
+                            Getrenntes Kontaktregister auf dem Server
+                            (Standard: /var/lib/passwo-study/recontact.sqlite).
   -h, --help                Diese Hilfe anzeigen.
 USAGE
 }
@@ -46,6 +54,15 @@ while (( $# > 0 )); do
       database_path="$2"
       shift 2
       ;;
+    --show-emails)
+      show_emails=true
+      shift
+      ;;
+    --recontact-database)
+      require_option_value "$1" "$#"
+      recontact_database_path="$2"
+      shift 2
+      ;;
     -h|--help)
       usage
       exit 0
@@ -68,6 +85,11 @@ if [[ ! "$database_path" =~ ^/[A-Za-z0-9._/-]+$ ]]; then
   exit 2
 fi
 
+if [[ ! "$recontact_database_path" =~ ^/[A-Za-z0-9._/-]+$ ]]; then
+  echo "Ungültiger absoluter Kontaktregisterpfad: ${recontact_database_path}" >&2
+  exit 2
+fi
+
 ssh_command=( ssh )
 if [[ -n "$identity_file" ]]; then
   if [[ ! -r "$identity_file" ]]; then
@@ -75,6 +97,31 @@ if [[ -n "$identity_file" ]]; then
     exit 2
   fi
   ssh_command+=( -i "$identity_file" -o IdentitiesOnly=yes )
+fi
+
+if [[ "$show_emails" == true ]]; then
+  echo "Verbinde mit ${remote_host}. SSH fragt bei Bedarf nach deiner Key-Passphrase."
+  echo "Lese das getrennte Kontaktregister read-only; die Ausgabe enthält personenbezogene Daten."
+  echo
+
+  "${ssh_command[@]}" -- "$remote_host" \
+    "sqlite3 -readonly -header -column ${recontact_database_path}" <<'SQL'
+PRAGMA query_only = ON;
+BEGIN;
+
+SELECT
+  email AS E_Mail,
+  COALESCE(first_invitation_at_iso, 'noch nicht terminiert') AS Follow_up_ab_UTC,
+  COALESCE(closes_at_iso, 'noch nicht terminiert') AS Follow_up_bis_UTC
+FROM registrations
+ORDER BY
+  closes_at_iso IS NULL,
+  closes_at_iso,
+  email;
+
+COMMIT;
+SQL
+  exit 0
 fi
 
 echo "Verbinde mit ${remote_host}. SSH fragt bei Bedarf nach deiner Key-Passphrase."
@@ -311,6 +358,89 @@ SELECT
     100.0 * SUM(CASE WHEN completion_status = 'completed' THEN 1 ELSE 0 END) / COUNT(*)
   ) AS Abschlussquote
 FROM study_sessions AS session
+GROUP BY condition
+ORDER BY condition;
+
+WITH completed_artifact_durations AS (
+  SELECT
+    session.session_id,
+    session.condition,
+    SUM(artifact_interval.confirmed_elapsed_ms) AS duration_ms
+  FROM study_sessions AS session
+  JOIN web_artifact_intervals AS artifact_interval
+    ON artifact_interval.session_id = session.session_id
+  WHERE session.artifact_completed_at_iso IS NOT NULL
+  GROUP BY session.session_id, session.condition
+),
+duration_ratings AS (
+  SELECT
+    session_id,
+    MAX(
+      CASE WHEN item_id = 'PERCEIVED_DURATION' THEN CAST(json_value AS REAL) END
+    ) AS perceived_duration,
+    MAX(
+      CASE WHEN item_id = 'TIME_FIT' THEN CAST(json_value AS REAL) END
+    ) AS time_fit
+  FROM responses
+  WHERE instrument_id = 'post-v1'
+    AND section_id = 'duration'
+    AND item_id IN ('PERCEIVED_DURATION', 'TIME_FIT')
+  GROUP BY session_id
+),
+ordered_completed_artifact_durations AS (
+  SELECT
+    duration.condition,
+    duration.duration_ms,
+    rating.perceived_duration,
+    rating.time_fit
+  FROM completed_artifact_durations AS duration
+  LEFT JOIN duration_ratings AS rating ON rating.session_id = duration.session_id
+  ORDER BY duration.condition, duration.duration_ms
+)
+SELECT
+  CASE condition
+    WHEN 'supportive' THEN 'PassWo'
+    WHEN 'reference' THEN 'SecAware'
+    ELSE condition
+  END AS Lernangebot,
+  COUNT(*) AS Abgeschlossene_Lernangebote,
+  printf('%.1f Minuten', AVG(duration_ms) / 60000.0) AS Durchschnittliche_Dauer,
+  CASE
+    WHEN COUNT(perceived_duration) = 0 THEN 'noch keine Antworten'
+    ELSE printf(
+      '%s (Ø %.1f/7; n=%d)',
+      CASE CAST(ROUND(AVG(perceived_duration)) AS INTEGER)
+        WHEN 1 THEN 'sehr kurz'
+        WHEN 2 THEN 'kurz'
+        WHEN 3 THEN 'eher kurz'
+        WHEN 4 THEN 'weder kurz noch lang'
+        WHEN 5 THEN 'eher lang'
+        WHEN 6 THEN 'lang'
+        WHEN 7 THEN 'sehr lang'
+      END,
+      AVG(perceived_duration),
+      COUNT(perceived_duration)
+    )
+  END AS Zeitgefuehl,
+  CASE
+    WHEN COUNT(time_fit) = 0 THEN 'noch keine Antworten'
+    ELSE printf(
+      '%s (Ø %.1f/7; n=%d)',
+      CASE CAST(ROUND(AVG(time_fit)) AS INTEGER)
+        WHEN 1 THEN 'deutlich zu kurz'
+        WHEN 2 THEN 'zu kurz'
+        WHEN 3 THEN 'eher zu kurz'
+        WHEN 4 THEN 'genau richtig'
+        WHEN 5 THEN 'eher zu lang'
+        WHEN 6 THEN 'zu lang'
+        WHEN 7 THEN 'deutlich zu lang'
+      END,
+      AVG(time_fit),
+      COUNT(time_fit)
+    )
+  END AS Dauerpassung,
+  group_concat(printf('%.1f', duration_ms / 60000.0), ', ') AS Einzelzeiten_Minuten
+FROM ordered_completed_artifact_durations
 GROUP BY condition
 ORDER BY condition;
 

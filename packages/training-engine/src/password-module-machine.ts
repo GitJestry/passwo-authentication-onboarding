@@ -8,6 +8,7 @@ export type PasswordModuleResumeSegmentId = SupportiveResumeSegmentId;
 export interface PasswordModuleContext {
   readonly accountIds: readonly string[];
   readonly resumeSegmentId: PasswordModuleResumeSegmentId | null;
+  readonly hasTransientResumeState: boolean;
   readonly displayName: string | null;
   readonly activeAccountId: string | null;
   readonly passwordValues: Readonly<Record<string, string>>;
@@ -18,9 +19,19 @@ export interface PasswordModuleContext {
   readonly timingErrorCode: string | null;
 }
 
+export interface PasswordModuleTransientResumeState {
+  readonly displayName: string;
+  readonly activeAccountId: string | null;
+  readonly passwordValues: Readonly<Record<string, string>>;
+  readonly configuredAccountIds: readonly string[];
+  readonly s02ContentCompleted: boolean;
+  readonly retrievalResults: Readonly<Record<string, RetrievalResult>>;
+}
+
 export interface PasswordModuleInput {
   readonly accountIds: readonly string[];
   readonly resumeSegmentId?: PasswordModuleResumeSegmentId;
+  readonly transientResumeState?: PasswordModuleTransientResumeState;
 }
 
 export type PasswordModuleEvent =
@@ -111,6 +122,52 @@ function emptyRetrievalResults(accountIds: readonly string[]): Record<string, Re
   return results;
 }
 
+function resumedPasswordValues(
+  accountIds: readonly string[],
+  state: PasswordModuleTransientResumeState | undefined,
+): Record<string, string> {
+  const values = emptyPasswordValues(accountIds);
+  if (state === undefined) return values;
+  for (const accountId of accountIds) {
+    const value = state.passwordValues[accountId];
+    if (value !== undefined && isPermittedFictionalPassword(value)) values[accountId] = value;
+  }
+  return values;
+}
+
+function resumedRetrievalResults(
+  accountIds: readonly string[],
+  state: PasswordModuleTransientResumeState | undefined,
+): Record<string, RetrievalResult> {
+  const results = emptyRetrievalResults(accountIds);
+  if (state === undefined) return results;
+  for (const accountId of accountIds) {
+    const result = state.retrievalResults[accountId];
+    if (
+      result === 'pending' ||
+      result === 'retrievable' ||
+      result === 'not-remembered' ||
+      result === 'assisted'
+    ) {
+      results[accountId] = result;
+    }
+  }
+  return results;
+}
+
+function isPreS08ResumeSegment(segmentId: PasswordModuleResumeSegmentId | null): boolean {
+  return (
+    segmentId === 'S00' ||
+    segmentId === 'S01' ||
+    segmentId === 'S02' ||
+    segmentId === 'S03' ||
+    segmentId === 'S04' ||
+    segmentId === 'S05' ||
+    segmentId === 'S06' ||
+    segmentId === 'S07'
+  );
+}
+
 function isKnownAccount(context: PasswordModuleContext, accountId: string): boolean {
   return context.accountIds.includes(accountId);
 }
@@ -162,11 +219,24 @@ export const passwordModuleMachine = setup({
   },
   guards: {
     resumesAtS00: ({ context }) => context.resumeSegmentId === 'S00',
-    resumesAtS01: ({ context }) => context.resumeSegmentId === 'S01',
+    resumesAtS01: ({ context }) =>
+      context.resumeSegmentId === 'S01' && !context.hasTransientResumeState,
+    resumesAtHydratedS01: ({ context }) =>
+      context.resumeSegmentId === 'S01' && context.hasTransientResumeState,
+    resumesAtS02: ({ context }) =>
+      context.resumeSegmentId === 'S02' && context.hasTransientResumeState,
+    resumesAtS03: ({ context }) =>
+      context.resumeSegmentId === 'S03' && context.hasTransientResumeState,
+    resumesAtS04: ({ context }) =>
+      context.resumeSegmentId === 'S04' && context.hasTransientResumeState,
+    resumesAtS05: ({ context }) =>
+      context.resumeSegmentId === 'S05' && context.hasTransientResumeState,
+    resumesAtS06: ({ context }) =>
+      context.resumeSegmentId === 'S06' && context.hasTransientResumeState,
+    resumesAtS07: ({ context }) =>
+      context.resumeSegmentId === 'S07' && context.hasTransientResumeState,
     resumesAtOrAfterS08: ({ context }) =>
-      context.resumeSegmentId !== null &&
-      context.resumeSegmentId !== 'S00' &&
-      context.resumeSegmentId !== 'S01',
+      context.resumeSegmentId !== null && !isPreS08ResumeSegment(context.resumeSegmentId),
     isKnownAccount: ({ context, event }) =>
       event.type === 'SELECT_ACCOUNT' && isKnownAccount(context, event.accountId),
     canEditAccount: ({ context, event }) =>
@@ -300,6 +370,7 @@ export const passwordModuleMachine = setup({
       },
     }),
     discardTransientTrainingData: assign({
+      hasTransientResumeState: () => false,
       displayName: () => null,
       activeAccountId: () => null,
       passwordValues: ({ context }) => emptyPasswordValues(context.accountIds),
@@ -317,13 +388,22 @@ export const passwordModuleMachine = setup({
   context: ({ input }) => ({
     accountIds: [...input.accountIds],
     resumeSegmentId: input.resumeSegmentId ?? null,
-    displayName: null,
-    activeAccountId: input.accountIds[0] ?? null,
-    passwordValues: emptyPasswordValues(input.accountIds),
-    configuredAccountIds: [],
-    s02ContentCompleted: false,
+    hasTransientResumeState: input.transientResumeState !== undefined,
+    displayName: input.transientResumeState?.displayName ?? null,
+    activeAccountId:
+      input.transientResumeState?.activeAccountId !== null &&
+      input.transientResumeState?.activeAccountId !== undefined &&
+      input.accountIds.includes(input.transientResumeState.activeAccountId)
+        ? input.transientResumeState.activeAccountId
+        : (input.accountIds[0] ?? null),
+    passwordValues: resumedPasswordValues(input.accountIds, input.transientResumeState),
+    configuredAccountIds:
+      input.transientResumeState?.configuredAccountIds.filter((accountId) =>
+        input.accountIds.includes(accountId),
+      ) ?? [],
+    s02ContentCompleted: input.transientResumeState?.s02ContentCompleted ?? false,
     retrievalPasswordValues: emptyPasswordValues(input.accountIds),
-    retrievalResults: emptyRetrievalResults(input.accountIds),
+    retrievalResults: resumedRetrievalResults(input.accountIds, input.transientResumeState),
     timingErrorCode: null,
   }),
   on: {
@@ -332,6 +412,13 @@ export const passwordModuleMachine = setup({
   states: {
     entry: {
       always: [
+        { guard: 'resumesAtHydratedS01', target: 's01.starting' },
+        { guard: 'resumesAtS02', target: 's02.starting' },
+        { guard: 'resumesAtS03', target: 's03.starting' },
+        { guard: 'resumesAtS04', target: 's04.writingStart' },
+        { guard: 'resumesAtS05', target: 's05.writingStart' },
+        { guard: 'resumesAtS06', target: 's06.writingStart' },
+        { guard: 'resumesAtS07', target: 's07.writingStart' },
         {
           guard: 'resumesAtOrAfterS08',
           target: 's08',

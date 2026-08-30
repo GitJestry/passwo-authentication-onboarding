@@ -4,6 +4,7 @@ import { isPermittedFictionalPassword } from './fictional-password-input.js';
 import {
   passwordModuleMachine,
   type PasswordModuleResumeSegmentId,
+  type PasswordModuleTransientResumeState,
 } from './password-module-machine.js';
 import {
   passwordSegmentTimingPlan,
@@ -25,6 +26,7 @@ export interface PasswordModuleControllerOptions {
   readonly accountIds: readonly string[];
   readonly timingPort?: SegmentTimingPort;
   readonly resumeSegmentId?: PasswordModuleResumeSegmentId;
+  readonly transientResumeState?: PasswordModuleTransientResumeState;
 }
 
 export type PasswordModuleSnapshot = SnapshotFrom<typeof passwordModuleMachine>;
@@ -35,13 +37,35 @@ export class PasswordModuleController {
   #failedBoundary: FailedBoundary | null = null;
   #disposed = false;
 
-  constructor({ accountIds, timingPort, resumeSegmentId }: PasswordModuleControllerOptions) {
+  constructor({
+    accountIds,
+    timingPort,
+    resumeSegmentId,
+    transientResumeState,
+  }: PasswordModuleControllerOptions) {
     if (accountIds.length !== 3) throw new Error('password-module-requires-three-accounts');
     this.#actor = createActor(passwordModuleMachine, {
-      input: { accountIds, ...(resumeSegmentId === undefined ? {} : { resumeSegmentId }) },
+      input: {
+        accountIds,
+        ...(resumeSegmentId === undefined ? {} : { resumeSegmentId }),
+        ...(transientResumeState === undefined ? {} : { transientResumeState }),
+      },
     });
     this.#timingPort = timingPort;
     this.#actor.start();
+    if (
+      transientResumeState !== undefined &&
+      resumeSegmentId !== undefined &&
+      (resumeSegmentId === 'S01' ||
+        resumeSegmentId === 'S02' ||
+        resumeSegmentId === 'S03' ||
+        resumeSegmentId === 'S04' ||
+        resumeSegmentId === 'S05' ||
+        resumeSegmentId === 'S06' ||
+        resumeSegmentId === 'S07')
+    ) {
+      void this.#writeSegmentBoundary(resumeSegmentId, 'segment-start');
+    }
   }
 
   getSnapshot(): PasswordModuleSnapshot {

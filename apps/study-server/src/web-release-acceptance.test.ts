@@ -669,6 +669,159 @@ describe('Web resume and concurrency acceptance', () => {
     database.close();
   });
 
+  it('accepts an exact S01-S07 reload checkpoint while preserving the S01 fallback', async () => {
+    const paths = temporaryDatabasePaths('passwo-exact-reload-resume-');
+    const firstServer = createWebServer('forced-supportive', paths.study, paths.recontact);
+    const exact = await createWebTestSession(firstServer, 211, false);
+    const fallback = await createWebTestSession(firstServer, 212, false);
+    const legacy = await createWebTestSession(firstServer, 213, false);
+    const preBlocks = mainInstrumentBlocks.filter((block) => block.instrumentId === 'pre-v1');
+
+    for (const created of [exact, fallback, legacy]) {
+      await submitWebInstrumentBlocks(
+        firstServer,
+        created.cookie,
+        created.session.sessionId,
+        preBlocks,
+      );
+    }
+
+    const exactInterval = await openWebArtifactInterval(
+      firstServer,
+      exact.cookie,
+      exact.session.sessionId,
+      '82000000-0000-4000-8000-000000000211',
+    );
+    const fallbackInterval = await openWebArtifactInterval(
+      firstServer,
+      fallback.cookie,
+      fallback.session.sessionId,
+      '82000000-0000-4000-8000-000000000212',
+    );
+    const throughS04 = SUPPORTIVE_ARTIFACT_SEGMENT_IDS.slice(0, 5);
+    await recordWebSupportiveSegments(
+      firstServer,
+      exact.cookie,
+      exact.session.sessionId,
+      exactInterval.intervalId,
+      throughS04,
+      1,
+    );
+    await recordWebSupportiveSegments(
+      firstServer,
+      fallback.cookie,
+      fallback.session.sessionId,
+      fallbackInterval.intervalId,
+      throughS04,
+      101,
+    );
+    const legacyInterval = await openWebArtifactInterval(
+      firstServer,
+      legacy.cookie,
+      legacy.session.sessionId,
+      '82000000-0000-4000-8000-000000000215',
+    );
+    await recordWebSupportiveSegments(
+      firstServer,
+      legacy.cookie,
+      legacy.session.sessionId,
+      legacyInterval.intervalId,
+      throughS04,
+      201,
+    );
+    await closeTrackedServer(firstServer);
+
+    const legacyDatabase = new Database(paths.study);
+    legacyDatabase
+      .prepare('UPDATE study_sessions SET consent_version = ? WHERE session_id = ?')
+      .run('consent-v13-pilot', legacy.session.sessionId);
+    legacyDatabase.close();
+
+    const restartedServer = createWebServer('forced-supportive', paths.study, paths.recontact);
+    for (const created of [exact, fallback, legacy]) {
+      const resumedResponse = await webPost(
+        restartedServer,
+        created.cookie,
+        '/api/study/session/resume',
+        {},
+      );
+      expect(webResumeResponseSchema.parse(resumedResponse.json()).session?.checkpoint).toBe(
+        'supportive:S05',
+      );
+    }
+
+    const exactResumeInterval = await openWebArtifactInterval(
+      restartedServer,
+      exact.cookie,
+      exact.session.sessionId,
+      '82000000-0000-4000-8000-000000000213',
+    );
+    await webPost(
+      restartedServer,
+      exact.cookie,
+      `/api/study/sessions/${exact.session.sessionId}/segment-timing`,
+      {
+        eventId: '50000000-0000-4000-8000-000000000211',
+        intervalId: exactResumeInterval.intervalId,
+        segmentId: 'S05',
+        eventType: 'segment-start',
+        elapsedMs: null,
+      },
+    );
+
+    const fallbackResumeInterval = await openWebArtifactInterval(
+      restartedServer,
+      fallback.cookie,
+      fallback.session.sessionId,
+      '82000000-0000-4000-8000-000000000214',
+    );
+    await webPost(
+      restartedServer,
+      fallback.cookie,
+      `/api/study/sessions/${fallback.session.sessionId}/segment-timing`,
+      {
+        eventId: '50000000-0000-4000-8000-000000000212',
+        intervalId: fallbackResumeInterval.intervalId,
+        segmentId: 'S01',
+        eventType: 'segment-start',
+        elapsedMs: null,
+      },
+    );
+
+    const legacyResumeInterval = await openWebArtifactInterval(
+      restartedServer,
+      legacy.cookie,
+      legacy.session.sessionId,
+      '82000000-0000-4000-8000-000000000216',
+    );
+    await webPost(
+      restartedServer,
+      legacy.cookie,
+      `/api/study/sessions/${legacy.session.sessionId}/segment-timing`,
+      {
+        eventId: '50000000-0000-4000-8000-000000000213',
+        intervalId: legacyResumeInterval.intervalId,
+        segmentId: 'S05',
+        eventType: 'segment-start',
+        elapsedMs: null,
+      },
+      409,
+    );
+    await webPost(
+      restartedServer,
+      legacy.cookie,
+      `/api/study/sessions/${legacy.session.sessionId}/segment-timing`,
+      {
+        eventId: '50000000-0000-4000-8000-000000000214',
+        intervalId: legacyResumeInterval.intervalId,
+        segmentId: 'S01',
+        eventType: 'segment-start',
+        elapsedMs: null,
+      },
+    );
+    await closeTrackedServer(restartedServer);
+  });
+
   it('resumes at the last confirmed post-S08 segment with only minimal simulation state', async () => {
     const paths = temporaryDatabasePaths('passwo-s08-resume-');
     const firstServer = createWebServer('forced-supportive', paths.study, paths.recontact);

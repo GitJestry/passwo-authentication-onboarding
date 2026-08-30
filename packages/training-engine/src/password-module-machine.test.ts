@@ -57,6 +57,39 @@ function startS04(actor: ReturnType<typeof createModuleActor>): void {
 }
 
 describe('passwordModuleMachine', () => {
+  it('hydrates a transient S05 reload checkpoint without replaying S01-S04', () => {
+    const transientResumeState = {
+      displayName: 'Alex',
+      activeAccountId: 'campusgram',
+      passwordValues: {
+        'master-campus': 'MasterCampus!23',
+        'campus-email': 'CampusMail!45',
+        campusgram: 'Campusgram!67',
+      },
+      configuredAccountIds: [...accountIds],
+      s02ContentCompleted: true,
+      retrievalResults: {
+        'master-campus': 'assisted' as const,
+        'campus-email': 'retrievable' as const,
+        campusgram: 'retrievable' as const,
+      },
+    };
+    const actor = createActor(passwordModuleMachine, {
+      input: { accountIds, resumeSegmentId: 'S05', transientResumeState },
+    });
+    actor.start();
+
+    expect(actor.getSnapshot().matches({ s05: 'writingStart' })).toBe(true);
+    expect(actor.getSnapshot().context.displayName).toBe('Alex');
+    expect(actor.getSnapshot().context.passwordValues).toEqual(transientResumeState.passwordValues);
+    expect(actor.getSnapshot().context.retrievalResults).toEqual(
+      transientResumeState.retrievalResults,
+    );
+
+    actor.send({ type: 'S05_START_RECORDED' });
+    expect(actor.getSnapshot().matches({ s05: 'active' })).toBe(true);
+  });
+
   it('starts the training without a fictional username', () => {
     const actor = createActor(passwordModuleMachine, { input: { accountIds } });
     actor.start();

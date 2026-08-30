@@ -14,6 +14,7 @@ export default defineConfig({
       'packages/training-content/src/s05.traceability.test.ts',
       'apps/study-web/src/api/study-api.test.ts',
       'apps/study-web/src/features/training/segments/S05/S05ComponentStrategy.test.ts',
+      'apps/study-web/src/features/training/supportive-reload-checkpoint.test.ts',
       'apps/study-web/src/features/training/segments/S07/S07PassphraseSearchMachine.test.ts',
       'packages/visualization/src/account-exploration-scene.test.ts',
       'packages/visualization/src/password-consequence-scene.test.ts',

@@ -13,6 +13,7 @@ import {
   completionStatusSchema,
   type CompletionStatus,
   type InstrumentSubmissionRequest,
+  instrumentRuntimeManifest,
   mainInstrumentBlocks,
   REFERENCE_LESSON_CHECKPOINTS,
   referenceLessonCheckpointSchema,
@@ -43,6 +44,7 @@ const sessionSchema = z.object({
   assignmentMode: z.enum(['permuted-block', 'forced-supportive', 'forced-reference']),
   guardrailFormId: z.enum(['F1', 'F2', 'F3', 'F4', 'F5', 'F6']),
   followUpConsent: z.union([z.literal(0), z.literal(1)]),
+  consentVersion: z.string(),
   completionStatus: z.string(),
   progressCheckpoint: z.string(),
   artifactCompletedAtIso: z.string().nullable(),
@@ -53,7 +55,9 @@ const checkpointSchema = z.object({
   condition: z.enum(['supportive', 'reference']),
   progressCheckpoint: z.string(),
   artifactCompletedAtIso: z.string().nullable(),
+  consentVersion: z.string(),
 });
+const exactReloadResumeSegments = new Set(['S01', 'S02', 'S03', 'S04', 'S05', 'S06', 'S07']);
 const tokenRowSchema = z.object({
   sessionId: z.string(),
   createRequestId: z.string(),
@@ -531,7 +535,7 @@ export class WebRuntimeRepository {
       this.#database.prepare(
         `SELECT session_id AS sessionId, condition, assignment_mode AS assignmentMode,
                 guardrail_form_id AS guardrailFormId, follow_up_consent AS followUpConsent,
-                completion_status AS completionStatus,
+                consent_version AS consentVersion, completion_status AS completionStatus,
                 progress_checkpoint AS progressCheckpoint,
                 artifact_completed_at_iso AS artifactCompletedAtIso,
                 web_interruption_count AS interruptionCount,
@@ -568,6 +572,7 @@ export class WebRuntimeRepository {
       assignmentMode: session.assignmentMode,
       guardrailFormId: session.guardrailFormId,
       followUpConsent: session.followUpConsent === 1,
+      consentVersion: session.consentVersion,
       checkpoint,
       resumeTarget,
       nextInstrumentBlockIndex: next,
@@ -628,7 +633,8 @@ export class WebRuntimeRepository {
   #checkpointSession(sessionId: string): z.infer<typeof checkpointSchema> {
     const row = this.#database.prepare(
       `SELECT condition, progress_checkpoint AS progressCheckpoint,
-              artifact_completed_at_iso AS artifactCompletedAtIso
+              artifact_completed_at_iso AS artifactCompletedAtIso,
+              consent_version AS consentVersion
        FROM study_sessions WHERE session_id = ? AND completion_status = 'in-progress'`,
     ).get(sessionId);
     if (row === undefined) throw new StudyRepositoryError('session-not-in-progress', 409);
@@ -737,7 +743,8 @@ export class WebRuntimeRepository {
     if (request.eventType === 'segment-start') {
       if (starts.length !== ends.length) throw new StudyRepositoryError('segment-already-active', 409);
       if (starts.length === 0) {
-        const checkpoint = this.#artifactCheckpoint(this.#checkpointSession(sessionId));
+        const checkpointSession = this.#checkpointSession(sessionId);
+        const checkpoint = this.#artifactCheckpoint(checkpointSession);
         const checkpointSegment = checkpoint.startsWith('supportive:')
           ? supportiveArtifactSegmentIdSchema.safeParse(
               checkpoint.slice('supportive:'.length),
@@ -755,7 +762,16 @@ export class WebRuntimeRepository {
             : supportiveResumeSegmentFor(
                 supportiveArtifactSegmentIdSchema.parse(checkpoint.slice('supportive:'.length)),
               );
-        if (request.segmentId !== expected) {
+        const exactCheckpointSegment =
+          checkpoint === 'supportive:entry'
+            ? null
+            : supportiveArtifactSegmentIdSchema.parse(checkpoint.slice('supportive:'.length));
+        const exactReloadResumeAllowed =
+          checkpointSession.consentVersion === instrumentRuntimeManifest.consentVersion &&
+          exactCheckpointSegment !== null &&
+          exactReloadResumeSegments.has(exactCheckpointSegment) &&
+          request.segmentId === exactCheckpointSegment;
+        if (request.segmentId !== expected && !exactReloadResumeAllowed) {
           throw new StudyRepositoryError('segment-resume-start-required', 409);
         }
         return;

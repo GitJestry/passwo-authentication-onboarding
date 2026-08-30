@@ -19,7 +19,7 @@ ausführbar.
 - **Instrumente:** Pre, unmittelbarer Post-Fragebogen, gemeinsamer Guardrail, post-guardrail
   Self-Efficacy und retrospektive SecAware-Vorerfahrung laufen als versionierte atomare Submissions.
   Die freiwillige Nachbefragung besitzt eine getrennte Recontact-Registry und einen Schedule-Export.
-  `consent-v13-pilot` ist der Zieltext für den Webbetrieb.
+  `consent-v14-pilot` ist der Zieltext für den Webbetrieb.
 - **Web-Runtime:** Browser schließen oder neu laden unterbricht eine neue
   Web-Sitzung, beendet sie aber nicht. Der letzte sichere inhaltsfreie Checkpoint wird im selben
   Browser wiederaufgenommen; ausgewertet werden nur regulär abgeschlossene Runs.
