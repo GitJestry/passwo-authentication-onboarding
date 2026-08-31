@@ -18,6 +18,11 @@ import {
   followUpSubmissionRequestSchema,
   followUpSubmissionResponseSchema,
   instrumentSubmissionRequestSchema,
+  liveQaFollowUpCaseRequestSchema,
+  liveQaFollowUpCaseResponseSchema,
+  liveQaFollowUpMessagesResponseSchema,
+  liveQaFollowUpVerificationRequestSchema,
+  liveQaFollowUpVerificationResponseSchema,
   recruitmentSourceSchema,
   type RecruitmentSource,
   saveResponseResponseSchema,
@@ -39,6 +44,7 @@ import {
 } from '@passwo/contracts';
 import type { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify';
 import { z } from 'zod';
+import type { LiveQaFollowUpControls } from './live-qa-followup.js';
 import { type StudyRepository, StudyRepositoryError } from './study-repository.js';
 import type { WebRuntimeRepository } from './web-runtime-repository.js';
 
@@ -61,6 +67,7 @@ export interface WebStudyRouteOptions {
   readonly publicOrigin?: string;
   readonly resumeCookieName?: string;
   readonly qaControlsEnabled?: boolean;
+  readonly qaFollowUpControls?: LiveQaFollowUpControls;
   readonly nowIso: () => string;
   readonly createResumeToken?: () => WebResumeRawToken;
 }
@@ -200,6 +207,7 @@ export function registerWebStudyRoutes(
     publicOrigin,
     resumeCookieName,
     qaControlsEnabled = false,
+    qaFollowUpControls,
     nowIso,
     createResumeToken,
   } = options;
@@ -306,6 +314,37 @@ export function registerWebStudyRoutes(
       clearCookie(reply, secureCookies, cookieName);
       return reply.status(204).send();
     });
+
+    if (qaFollowUpControls !== undefined) {
+      server.post('/api/qa/follow-up/messages', async (request, reply) => {
+        requireWriteRequest(request, publicOrigin);
+        emptyRequestSchema.parse(request.body);
+        return reply.send(
+          liveQaFollowUpMessagesResponseSchema.parse(qaFollowUpControls.messages()),
+        );
+      });
+
+      server.post('/api/qa/follow-up/case', async (request, reply) => {
+        requireWriteRequest(request, publicOrigin);
+        const { sessionId, scenario } = liveQaFollowUpCaseRequestSchema.parse(request.body);
+        authenticateSession(request, sessionId, true);
+        return reply.send(
+          liveQaFollowUpCaseResponseSchema.parse(
+            qaFollowUpControls.prepareCase(sessionId, scenario),
+          ),
+        );
+      });
+
+      server.post('/api/qa/follow-up/verification', async (request, reply) => {
+        requireWriteRequest(request, publicOrigin);
+        const { token } = liveQaFollowUpVerificationRequestSchema.parse(request.body);
+        return reply.send(
+          liveQaFollowUpVerificationResponseSchema.parse(
+            qaFollowUpControls.verifySubmission(token),
+          ),
+        );
+      });
+    }
   }
 
   server.post('/api/study/sessions', async (request, reply) => {

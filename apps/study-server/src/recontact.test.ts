@@ -391,6 +391,18 @@ describe('follow-up recontact boundary', () => {
     nowIso = '2026-08-03T12:00:00.000Z';
     expect(
       (await webPost(server, null, '/api/follow-up/access', { token: 'A'.repeat(43) })).json(),
+    ).toEqual({ status: 'not-yet-open', opensAtIso: '2026-08-03T12:00:00.000Z' });
+    const deliveryDatabase = new Database(paths.recontact);
+    deliveryDatabase
+      .prepare(
+        `UPDATE registrations
+         SET first_invitation_sent_at_iso = ?
+         WHERE raw_token = ?`,
+      )
+      .run(nowIso, 'A'.repeat(43));
+    deliveryDatabase.close();
+    expect(
+      (await webPost(server, null, '/api/follow-up/access', { token: 'A'.repeat(43) })).json(),
     ).toEqual({
       status: 'available',
       reportingCutoffAtIso: '2026-08-03T12:00:00.000Z',
@@ -401,10 +413,12 @@ describe('follow-up recontact boundary', () => {
       token: 'A'.repeat(43),
       voluntaryConfirmation: true,
       responses: [
-        { itemId: 'FU_PASSWORD_PM_ACTIONS', value: ['generated_stored_account_specific'] },
-        { itemId: 'FU_MFA_ACTIONS', value: ['enabled_mfa'] },
-        { itemId: 'FU_PASSWORD_PM_NONE_REASON', value: null },
-        { itemId: 'FU_MFA_NONE_REASON', value: null },
+        { itemId: 'FU_REUSE_REPLACED', value: 'yes' },
+        { itemId: 'FU_PM_ACCOUNT_SPECIFIC', value: 'yes' },
+        { itemId: 'FU_MFA_ENABLED', value: 'unsure' },
+        { itemId: 'FU_REUSE_REPLACED_REASON', value: null },
+        { itemId: 'FU_PM_ACCOUNT_SPECIFIC_REASON', value: null },
+        { itemId: 'FU_MFA_ENABLED_REASON', value: null },
       ],
     };
     expect((await webPost(server, null, '/api/follow-up/submissions', submission)).json()).toEqual({
@@ -420,9 +434,7 @@ describe('follow-up recontact boundary', () => {
       {
         ...submission,
         responses: submission.responses.map((response) =>
-          response.itemId === 'FU_PASSWORD_PM_ACTIONS'
-            ? { ...response, value: ['inspected_available_manager'] }
-            : response,
+          response.itemId === 'FU_REUSE_REPLACED' ? { ...response, value: 'no' } : response,
         ),
       },
       409,
@@ -458,7 +470,7 @@ describe('follow-up recontact boundary', () => {
            WHERE session_id = ? AND instrument_id = 'follow-up-v1'`,
         )
         .get(first.session.sessionId),
-    ).toEqual({ count: 4 });
+    ).toEqual({ count: 6 });
     expect(
       JSON.stringify(studyDatabase.prepare('PRAGMA table_info(study_sessions)').all()),
     ).not.toMatch(/raw_token|\bemail\b/iu);
@@ -474,7 +486,7 @@ describe('follow-up recontact boundary', () => {
     const exportedResponses = readFileSync(join(exportDirectory, 'responses.json'), 'utf8');
     const exportedDictionary = readFileSync(join(exportDirectory, 'data-dictionary.json'), 'utf8');
     expect(exportedResponses).toContain('follow-up-v1');
-    expect(exportedDictionary).toContain('FU_PASSWORD_PM_ACTIONS');
+    expect(exportedDictionary).toContain('FU_REUSE_REPLACED');
     expect(`${exportedResponses}\n${exportedDictionary}`).not.toMatch(
       /web-participant|raw_token|AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA/iu,
     );

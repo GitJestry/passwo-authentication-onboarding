@@ -86,7 +86,13 @@ interface DictionaryItem {
   readonly max?: number;
   readonly maxLength?: number;
   readonly participantOptional?: true | undefined;
-  readonly displayWhen?: { readonly itemId: string; readonly contains: string } | undefined;
+  readonly displayWhen?:
+    | {
+        readonly itemId: string;
+        readonly contains?: string | undefined;
+        readonly equals?: string | undefined;
+      }
+    | undefined;
   readonly options?: readonly { readonly id: string }[];
 }
 
@@ -250,7 +256,7 @@ function dictionaryRowsForItems(
         instrumentId,
         sectionId,
         itemId: item.id,
-        responseType: item.type,
+        responseType: item.type === 'conditionalSingleChoice' ? 'singleChoice' : item.type,
         required: item.participantOptional !== true && item.displayWhen === undefined,
         minimum: item.min ?? scale.minimum,
         maximum: item.max ?? scale.maximum,

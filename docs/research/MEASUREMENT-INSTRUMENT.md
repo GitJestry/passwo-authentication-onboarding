@@ -173,6 +173,29 @@ beziehen sich auf den bis dahin absolvierten Gesamtprozess aus Artefakt und geme
 nur für Berichterstattung und eine vorab festgelegte, vorsichtig interpretierte Sensitivitätsanalyse
 verwendet.
 
+## Optionale Nachbefragung nach ungefähr zehn Tagen
+
+Das getrennte Follow-up ist eine ancillary exploratory extension mit genau drei eng definierten
+near-term self-reported actions: Ersetzen eines wiederverwendeten oder leicht veränderten
+Passworts, Erzeugen und Speichern eines kontospezifischen Passworts mit einem Passwortmanager und
+Aktivieren von MFA/2FA. Jede Handlung wird verpflichtend mit `Ja`, `Nein` oder `Unsicher`
+beantwortet und separat berichtet. `Unsicher` bleibt eine eigene Kategorie. Nur bei `Nein` kann
+optional ein handlungsspezifischer wichtigster Grund ausgewählt werden; Reasons sind deskriptiver
+Kontext und keine Barrierenskala. Es gibt weder weitere verzögerte Handlungen noch einen
+kombinierten delayed-behavior score.
+
+Das Reporting-Fenster reicht technisch vom Abschluss der damaligen Online-Studie bis zum
+bestätigten Versandzeitpunkt der ersten Einladung. Teilnehmende sehen keinen Kalenderstichtag und
+werden ausdrücklich auf eigene Konten außerhalb der Studie sowie darauf begrenzt, jetzt keine
+Änderung vorzunehmen. Die Selbstberichte sind kein Nachweis durable behavior change, sustained
+adoption oder objektiv korrekt abgeschlossener Konfigurationen.
+
+Condition und verfügbare Baseline-Passwortmanager-/MFA-Angaben werden über denselben `researchId`
+zugeordnet. Responder und Non-Responder werden nach Condition und verfügbaren Baseline-Merkmalen
+beschrieben. Follow-up-Unterschiede zwischen Conditions sind wegen freiwilligem Recontact und
+Nonresponse ausschließlich responder-selected exploratory estimates; es werden keine
+konfirmatorischen kausalen Effekte behauptet.
+
 ## Pflichtfelder, Verzweigungen und Barrierefreiheit
 
 Alle In-Session-Items sind verpflichtend, sofern im Manifest nicht ausdrücklich

@@ -5,9 +5,15 @@ import {
   artifactIntervalStartResponseSchema,
   confirmArtifactCheckpointRequestSchema,
   confirmArtifactCheckpointResponseSchema,
+  followUpInstrument,
+  followUpRawTokenSchema,
+  followUpSubmissionRequestSchema,
   instrumentRuntimeManifest,
   instrumentSubmissionRequestSchema,
   mainInstrumentBlocks,
+  liveQaFollowUpCaseResponseSchema,
+  liveQaFollowUpMessagesResponseSchema,
+  liveQaFollowUpVerificationResponseSchema,
   SUPPORTIVE_ARTIFACT_SEGMENT_IDS,
   SUPPORTIVE_CHECKPOINTS,
   supportiveCheckpointSchema,
@@ -23,8 +29,15 @@ import {
   type InstrumentResponseValue,
   type InstrumentRuntimeItem,
   type InstrumentSubmissionBlock,
+  type FollowUpSubmissionRequest,
+  type LiveQaFollowUpCaseScenario,
+  type LiveQaFollowUpCaseResponse,
+  type LiveQaFollowUpMessagesResponse,
+  type LiveQaFollowUpPreviewStatus,
+  type LiveQaFollowUpVerificationResponse,
   type WebResumeSession,
 } from '@passwo/contracts';
+import { submitFollowUp } from '../features/follow-up/follow-up-api.js';
 
 const writeHeaders = {
   'content-type': 'application/json',
@@ -78,17 +91,15 @@ async function postJson(apiBasePath: string, path: string, body: unknown): Promi
     headers: writeHeaders,
     body: JSON.stringify(body),
   });
-  const responseBody: unknown = response.status === 204
-    ? null
-    : await response.json().catch(() => null);
+  const responseBody: unknown =
+    response.status === 204 ? null : await response.json().catch(() => null);
   if (!response.ok) throw new Error(responseError(responseBody));
   return responseBody;
 }
 
 async function restore(apiBasePath: string): Promise<WebResumeSession | null> {
-  return webResumeResponseSchema.parse(
-    await postJson(apiBasePath, '/api/study/session/resume', {}),
-  ).session;
+  return webResumeResponseSchema.parse(await postJson(apiBasePath, '/api/study/session/resume', {}))
+    .session;
 }
 
 async function startArtifact(apiBasePath: string, sessionId: string) {
@@ -107,15 +118,12 @@ async function skipSupportiveArtifact(
   intervalId: string,
   checkpoint: (typeof SUPPORTIVE_CHECKPOINTS)[number],
 ): Promise<void> {
-  const resumesAtOrAfterS08 = supportiveS08BackedCheckpointSchema.safeParse(
-    checkpoint,
-  ).success;
-  const segmentIds =
-    resumesAtOrAfterS08
-      ? []
-      : checkpoint === 'supportive:S00' || checkpoint === 'supportive:entry'
-        ? SUPPORTIVE_ARTIFACT_SEGMENT_IDS
-        : SUPPORTIVE_ARTIFACT_SEGMENT_IDS.slice(1);
+  const resumesAtOrAfterS08 = supportiveS08BackedCheckpointSchema.safeParse(checkpoint).success;
+  const segmentIds = resumesAtOrAfterS08
+    ? []
+    : checkpoint === 'supportive:S00' || checkpoint === 'supportive:entry'
+      ? SUPPORTIVE_ARTIFACT_SEGMENT_IDS
+      : SUPPORTIVE_ARTIFACT_SEGMENT_IDS.slice(1);
   let elapsedMs = 1;
   for (const segmentId of segmentIds) {
     webSegmentTimingResponseSchema.parse(
@@ -217,21 +225,31 @@ export async function resetLiveQaSession(apiBasePath: string): Promise<void> {
   await postJson(apiBasePath, '/api/qa/reset', {});
 }
 
-export async function prepareLiveQaArtifact(apiBasePath: string): Promise<void> {
+async function createLiveQaSession(apiBasePath: string, followUpConsent: boolean) {
   await resetLiveQaSession(apiBasePath);
   await restore(apiBasePath);
-  const session = webCreateSessionResponseSchema.parse(
+  return webCreateSessionResponseSchema.parse(
     await postJson(
       apiBasePath,
       '/api/study/sessions',
       webCreateSessionRequestSchema.parse({
         requestId: globalThis.crypto.randomUUID(),
         consentAccepted: true,
-        followUpConsent: false,
-        recontact: null,
+        followUpConsent,
+        recruitmentId: 'qa',
+        recontact: followUpConsent
+          ? {
+              requestId: globalThis.crypto.randomUUID(),
+              email: 'follow-up-browser-qa@example.invalid',
+            }
+          : null,
       }),
     ),
   );
+}
+
+export async function prepareLiveQaArtifact(apiBasePath: string): Promise<void> {
+  const session = await createLiveQaSession(apiBasePath, false);
   for (const block of mainInstrumentBlocks) {
     if (block.instrumentId !== 'pre-v1') continue;
     await postJson(
@@ -245,10 +263,8 @@ export async function prepareLiveQaArtifact(apiBasePath: string): Promise<void> 
 export async function skipLiveQaArtifact(apiBasePath: string): Promise<void> {
   const session = await restore(apiBasePath);
   if (session === null) throw new Error('live-qa-session-missing');
-  if (
-    session.resumeTarget !== 'artifact' &&
-    session.resumeTarget !== 'artifact-preparation'
-  ) return;
+  if (session.resumeTarget !== 'artifact' && session.resumeTarget !== 'artifact-preparation')
+    return;
   const artifact = await startArtifact(apiBasePath, session.sessionId);
   if (session.condition === 'supportive') {
     await skipSupportiveArtifact(
@@ -273,4 +289,115 @@ export async function completeLiveQaQuestionnaires(apiBasePath: string): Promise
       validSubmission(block),
     );
   }
+}
+
+export async function loadLiveQaFollowUpMessages(
+  apiBasePath: string,
+): Promise<LiveQaFollowUpMessagesResponse> {
+  return liveQaFollowUpMessagesResponseSchema.parse(
+    await postJson(apiBasePath, '/api/qa/follow-up/messages', {}),
+  );
+}
+
+export async function prepareLiveQaFollowUpCase(
+  apiBasePath: string,
+  scenario: LiveQaFollowUpCaseScenario = 'available',
+): Promise<LiveQaFollowUpCaseResponse> {
+  const session = await createLiveQaSession(apiBasePath, true);
+  for (const block of mainInstrumentBlocks) {
+    if (block.instrumentId !== 'pre-v1') continue;
+    await postJson(
+      apiBasePath,
+      `/api/study/sessions/${session.sessionId}/instrument-submissions`,
+      validSubmission(block),
+    );
+  }
+  await skipLiveQaArtifact(apiBasePath);
+  await completeLiveQaQuestionnaires(apiBasePath);
+  return liveQaFollowUpCaseResponseSchema.parse(
+    await postJson(apiBasePath, '/api/qa/follow-up/case', {
+      sessionId: session.sessionId,
+      scenario,
+    }),
+  );
+}
+
+function qaOptionId(
+  item: { readonly id: string; readonly options: readonly { readonly id: string }[] },
+  optionIndex: number,
+): string {
+  const option = item.options[optionIndex % item.options.length];
+  if (option === undefined) throw new Error(`qa-option-missing-${item.id}`);
+  return option.id;
+}
+
+function qaSubmission(token: string, optionIndex: number): FollowUpSubmissionRequest {
+  const actionResponses = followUpInstrument.questionnaire.items
+    .filter((item) => item.type === 'singleChoice')
+    .map((item) => ({
+      itemId: item.id,
+      value: qaOptionId(item, optionIndex),
+    }));
+  const actionValues = new Map(actionResponses.map(({ itemId, value }) => [itemId, value]));
+  return followUpSubmissionRequestSchema.parse({
+    token,
+    voluntaryConfirmation: true,
+    responses: followUpInstrument.questionnaire.items.map((item) => {
+      if (item.type === 'singleChoice') {
+        return { itemId: item.id, value: actionValues.get(item.id) ?? null };
+      }
+      const controlling = actionValues.get(item.displayWhen.itemId) ?? null;
+      return {
+        itemId: item.id,
+        value: controlling === item.displayWhen.equals ? qaOptionId(item, optionIndex) : null,
+      };
+    }),
+  });
+}
+
+export async function prepareLiveQaFollowUpPreview(
+  apiBasePath: string,
+  status: LiveQaFollowUpPreviewStatus,
+): Promise<string> {
+  if (status === 'invalid') return followUpRawTokenSchema.parse('I'.repeat(43));
+
+  const prepared = await prepareLiveQaFollowUpCase(
+    apiBasePath,
+    status === 'submitted' ? 'available' : status,
+  );
+  if (status === 'submitted') {
+    await submitFollowUp(qaSubmission(prepared.token, 0), apiBasePath);
+  }
+  return prepared.token;
+}
+
+export type LiveQaFollowUpProof = LiveQaFollowUpVerificationResponse & {
+  readonly differentSubmissionBlocked: true;
+};
+
+export async function verifyLiveQaFollowUpSubmission(
+  apiBasePath: string,
+  submitted: FollowUpSubmissionRequest,
+): Promise<LiveQaFollowUpProof> {
+  const firstAlternative = qaSubmission(submitted.token, 0);
+  const alternative =
+    JSON.stringify(firstAlternative.responses) === JSON.stringify(submitted.responses)
+      ? qaSubmission(submitted.token, 1)
+      : firstAlternative;
+  let differentSubmissionBlocked = false;
+  try {
+    await submitFollowUp(alternative, apiBasePath);
+  } catch (error) {
+    if (error instanceof Error && error.message === 'follow-up-already-submitted') {
+      differentSubmissionBlocked = true;
+    } else {
+      throw error;
+    }
+  }
+  if (!differentSubmissionBlocked) throw new Error('live-qa-different-submission-not-blocked');
+
+  const verification = liveQaFollowUpVerificationResponseSchema.parse(
+    await postJson(apiBasePath, '/api/qa/follow-up/verification', { token: submitted.token }),
+  );
+  return { ...verification, differentSubmissionBlocked: true };
 }

@@ -21,6 +21,7 @@ import {
 import Fastify, { type FastifyInstance } from 'fastify';
 import { z } from 'zod';
 import { openStudyDatabase } from './database.js';
+import { createLiveQaFollowUpControls } from './live-qa-followup.js';
 import { cryptoStudyRandomSource, type StudyRandomSource } from './random-source.js';
 import { isReferenceArtifactAvailable, registerReferenceArtifact } from './static-web.js';
 import { StudyRepository, StudyRepositoryError, type StudyVersions } from './study-repository.js';
@@ -71,10 +72,8 @@ export function buildStudyServer({
   versions = walkingSkeletonVersions,
   webRuntime,
 }: StudyServerBuildOptions): FastifyInstance {
-  const database = openStudyDatabase(
-    databasePath,
-    recontactDatabasePath,
-    () => randomSource.researchToken(),
+  const database = openStudyDatabase(databasePath, recontactDatabasePath, () =>
+    randomSource.researchToken(),
   );
   const effectiveNowIso = nowIso ?? (() => new Date().toISOString());
   const repository = new StudyRepository({
@@ -151,6 +150,17 @@ export function buildStudyServer({
       resumeCloseAtIso: webRuntime.resumeCloseAtIso,
     });
     webRepository.reconcileDataCompleteSessions();
+    const qaFollowUpControls =
+      webRuntime.qaControlsEnabled === true
+        ? createLiveQaFollowUpControls({
+            database,
+            repository,
+            nowIso: effectiveNowIso,
+            ...(webRuntime.publicOrigin === undefined
+              ? {}
+              : { publicOrigin: webRuntime.publicOrigin }),
+          })
+        : undefined;
     registerWebStudyRoutes(server, {
       repository: webRepository,
       followUpRepository: repository,
@@ -166,6 +176,7 @@ export function buildStudyServer({
       ...(webRuntime.qaControlsEnabled === undefined
         ? {}
         : { qaControlsEnabled: webRuntime.qaControlsEnabled }),
+      ...(qaFollowUpControls === undefined ? {} : { qaFollowUpControls }),
       ...(webRuntime.createResumeToken === undefined
         ? {}
         : { createResumeToken: webRuntime.createResumeToken }),

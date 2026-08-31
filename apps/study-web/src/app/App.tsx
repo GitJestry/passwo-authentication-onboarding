@@ -34,8 +34,10 @@ function RouteLoadingBoundary() {
 
 export function App({
   initialFollowUpToken = null,
+  initialLiveQaFollowUpToken = null,
 }: {
   readonly initialFollowUpToken?: string | null;
+  readonly initialLiveQaFollowUpToken?: string | null;
 }) {
   const { pathname } = window.location;
   if (pathname === FOLLOW_UP_PATH) {
@@ -49,7 +51,7 @@ export function App({
   if (liveQaRoute !== null) {
     return (
       <Suspense fallback={<RouteLoadingBoundary />}>
-        <LiveQa route={liveQaRoute} />
+        <LiveQa route={liveQaRoute} initialFollowUpToken={initialLiveQaFollowUpToken} />
       </Suspense>
     );
   }

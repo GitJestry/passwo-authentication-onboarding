@@ -5,6 +5,9 @@ import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import {
   followUpInstrument,
+  liveQaFollowUpCaseResponseSchema,
+  liveQaFollowUpMessagesResponseSchema,
+  liveQaFollowUpVerificationResponseSchema,
   mainInstrumentBlocks,
   researchAnalysisResponseRecordSchema,
   researchAnalysisSessionRecordSchema,
@@ -164,14 +167,136 @@ const validFollowUpSubmission = (token: string) => ({
   token,
   voluntaryConfirmation: true,
   responses: [
-    { itemId: 'FU_PASSWORD_PM_ACTIONS', value: ['none'] },
-    { itemId: 'FU_MFA_ACTIONS', value: ['enabled_mfa'] },
-    { itemId: 'FU_PASSWORD_PM_NONE_REASON', value: 'no_opportunity' },
-    { itemId: 'FU_MFA_NONE_REASON', value: null },
+    { itemId: 'FU_REUSE_REPLACED', value: 'no' },
+    { itemId: 'FU_PM_ACCOUNT_SPECIFIC', value: 'yes' },
+    { itemId: 'FU_MFA_ENABLED', value: 'unsure' },
+    { itemId: 'FU_REUSE_REPLACED_REASON', value: 'no_opportunity' },
+    { itemId: 'FU_PM_ACCOUNT_SPECIFIC_REASON', value: null },
+    { itemId: 'FU_MFA_ENABLED_REASON', value: null },
   ],
 });
 
 describe('follow-up operations and research linkage', () => {
+  it('keeps follow-up QA controls unavailable in a normal web runtime', async () => {
+    const paths = temporaryDatabasePaths();
+    const server = createServer(paths, () => '2026-07-24T12:00:00.000Z', []);
+    const response = await server.inject({
+      method: 'POST',
+      url: '/api/qa/follow-up/messages',
+      payload: {},
+    });
+    expect(response.statusCode).toBe(404);
+  });
+
+  it('prepares and verifies one fully linked follow-up in the existing in-memory QA runtime', async () => {
+    const nowIso = '2026-08-30T12:00:00.000Z';
+    const rawToken = 'Q'.repeat(43);
+    const server = buildStudyServer({
+      version: '0.1.2-qa-supportive',
+      assignmentMode: 'forced-supportive',
+      databasePath: ':memory:',
+      recontactDatabasePath: ':memory:',
+      randomSource: deterministicTestRandomSource(),
+      referenceArtifactDirectory: referenceArtifactFixtureDirectory,
+      nowIso: () => nowIso,
+      createRecontactToken: () => rawToken,
+      webRuntime: {
+        resumeCloseAtIso: '2026-09-30T12:00:00.000Z',
+        secureCookies: false,
+        qaControlsEnabled: true,
+      },
+    });
+    servers.push(server);
+
+    const messages = liveQaFollowUpMessagesResponseSchema.parse(
+      (await webPost(server, null, '/api/qa/follow-up/messages', {})).json(),
+    );
+    expect(messages.invitation).toMatchObject({
+      sender: { name: 'Julian Meyer', address: 's27jmeye@uni-bonn.de' },
+      recipient: 'follow-up-qa@example.invalid',
+      subject: followUpInstrument.email.subject,
+    });
+    expect(messages.reminder.sender).toEqual({
+      name: 'Julian Meyer',
+      address: 's27jmeye@uni-bonn.de',
+    });
+    expect(messages.reminder.subject).toBe(followUpInstrument.reminderEmail.subject);
+    expect(messages.invitation.text).not.toMatch(/\[(?:TOKEN_LINK|STICHTAG|CLOSES_AT)\]/u);
+    expect(messages.reminder.text).not.toMatch(/\[(?:TOKEN_LINK|STICHTAG|CLOSES_AT)\]/u);
+
+    const created = await createWebTestSession(server, 799, true, 'qa');
+    await completeStudyWithDefinedBaseline(
+      server,
+      created,
+      '81000000-0000-4000-8000-000000000799',
+      799,
+    );
+    const notYetOpen = liveQaFollowUpCaseResponseSchema.parse(
+      (
+        await webPost(server, created.cookie, '/api/qa/follow-up/case', {
+          sessionId: created.session.sessionId,
+          scenario: 'not-yet-open',
+        })
+      ).json(),
+    );
+    expect(notYetOpen.access).toMatchObject({ status: 'not-yet-open' });
+
+    const expired = liveQaFollowUpCaseResponseSchema.parse(
+      (
+        await webPost(server, created.cookie, '/api/qa/follow-up/case', {
+          sessionId: created.session.sessionId,
+          scenario: 'expired',
+        })
+      ).json(),
+    );
+    expect(expired.access).toEqual({ status: 'expired' });
+
+    const prepared = liveQaFollowUpCaseResponseSchema.parse(
+      (
+        await webPost(server, created.cookie, '/api/qa/follow-up/case', {
+          sessionId: created.session.sessionId,
+          scenario: 'available',
+        })
+      ).json(),
+    );
+    expect(prepared).toMatchObject({ token: rawToken, access: { status: 'available' } });
+    expect(
+      (await webPost(server, null, '/api/follow-up/access', { token: prepared.token })).json(),
+    ).toMatchObject({ status: 'available' });
+
+    const submission = validFollowUpSubmission(prepared.token);
+    await webPost(server, null, '/api/follow-up/submissions', submission);
+    await webPost(
+      server,
+      null,
+      '/api/follow-up/submissions',
+      {
+        ...submission,
+        responses: submission.responses.map((response) =>
+          response.itemId === 'FU_MFA_ENABLED' ? { ...response, value: 'yes' } : response,
+        ),
+      },
+      409,
+    );
+    expect(
+      (await webPost(server, null, '/api/follow-up/access', { token: prepared.token })).json(),
+    ).toEqual({ status: 'submitted' });
+    const verification = liveQaFollowUpVerificationResponseSchema.parse(
+      (
+        await webPost(server, null, '/api/qa/follow-up/verification', {
+          token: prepared.token,
+        })
+      ).json(),
+    );
+    expect(verification).toEqual({
+      researchId: prepared.researchId,
+      status: 'submitted',
+      storedResponseCount: 6,
+      linkedToMainCase: true,
+      reminderEligible: false,
+    });
+  });
+
   it('links token, registration, main responses and follow-up responses only through one researchId', async () => {
     const paths = temporaryDatabasePaths();
     let nowIso = '2026-07-24T12:00:00.000Z';
@@ -228,10 +353,10 @@ describe('follow-up operations and research linkage', () => {
     });
 
     const conditionalReason = followUpInstrument.questionnaire.items.find(
-      (item) => item.id === 'FU_PASSWORD_PM_NONE_REASON',
+      (item) => item.id === 'FU_REUSE_REPLACED_REASON',
     );
     expect(conditionalReason).toMatchObject({
-      displayWhen: { itemId: 'FU_PASSWORD_PM_ACTIONS', contains: 'none' },
+      displayWhen: { itemId: 'FU_REUSE_REPLACED', equals: 'no' },
     });
     await webPost(
       server,
@@ -240,9 +365,7 @@ describe('follow-up operations and research linkage', () => {
       {
         ...validFollowUpSubmission(rawToken),
         responses: validFollowUpSubmission(rawToken).responses.map((response) =>
-          response.itemId === 'FU_PASSWORD_PM_ACTIONS'
-            ? { ...response, value: ['generated_stored_account_specific'] }
-            : response,
+          response.itemId === 'FU_REUSE_REPLACED' ? { ...response, value: 'yes' } : response,
         ),
       },
       400,
@@ -262,9 +385,7 @@ describe('follow-up operations and research linkage', () => {
       {
         ...submission,
         responses: submission.responses.map((response) =>
-          response.itemId === 'FU_MFA_ACTIONS'
-            ? { ...response, value: ['checked_availability_or_status'] }
-            : response,
+          response.itemId === 'FU_MFA_ENABLED' ? { ...response, value: 'yes' } : response,
         ),
       },
       409,
@@ -317,7 +438,7 @@ describe('follow-up operations and research linkage', () => {
       sessionId: created.session.sessionId,
       condition: created.session.condition,
       baselineCount: 2,
-      followUpCount: 4,
+      followUpCount: 6,
     });
 
     const exportDirectory = join(paths.directory, 'analysis-before-contact-deletion');
@@ -342,12 +463,30 @@ describe('follow-up operations and research linkage', () => {
     expect(exportedSession.followUpConsent).toBe(true);
 
     const linkedRows = responses.filter((response) =>
-      ['PRE_PM_USE', 'PRE_MFA_USE', 'FU_PASSWORD_PM_ACTIONS', 'FU_MFA_ACTIONS'].includes(
-        response.itemId,
-      ),
+      [
+        'PRE_PM_USE',
+        'PRE_MFA_USE',
+        'FU_REUSE_REPLACED',
+        'FU_PM_ACCOUNT_SPECIFIC',
+        'FU_MFA_ENABLED',
+      ].includes(response.itemId),
     );
-    expect(linkedRows).toHaveLength(4);
+    expect(linkedRows).toHaveLength(5);
     expect(new Set(responses.map((response) => response.researchId))).toEqual(
+      new Set([exportedSession.researchId]),
+    );
+    const followUpRows = responses.filter((response) => response.instrumentId === 'follow-up-v1');
+    expect(followUpRows.map((response) => response.itemId).sort()).toEqual(
+      [
+        'FU_REUSE_REPLACED',
+        'FU_PM_ACCOUNT_SPECIFIC',
+        'FU_MFA_ENABLED',
+        'FU_REUSE_REPLACED_REASON',
+        'FU_PM_ACCOUNT_SPECIFIC_REASON',
+        'FU_MFA_ENABLED_REASON',
+      ].sort(),
+    );
+    expect(new Set(followUpRows.map((response) => response.researchId))).toEqual(
       new Set([exportedSession.researchId]),
     );
     expect(linkedRows).toEqual(
@@ -365,14 +504,20 @@ describe('follow-up operations and research linkage', () => {
         expect.objectContaining({
           researchId: exportedSession.researchId,
           instrumentId: 'follow-up-v1',
-          itemId: 'FU_PASSWORD_PM_ACTIONS',
-          value: ['none'],
+          itemId: 'FU_REUSE_REPLACED',
+          value: 'no',
         }),
         expect.objectContaining({
           researchId: exportedSession.researchId,
           instrumentId: 'follow-up-v1',
-          itemId: 'FU_MFA_ACTIONS',
-          value: ['enabled_mfa'],
+          itemId: 'FU_PM_ACCOUNT_SPECIFIC',
+          value: 'yes',
+        }),
+        expect.objectContaining({
+          researchId: exportedSession.researchId,
+          instrumentId: 'follow-up-v1',
+          itemId: 'FU_MFA_ENABLED',
+          value: 'unsure',
         }),
       ]),
     );
@@ -439,14 +584,18 @@ describe('follow-up operations and research linkage', () => {
     nowIso = '2026-08-03T12:00:00.000Z';
     expect(
       (await webPost(server, null, '/api/follow-up/access', { token: rawToken })).json(),
-    ).toMatchObject({
-      status: 'available',
-    });
+    ).toEqual({ status: 'not-yet-open', opensAtIso: nowIso });
     nowIso = '2026-08-03T13:00:00.000Z';
     expect(await runScheduler(paths, nowIso, transport)).toMatchObject({
       dueCount: 1,
       deliveredCount: 1,
       sentMarkerCount: 1,
+    });
+    expect(
+      (await webPost(server, null, '/api/follow-up/access', { token: rawToken })).json(),
+    ).toMatchObject({
+      status: 'available',
+      reportingCutoffAtIso: nowIso,
     });
     expect(await runScheduler(paths, nowIso, transport)).toMatchObject({
       dueCount: 0,

@@ -33,38 +33,42 @@ Forschungs-ID oder Antwortdaten und darf nicht weitergegeben werden.
 
 Vor jeder Follow-up-Antwort wird angezeigt:
 
-> Dieser freiwillige Folgefragebogen untersucht, ob du seit deiner Teilnahme konkrete Schritte
-> zum Schutz deiner Online-Konten unternommen hast und welche Gründe eine Umsetzung erleichtert
-> oder verhindert haben. Die Bearbeitung dauert etwa zwei Minuten. Deine Teilnahme ist freiwillig.
-> Wenn du nicht teilnimmst, entstehen dir keine Nachteile.
+> Diese freiwillige Nachbefragung fragt nach einigen Schritten zum Schutz deiner Online-Konten in
+> den Tagen nach der damaligen Studie. Falls du einen dieser Schritte nicht unternommen hast,
+> kannst du kurz den wichtigsten Grund angeben. Die Bearbeitung dauert etwa zwei Minuten. Deine
+> Teilnahme ist freiwillig. Wenn du nicht teilnimmst, entstehen dir keine Nachteile.
 
 Danach ist eine erneute ausdrückliche freiwillige Teilnahmebestätigung erforderlich. Nach gültiger
 Abgabe wird der Token für weitere Antworten gesperrt.
 
 ## Instrument
 
-Die zwei Mehrfachauswahlfragen erfassen getrennt Passwort-/Passwortmanagerhandlungen und
-MFA-Handlungen. `Keine dieser Handlungen` ist jeweils exklusiv. Bei Auswahl dieser Option erscheint
-ein domänenspezifisches, freiwilliges Einzelwahl-Item zum wichtigsten Grund. Es wird kein Freitext
-erhoben.
+Das Instrument enthält genau drei verpflichtende, getrennt berichtete fokale Handlungen:
 
-Fokale verzögerte Outcomes:
+1. `FU_REUSE_REPLACED`: Ersetzen eines wiederverwendeten oder leicht veränderten Passworts;
+2. `FU_PM_ACCOUNT_SPECIFIC`: Erzeugen und Speichern eines kontospezifischen Passworts mit einem
+   Passwortmanager;
+3. `FU_MFA_ENABLED`: Aktivieren von MFA/2FA bei mindestens einem Konto.
 
-1. Ersetzen eines wiederverwendeten oder erkennbar variierten Passworts;
-2. Erzeugen und Speichern eines kontospezifischen Passworts mit einem Passwortmanager;
-3. Aktivieren von MFA/2FA bei mindestens einem Konto.
-
-Prüfung verfügbarer Funktionen, bewusster Abruf beziehungsweise Autofill, Prüfung des
-Wiederherstellungswegs und MFA-Wartung sind sekundäre deskriptive Handlungen. Es wird kein
-kombinierter Verhaltenswert gebildet. Nichtantwort ist fehlend und keine Inaktivität.
+Jede Hauptfrage verwendet ausschließlich `Ja`, `Nein` und `Unsicher`. `Unsicher` ist eine eigene
+Kategorie und wird nicht als `Nein` codiert. Nur bei `Nein` erscheint das zugehörige optionale
+Reason-Item `FU_REUSE_REPLACED_REASON`, `FU_PM_ACCOUNT_SPECIFIC_REASON` beziehungsweise
+`FU_MFA_ENABLED_REASON`. Bei `Ja` und `Unsicher` bleibt der Reason-Wert kanonisch `null`. Es wird
+kein Freitext und kein kombinierter Verhaltenswert erhoben. Reasons sind ausschließlich
+handlungsspezifischer deskriptiver Kontext und keine Barrierenskala. Nichtantwort ist fehlend und
+keine Inaktivität.
 
 ## Interpretation
 
-Die Angaben sind Selbstberichte, gelegenheits- und ausgangslagenabhängig und werden nur unter
-Follow-up-Respondierenden ausgewertet. Sie belegen weder korrekt abgeschlossene Konfigurationen,
-noch dauerhafte Adoption, Wissenszuwachs, Gewohnheitsbildung oder langfristige Verhaltensänderung.
-Sie folgen dem zugewiesenen Artefakt, dem gemeinsamen Guardrail, den übrigen Messungen und dem
-gemeinsamen korrektiven Debriefing.
+Die Angaben sind eng definierte kurzfristige Selbstberichte, gelegenheits- und
+ausgangslagenabhängig und werden nur unter Follow-up-Respondierenden ausgewertet. `Ja`, `Nein` und
+`Unsicher` werden je fokaler Handlung separat berichtet; Reasons werden nur für `Nein` deskriptiv
+zusammengefasst. Sie belegen weder korrekt abgeschlossene Konfigurationen noch dauerhafte Adoption,
+Wissenszuwachs, Gewohnheitsbildung oder langfristige Verhaltensänderung. Condition sowie verfügbare
+Baseline-Passwortmanager- und MFA-Angaben bleiben über denselben `researchId` zuordenbar.
+Responder und Non-Responder werden nach Condition und verfügbaren Baseline-Merkmalen beschrieben.
+Condition-Unterschiede im freiwilligen Follow-up sind responder-selected exploratory estimates und
+keine konfirmatorischen kausalen Effekte.
 
 ## Kontakt- und Löschprozess
 
@@ -83,23 +87,21 @@ sie enthält keine E-Mail-Adresse und keinen Token.
 Die weitere pseudonymisierte Verknüpfung der bereits abgegebenen Follow-up-Antworten endet beim
 Datensatz-Freeze gemäß `DATA-CONTRACT.md`.
 
-## Runtime-Copy-Delta für die same-origin Route
+## Finale Messrevision und Versionskompatibilität
 
-Die Fragen, Antwortoptionen, Auswertungsrolle und Safety-Grenze bleiben unverändert. Für die
-beauftragte technische Auslieferung wurden ausschließlich zuvor fehlende Bedien- und Statusflächen
-in derselben kanonischen Quelle `research/derived/follow-up-v6.yaml` ergänzt:
+Die finale Revision ersetzt die bisherigen zwei großen Mehrfachauswahlblöcke und ihre beiden
+Bereichs-Reasons durch die oben beschriebenen drei fokalen Einzelitems und drei
+handlungsspezifischen Reasons. Inspection-, Retrieval-, Autofill-, Recovery- und
+Maintenance-Handlungen sind keine Follow-up-Outcomes mehr. Participant Framing, Landingpage,
+Einladung und Reminder verwenden keinen sichtbaren Kalenderstichtag; der technisch maßgebliche
+Reporting-Cutoff bleibt unverändert der bestätigte Zeitpunkt der ersten Einladung.
 
-| Text-ID | Quelle | Vorher | Ergänzung | Primäre Rolle | Grund | Bedeutungsänderung | Interaktionsziel |
-|---|---|---|---|---|---|---|---|
-| `FU_UI_DOMAIN_PASSWORD_PM`, `FU_UI_DOMAIN_MFA` | bestehende zwei Instrumentdomänen | fehlte | `Passwörter und Passwortmanager`; `MFA/2FA` | Orientierung | eindeutige Zuordnung der zwei gleichlautenden Fragen | nein | kein |
-| `FU_UI_LOADING` | beauftragte same-origin Auslieferung | fehlte | `Nachbefragung wird geladen …` | Ergebnisfeedback | zugänglicher Ladezustand | nein | kein |
-| `FU_UI_START`, `FU_UI_SUBMIT`, `FU_UI_SUBMITTING` | vorhandene Einwilligungs- und Abgabelogik | fehlte | `Zur Nachbefragung`; `Antworten absenden`; `Antworten werden gespeichert …` | Navigation | Buttons benennen ihre tatsächliche Aktion | nein | Start beziehungsweise Abgabe |
-| `FU_UI_VALIDATION_ERROR`, `FU_UI_SUBMIT_ERROR` | Pflicht der zwei Handlungsfragen und atomarer Write | fehlte | siehe `interface.validationError` und `interface.submitError` | Ergebnisfeedback | Fehler ohne interne Metadaten verständlich machen | nein | erneute Eingabe beziehungsweise Retry |
-| `FU_UI_SUBMITTED`, `FU_UI_ALREADY_SUBMITTED` | einmalige Abgabe laut Instrument | fehlte | siehe `interface.submitted*` und `interface.alreadySubmitted*` | Ergebnisfeedback | erfolgreichen beziehungsweise bereits verbrauchten Token erklären | nein | kein |
-| `FU_UI_NOT_OPEN`, `FU_UI_EXPIRED`, `FU_UI_INVALID`, `FU_UI_LOAD_ERROR` | dokumentiertes Zeitfenster und Tokenmodell | fehlte | siehe gleichnamige `interface`-Felder | Safety Boundary | keine Eingabe außerhalb eines gültigen Zugriffs | nein | kein |
-| `email.body`, `reminderEmail.body` | bestehende Linkzeile | `Zur Nachbefragung: [TOKEN_LINK]` | `Zur freiwilligen Nachbefragung: [TOKEN_LINK]` | Navigation | Linkziel für Teilnehmende eindeutig und freiwillig benennen | nein | Follow-up öffnen |
+`follow_up_version` wird beim Session-Create als `follow-up-v6-pilot` gespeichert und ist derzeit
+ein harter Gate-Wert für Zugriff und Scheduler. Ein Versionssprung würde bereits consentierte
+Sessions ohne produktive Datenmigration ungültig machen. Deshalb bleibt dieser Wert für die
+laufende Studie unverändert und die finale Revision wird über den Release-Commit nachvollziehbar.
+Bestehende und neu consentierte Fälle bleiben damit im selben Follow-up-Betrieb erreichbar; es ist
+keine Datenbankmigration oder Umschreibung bestehender Sessions erforderlich.
 
-Es gibt keine Hervorhebung und keinen Eingriff in Training, Trainingsdramaturgie oder geschützten
-PassWo-Wortlaut. Da die Messitems und ihre Bedeutung unverändert bleiben und nur die bereits für
-`follow-up-v6-pilot` vorgesehene Auslieferungsoberfläche vervollständigt wird, bleibt die
-Instrumentversion unverändert.
+Es gibt keine Hervorhebung und keinen Eingriff in Training, Trainingsdramaturgie, Hauptfragebogen
+oder geschützten PassWo-Wortlaut.

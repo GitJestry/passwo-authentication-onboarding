@@ -21,8 +21,8 @@ function errorCode(value: unknown): string {
   return 'follow-up-request-failed';
 }
 
-async function post(path: string, body: unknown): Promise<unknown> {
-  const response = await fetch(path, {
+async function post(apiBasePath: string, path: string, body: unknown): Promise<unknown> {
+  const response = await fetch(`${apiBasePath}${path}`, {
     method: 'POST',
     credentials: 'same-origin',
     cache: 'no-store',
@@ -37,12 +37,22 @@ async function post(path: string, body: unknown): Promise<unknown> {
   return responseBody;
 }
 
-export async function loadFollowUpAccess(token: string): Promise<FollowUpAccessResponse> {
+export async function loadFollowUpAccess(
+  token: string,
+  apiBasePath = '',
+): Promise<FollowUpAccessResponse> {
   const request = followUpAccessRequestSchema.parse({ token });
-  return followUpAccessResponseSchema.parse(await post('/api/follow-up/access', request));
+  return followUpAccessResponseSchema.parse(
+    await post(apiBasePath, '/api/follow-up/access', request),
+  );
 }
 
-export async function submitFollowUp(request: FollowUpSubmissionRequest): Promise<void> {
+export async function submitFollowUp(
+  request: FollowUpSubmissionRequest,
+  apiBasePath = '',
+): Promise<void> {
   const parsed = followUpSubmissionRequestSchema.parse(request);
-  followUpSubmissionResponseSchema.parse(await post('/api/follow-up/submissions', parsed));
+  followUpSubmissionResponseSchema.parse(
+    await post(apiBasePath, '/api/follow-up/submissions', parsed),
+  );
 }

@@ -454,6 +454,12 @@ Basic-Auth-Zugangsdaten verwenden. Prüfe mindestens:
 5. „Lernangebot überspringen“ und „Restliche Fragebögen ausfüllen“ führen bis zum regulären
    Abschluss, ohne die produktive Datenbank zu verändern.
 6. „QA-Sitzung zurücksetzen“ erzeugt beim nächsten Start eine neue isolierte Sitzung.
+7. „Follow-up“ zeigt Einladung und Reminder ausschließlich mit synthetischen Werten. Ein dort
+   vorbereiteter consentierter Main-Fall durchläuft dieselbe Follow-up-Oberfläche und API; nach der
+   Abgabe bestätigt die QA-Ansicht Speicherung, pseudonyme Verknüpfung, `submitted`, blockierte
+   unterschiedliche Wiederholungsabgabe und den ausgeschlossenen Reminder. Die Zustände
+   `not-yet-open`, `expired`, `submitted` und `invalid` sind zusätzlich direkt unter
+   `/qa/follow-up/<status>` aufrufbar.
 
 Für einen belastbaren Kaltstartvergleich einen privaten Browserkontext oder deaktivierten Cache
 verwenden. Danach im normalen Browser zusätzlich das reale Cache-Verhalten prüfen.

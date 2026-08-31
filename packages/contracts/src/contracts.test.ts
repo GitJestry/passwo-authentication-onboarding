@@ -55,7 +55,48 @@ describe('research-safe contracts', () => {
   it('keeps the reviewed follow-up runtime projection exact and token responses identity-free', () => {
     expect(followUpInstrument).toEqual(reviewedFollowUpInstrument);
     expect(followUpInstrument.version).toBe('follow-up-v6-pilot');
-    expect(followUpInstrument.questionnaire.items).toHaveLength(4);
+    expect(followUpInstrument.questionnaire.items).toHaveLength(6);
+    const focalItems = followUpInstrument.questionnaire.items.filter(
+      (item) => item.type === 'singleChoice',
+    );
+    expect(focalItems.map((item) => item.id)).toEqual([
+      'FU_REUSE_REPLACED',
+      'FU_PM_ACCOUNT_SPECIFIC',
+      'FU_MFA_ENABLED',
+    ]);
+    expect(focalItems.map((item) => item.options.map((option) => option.id))).toEqual([
+      ['yes', 'no', 'unsure'],
+      ['yes', 'no', 'unsure'],
+      ['yes', 'no', 'unsure'],
+    ]);
+    const reasonItems = followUpInstrument.questionnaire.items.filter(
+      (item) => item.type === 'conditionalSingleChoice',
+    );
+    expect(reasonItems.map((item) => item.id)).toEqual([
+      'FU_REUSE_REPLACED_REASON',
+      'FU_PM_ACCOUNT_SPECIFIC_REASON',
+      'FU_MFA_ENABLED_REASON',
+    ]);
+    expect(reasonItems.map((item) => item.displayWhen)).toEqual([
+      { itemId: 'FU_REUSE_REPLACED', equals: 'no' },
+      { itemId: 'FU_PM_ACCOUNT_SPECIFIC', equals: 'no' },
+      { itemId: 'FU_MFA_ENABLED', equals: 'no' },
+    ]);
+    const participantCopy = [
+      followUpInstrument.email.body,
+      followUpInstrument.reminderEmail.body,
+      followUpInstrument.landingPage.disclosure,
+      followUpInstrument.questionnaire.reportingInstruction,
+      followUpInstrument.questionnaire.accountScopeInstruction,
+      followUpInstrument.questionnaire.safetyNote,
+    ].join('\n');
+    expect(participantCopy).not.toMatch(/\[(?:STICHTAG|CLOSES_AT)\]/u);
+    expect(participantCopy).not.toMatch(
+      /\b\d{1,2}\.\s+(?:Januar|Februar|März|April|Mai|Juni|Juli|August|September|Oktober|November|Dezember)\s+\d{4}\b/u,
+    );
+    expect(JSON.stringify(followUpInstrument)).not.toMatch(
+      /FU_(?:PASSWORD_PM_ACTIONS|MFA_ACTIONS|PASSWORD_PM_NONE_REASON|MFA_NONE_REASON)|inspected_available_manager|used_retrieval_or_autofill|checked_manager_access_or_recovery|checked_availability_or_status|checked_factor_or_recovery/u,
+    );
     expect(
       followUpAccessResponseSchema.parse({
         status: 'available',
@@ -71,10 +112,12 @@ describe('research-safe contracts', () => {
       token,
       voluntaryConfirmation: true,
       responses: [
-        { itemId: 'FU_PASSWORD_PM_ACTIONS', value: ['none'] },
-        { itemId: 'FU_MFA_ACTIONS', value: ['enabled_mfa'] },
-        { itemId: 'FU_PASSWORD_PM_NONE_REASON', value: null },
-        { itemId: 'FU_MFA_NONE_REASON', value: null },
+        { itemId: 'FU_REUSE_REPLACED', value: 'no' },
+        { itemId: 'FU_PM_ACCOUNT_SPECIFIC', value: 'yes' },
+        { itemId: 'FU_MFA_ENABLED', value: 'unsure' },
+        { itemId: 'FU_REUSE_REPLACED_REASON', value: 'no_opportunity' },
+        { itemId: 'FU_PM_ACCOUNT_SPECIFIC_REASON', value: null },
+        { itemId: 'FU_MFA_ENABLED_REASON', value: null },
       ],
     };
     expect(followUpSubmissionRequestSchema.safeParse(valid).success).toBe(true);
@@ -82,8 +125,26 @@ describe('research-safe contracts', () => {
       followUpSubmissionRequestSchema.safeParse({
         ...valid,
         responses: valid.responses.map((response) =>
-          response.itemId === 'FU_PASSWORD_PM_ACTIONS'
-            ? { ...response, value: ['none', 'inspected_available_manager'] }
+          response.itemId === 'FU_REUSE_REPLACED_REASON' ? { ...response, value: null } : response,
+        ),
+      }).success,
+    ).toBe(true);
+    expect(
+      followUpSubmissionRequestSchema.safeParse({
+        ...valid,
+        responses: valid.responses.map((response) =>
+          response.itemId === 'FU_PM_ACCOUNT_SPECIFIC'
+            ? { ...response, value: 'unsure' }
+            : response,
+        ),
+      }).success,
+    ).toBe(true);
+    expect(
+      followUpSubmissionRequestSchema.safeParse({
+        ...valid,
+        responses: valid.responses.map((response) =>
+          response.itemId === 'FU_MFA_ENABLED_REASON'
+            ? { ...response, value: 'technical_barrier' }
             : response,
         ),
       }).success,
@@ -92,9 +153,7 @@ describe('research-safe contracts', () => {
       followUpSubmissionRequestSchema.safeParse({
         ...valid,
         responses: valid.responses.map((response) =>
-          response.itemId === 'FU_MFA_NONE_REASON'
-            ? { ...response, value: 'no_opportunity' }
-            : response,
+          response.itemId === 'FU_REUSE_REPLACED' ? { ...response, value: null } : response,
         ),
       }).success,
     ).toBe(false);
@@ -217,9 +276,7 @@ describe('research-safe contracts', () => {
     const deletionCode = deletionCodeSchema.parse('PW-AB12-CD34-EF56-7890');
     const deletionCodeHash = await hashDeletionCode(deletionCode);
 
-    expect(deletionCodeHash).toBe(
-      createHash('sha256').update(deletionCode, 'utf8').digest('hex'),
-    );
+    expect(deletionCodeHash).toBe(createHash('sha256').update(deletionCode, 'utf8').digest('hex'));
     expect(deletionCodeSchema.safeParse('PW-ab12-CD34-EF56-7890').success).toBe(false);
   });
 
@@ -487,9 +544,7 @@ describe('research-safe contracts', () => {
     expect(designLabScenarioForPath('/design-lab/s07-passphrase-search')).toBe(
       's07-passphrase-search',
     );
-    expect(designLabScenarioForPath('/design-lab/s08-network-replay')).toBe(
-      's08-network-replay',
-    );
+    expect(designLabScenarioForPath('/design-lab/s08-network-replay')).toBe('s08-network-replay');
     expect(designLabScenarioForPath('/design-lab/s08-strong-relations')).toBe(
       's08-strong-relations',
     );
@@ -514,39 +569,23 @@ describe('research-safe contracts', () => {
     expect(designLabScenarioForPath('/design-lab/s2-6-password-manager-conclusion')).toBe(
       's2-6-password-manager-conclusion',
     );
-    expect(designLabScenarioForPath('/design-lab/s3-1-mfa-factors')).toBe(
-      's3-1-mfa-factors',
-    );
-    expect(designLabScenarioForPath('/design-lab/s3-2-mfa-result')).toBe(
-      's3-2-mfa-result',
-    );
-    expect(designLabScenarioForPath('/design-lab/s3-3-mfa-expansion')).toBe(
-      's3-3-mfa-expansion',
-    );
+    expect(designLabScenarioForPath('/design-lab/s3-1-mfa-factors')).toBe('s3-1-mfa-factors');
+    expect(designLabScenarioForPath('/design-lab/s3-2-mfa-result')).toBe('s3-2-mfa-result');
+    expect(designLabScenarioForPath('/design-lab/s3-3-mfa-expansion')).toBe('s3-3-mfa-expansion');
     expect(designLabScenarioForPath('/design-lab/s3-4-training-summary')).toBe(
       's3-4-training-summary',
     );
-    expect(designLabPathForTrainingQaSegment('s13')).toBe(
-      '/design-lab/s2-2-my-shop-registration',
-    );
+    expect(designLabPathForTrainingQaSegment('s13')).toBe('/design-lab/s2-2-my-shop-registration');
     expect(designLabPathForTrainingQaSegment('s13-campusgram')).toBe(
       '/design-lab/s2-5-campusgram-manual-login',
     );
     expect(designLabPathForTrainingQaSegment('s13-conclusion')).toBe(
       '/design-lab/s2-6-password-manager-conclusion',
     );
-    expect(designLabPathForTrainingQaSegment('s14')).toBe(
-      '/design-lab/s3-1-mfa-factors',
-    );
-    expect(designLabPathForTrainingQaSegment('s15')).toBe(
-      '/design-lab/s3-2-mfa-result',
-    );
-    expect(designLabPathForTrainingQaSegment('s16')).toBe(
-      '/design-lab/s3-3-mfa-expansion',
-    );
-    expect(designLabPathForTrainingQaSegment('s17')).toBe(
-      '/design-lab/s3-4-training-summary',
-    );
+    expect(designLabPathForTrainingQaSegment('s14')).toBe('/design-lab/s3-1-mfa-factors');
+    expect(designLabPathForTrainingQaSegment('s15')).toBe('/design-lab/s3-2-mfa-result');
+    expect(designLabPathForTrainingQaSegment('s16')).toBe('/design-lab/s3-3-mfa-expansion');
+    expect(designLabPathForTrainingQaSegment('s17')).toBe('/design-lab/s3-4-training-summary');
     expect(designLabScenarioForPath('/design-lab/s07-directly-reached')).toBeNull();
   });
 
@@ -679,7 +718,14 @@ describe('research-safe contracts', () => {
     expect(model.exhaustiveSearchDuration.wholeSeconds).toBe(1_677_259_342n);
     expect(disposition.kind).toBe('no-whole-password-recognized');
     expect(Object.keys(disposition)).not.toEqual(
-      expect.arrayContaining(['score', 'crackTime', 'effectiveLength', 'entropy', 'estimatedGuesses', 'quickPathThreshold']),
+      expect.arrayContaining([
+        'score',
+        'crackTime',
+        'effectiveLength',
+        'entropy',
+        'estimatedGuesses',
+        'quickPathThreshold',
+      ]),
     );
   });
 
@@ -776,11 +822,7 @@ describe('research-safe contracts', () => {
       expect.arrayContaining(['createdAtIso', 'completedAtIso']),
     );
     expect(Object.keys(researchAnalysisTimingRecordSchema.shape)).not.toEqual(
-      expect.arrayContaining([
-        'clientMonotonicMs',
-        'clientWallClockIso',
-        'serverReceivedAtIso',
-      ]),
+      expect.arrayContaining(['clientMonotonicMs', 'clientWallClockIso', 'serverReceivedAtIso']),
     );
     expect(Object.keys(researchAnalysisResponseRecordSchema.shape)).not.toContain('createdAtIso');
     expect(Object.keys(researchAnalysisPresentationRecordSchema.shape)).not.toContain(
@@ -844,9 +886,7 @@ describe('research-safe contracts', () => {
     expect(postItemIds.slice(0, 20)).toEqual(
       Array.from({ length: 20 }, (_, index) => `PANAS_${String(index + 1).padStart(2, '0')}`),
     );
-    expect(postItemIds.indexOf('PERCEIVED_DURATION')).toBe(
-      postItemIds.indexOf('TIME_FIT') - 1,
-    );
+    expect(postItemIds.indexOf('PERCEIVED_DURATION')).toBe(postItemIds.indexOf('TIME_FIT') - 1);
     expect(postItemIds).toEqual(
       expect.arrayContaining([
         'APPROACH_FRAMING',

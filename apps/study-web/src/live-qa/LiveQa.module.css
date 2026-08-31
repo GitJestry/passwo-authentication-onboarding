@@ -148,6 +148,100 @@
   color: var(--color-ink-muted);
 }
 
+.qaResult,
+.messagePreview,
+.verification {
+  margin-top: 1.5rem;
+  padding: 1rem;
+  border: var(--border-width-thin) solid var(--color-border);
+  border-radius: var(--radius-medium);
+  background: var(--color-surface-canvas);
+}
+
+.qaResult h2,
+.messagePreview h2,
+.verification h2 {
+  margin-top: 0;
+}
+
+.messageGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(23rem, 100%), 1fr));
+  gap: 1rem;
+  margin-top: 1.5rem;
+}
+
+.messagePreview {
+  min-width: 0;
+  margin-top: 0;
+}
+
+.messageMetadata {
+  display: grid;
+  gap: 0.6rem;
+  margin-block: 0 1rem;
+}
+
+.messageMetadata div {
+  display: grid;
+  grid-template-columns: 5rem minmax(0, 1fr);
+  gap: 0.5rem;
+}
+
+.messageMetadata dt {
+  font-weight: var(--font-weight-bold);
+}
+
+.messageMetadata dd {
+  min-width: 0;
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.messageBody {
+  max-width: 100%;
+  box-sizing: border-box;
+  padding: 1rem;
+  overflow: auto;
+  border-radius: var(--radius-small);
+  background: var(--color-surface-primary);
+  color: var(--color-ink-strong);
+  font: inherit;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.followUpFlow {
+  min-height: 100dvh;
+  background: var(--color-surface-canvas);
+}
+
+.followUpNav {
+  position: fixed;
+  z-index: 10000;
+  top: 0.75rem;
+  left: 0.75rem;
+}
+
+.followUpNav .link {
+  min-height: 2.2rem;
+  padding: 0.4rem 0.65rem;
+  font-size: 0.85rem;
+}
+
+.verification {
+  width: min(42rem, calc(100% - 2rem));
+  box-sizing: border-box;
+  margin: 1rem auto 2rem;
+  background: var(--color-surface-primary);
+  color: var(--color-ink-strong);
+  box-shadow: var(--shadow-card);
+}
+
+.verification li + li {
+  margin-top: 0.45rem;
+}
+
 @media (max-width: 46rem) {
   .chooser {
     padding: 1rem;
@@ -161,5 +255,15 @@
     top: 0.5rem;
     right: 0.5rem;
     width: calc(100vw - 1rem);
+  }
+
+  .messageMetadata div {
+    grid-template-columns: 1fr;
+    gap: 0.15rem;
+  }
+
+  .followUpNav {
+    position: static;
+    padding: 0.75rem 0.75rem 0;
   }
 }

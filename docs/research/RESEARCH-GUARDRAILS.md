@@ -65,8 +65,10 @@ werden.
 - Einladung und höchstens eine Erinnerung enthalten keine Authentifizierungsempfehlung; das
   Follow-up ist kein erneutes Training. Eine verzögerte Debrief-Mail entfällt.
 - Nichtantwort ist fehlend und wird nicht als keine Handlung codiert.
-- Passwort-, Passwortmanager- und MFA-Handlungen bleiben getrennt; es gibt keinen kombinierten
-  Behavior Score.
+- Die drei fokalen Passwort-, Passwortmanager- und MFA-Handlungen werden jeweils als `Ja`, `Nein`
+  oder `Unsicher` separat berichtet; `Unsicher` wird nicht als `Nein` codiert. Nur bei `Nein` kann
+  optional ein handlungsspezifischer Grund erfasst werden. Reasons sind deskriptiver Kontext, keine
+  Barrierenskala; es gibt keinen kombinierten Behavior Score.
 - Das Follow-up folgt Artefakt, gemeinsamem Guardrail, weiteren Messungen und korrektivem
   Debriefing; absolute Handlungsraten werden nicht dem Artefakt allein zugeschrieben.
 - Es handelt sich weder um objektive Kontobeobachtung noch um eine Vorher-Nachher-Messung

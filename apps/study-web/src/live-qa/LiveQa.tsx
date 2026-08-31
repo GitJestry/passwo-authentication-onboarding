@@ -1,11 +1,16 @@
 import {
   liveQaApiBasePath,
+  liveQaFollowUpPath,
+  liveQaFollowUpPreviewPath,
   liveQaPath,
+  type LiveQaFollowUpCaseResponse,
+  type LiveQaFollowUpMessagesResponse,
+  type LiveQaFollowUpPreviewStatus,
   type LiveQaCondition,
   type LiveQaRoute,
 } from '@passwo/contracts';
 import { ArtifactViewport } from '@passwo/ui';
-import { lazy, Suspense, useState } from 'react';
+import { lazy, Suspense, useEffect, useState } from 'react';
 import {
   loadReferenceArtifactRenderer,
   loadSupportiveArtifactRenderer,
@@ -13,9 +18,14 @@ import {
 import { TrainingClipboardBoundary } from '../features/training/TrainingClipboardBoundary.js';
 import {
   completeLiveQaQuestionnaires,
+  loadLiveQaFollowUpMessages,
   prepareLiveQaArtifact,
+  prepareLiveQaFollowUpCase,
+  prepareLiveQaFollowUpPreview,
   resetLiveQaSession,
   skipLiveQaArtifact,
+  verifyLiveQaFollowUpSubmission,
+  type LiveQaFollowUpProof,
 } from './live-qa-api.js';
 import styles from './LiveQa.module.css';
 
@@ -30,6 +40,10 @@ const PasswordModuleTraining = lazy(async () => {
 const StudyFlow = lazy(async () => {
   const module = await import('../features/study/StudyFlow.js');
   return { default: module.StudyFlow };
+});
+const FollowUpFlow = lazy(async () => {
+  const module = await import('../features/follow-up/FollowUpFlow.js');
+  return { default: module.FollowUpFlow };
 });
 
 function ArtifactLoadingBoundary() {
@@ -80,11 +94,289 @@ function QaChooser() {
               </div>
             </article>
           ))}
+          <article className={styles.conditionCard}>
+            <h2>Follow-up</h2>
+            <p>
+              Einladung und Reminder mit synthetischen Daten ansehen oder einen consentierten
+              In-Memory-Hauptfall bis in die echte Nachbefragung führen.
+            </p>
+            <div className={styles.actions}>
+              <a className={styles.link} href={liveQaFollowUpPath}>
+                Follow-up öffnen
+              </a>
+            </div>
+          </article>
         </div>
         <p className={styles.note}>
           QA-Sitzungen werden ausschließlich im Arbeitsspeicher der separaten QA-Runtime geführt.
           Sie verwenden weder die produktive Datenbank noch die Permuted-Block-Zuweisung.
         </p>
+      </section>
+    </main>
+  );
+}
+
+function MessagePreview({
+  label,
+  message,
+}: {
+  readonly label: string;
+  readonly message: LiveQaFollowUpMessagesResponse['invitation' | 'reminder'];
+}) {
+  return (
+    <article className={styles.messagePreview}>
+      <h2>{label}</h2>
+      <dl className={styles.messageMetadata}>
+        <div>
+          <dt>Von</dt>
+          <dd>
+            {message.sender.name} &lt;{message.sender.address}&gt;
+          </dd>
+        </div>
+        <div>
+          <dt>An</dt>
+          <dd>{message.recipient}</dd>
+        </div>
+        <div>
+          <dt>Betreff</dt>
+          <dd>{message.subject}</dd>
+        </div>
+      </dl>
+      <pre className={styles.messageBody}>{message.text}</pre>
+    </article>
+  );
+}
+
+function FollowUpQaChooser() {
+  const apiBasePath = liveQaApiBasePath('supportive');
+  const [messages, setMessages] = useState<LiveQaFollowUpMessagesResponse | null>(null);
+  const [prepared, setPrepared] = useState<LiveQaFollowUpCaseResponse | null>(null);
+  const [busyAction, setBusyAction] = useState<string | null>(null);
+  const [errorCode, setErrorCode] = useState<string | null>(null);
+
+  async function run<T>(action: string, operation: () => Promise<T>, accept: (value: T) => void) {
+    if (busyAction !== null) return;
+    setBusyAction(action);
+    setErrorCode(null);
+    try {
+      accept(await operation());
+    } catch (error) {
+      setErrorCode(error instanceof Error ? error.message : 'live-qa-request-failed');
+    } finally {
+      setBusyAction(null);
+    }
+  }
+
+  const qaLink =
+    prepared === null ? null : `${liveQaFollowUpPath}?token=${encodeURIComponent(prepared.token)}`;
+
+  return (
+    <main className={styles.chooser}>
+      <section className={styles.panel}>
+        <p className={styles.eyebrow}>Geschützte Live-QA · Follow-up</p>
+        <h1>Nachbefragung prüfen</h1>
+        <p>
+          Alle hier erzeugten Kontakte, Tokens, Zeitpunkte und Antworten sind synthetisch und
+          verbleiben ausschließlich in der bestehenden In-Memory-QA-Runtime. Es wird keine E-Mail
+          versendet.
+        </p>
+        <div className={styles.actions}>
+          <button
+            className={styles.button}
+            disabled={busyAction !== null}
+            type="button"
+            onClick={() =>
+              void run('messages', () => loadLiveQaFollowUpMessages(apiBasePath), setMessages)
+            }
+          >
+            E-Mail ansehen
+          </button>
+          <button
+            className={styles.button}
+            disabled={busyAction !== null}
+            type="button"
+            onClick={() =>
+              void run('case', () => prepareLiveQaFollowUpCase(apiBasePath), setPrepared)
+            }
+          >
+            Follow-up testen
+          </button>
+          <a className={`${styles.link} ${styles.secondary}`} href="/qa">
+            Zur Auswahl
+          </a>
+        </div>
+        <div className={styles.actions} aria-label="Direkt aufrufbare Follow-up-Zustände">
+          <a
+            className={`${styles.link} ${styles.secondary}`}
+            href={liveQaFollowUpPreviewPath('not-yet-open')}
+          >
+            Not-yet-open ansehen
+          </a>
+          <a
+            className={`${styles.link} ${styles.secondary}`}
+            href={liveQaFollowUpPreviewPath('expired')}
+          >
+            Expired ansehen
+          </a>
+          <a
+            className={`${styles.link} ${styles.secondary}`}
+            href={liveQaFollowUpPreviewPath('submitted')}
+          >
+            Submitted ansehen
+          </a>
+          <a
+            className={`${styles.link} ${styles.secondary}`}
+            href={liveQaFollowUpPreviewPath('invalid')}
+          >
+            Invalid ansehen
+          </a>
+        </div>
+        {busyAction === null ? null : <p role="status">Synthetischer QA-Fall wird vorbereitet …</p>}
+        {errorCode === null ? null : (
+          <p className={styles.error} role="alert">
+            Fehlercode: {errorCode}
+          </p>
+        )}
+        {prepared === null || qaLink === null ? null : (
+          <section className={styles.qaResult} aria-labelledby="follow-up-case-heading">
+            <h2 id="follow-up-case-heading">Synthetischer Main-Fall ist bereit</h2>
+            <p>
+              Die Hauptstudie wurde consentiert und regulär abgeschlossen. Die gültige Nachbefragung
+              verwendet dieselbe In-Memory-Study-/Recontact-Verknüpfung.
+            </p>
+            <p>
+              Pseudonyme Forschungs-ID: <code>{prepared.researchId}</code>
+            </p>
+            <a className={styles.link} href={qaLink}>
+              Gültigen Follow-up-Link öffnen
+            </a>
+          </section>
+        )}
+        {messages === null ? null : (
+          <div className={styles.messageGrid}>
+            <MessagePreview label="Einladung" message={messages.invitation} />
+            <MessagePreview label="Reminder" message={messages.reminder} />
+          </div>
+        )}
+      </section>
+    </main>
+  );
+}
+
+function FollowUpQaVerification({ proof }: { readonly proof: LiveQaFollowUpProof }) {
+  return (
+    <aside className={styles.verification} aria-labelledby="follow-up-verification-heading">
+      <h2 id="follow-up-verification-heading">Technische QA bestätigt</h2>
+      <ul>
+        <li>{proof.storedResponseCount} Follow-up-Antworten wurden gespeichert.</li>
+        <li>
+          Die Antworten sind mit dem synthetischen Main-Fall unter <code>{proof.researchId}</code>{' '}
+          verknüpft.
+        </li>
+        <li>Status: {proof.status}</li>
+        <li>Eine erneute unterschiedliche Abgabe wurde blockiert.</li>
+        <li>Ein Reminder ist anschließend nicht zulässig.</li>
+      </ul>
+    </aside>
+  );
+}
+
+function FollowUpQaFlow({ token }: { readonly token: string | null }) {
+  const apiBasePath = liveQaApiBasePath('supportive');
+  const [proof, setProof] = useState<LiveQaFollowUpProof | null>(null);
+  const [verificationError, setVerificationError] = useState<string | null>(null);
+  const [verifying, setVerifying] = useState(false);
+
+  return (
+    <div className={styles.followUpFlow}>
+      <nav className={styles.followUpNav} aria-label="Follow-up-QA">
+        <a className={`${styles.link} ${styles.secondary}`} href={liveQaFollowUpPath}>
+          Follow-up-QA
+        </a>
+      </nav>
+      <Suspense fallback={<ArtifactLoadingBoundary />}>
+        <FollowUpFlow
+          apiBasePath={apiBasePath}
+          initialToken={token}
+          onSubmitted={(submission) => {
+            setVerifying(true);
+            setVerificationError(null);
+            void verifyLiveQaFollowUpSubmission(apiBasePath, submission)
+              .then(setProof)
+              .catch((error: unknown) => {
+                setVerificationError(
+                  error instanceof Error ? error.message : 'live-qa-follow-up-verification-failed',
+                );
+              })
+              .finally(() => setVerifying(false));
+          }}
+        />
+      </Suspense>
+      {verifying ? (
+        <p className={styles.verification} role="status">
+          QA-Nachweis wird geprüft …
+        </p>
+      ) : null}
+      {proof === null ? null : <FollowUpQaVerification proof={proof} />}
+      {verificationError === null ? null : (
+        <p className={`${styles.verification} ${styles.error}`} role="alert">
+          QA-Nachweis fehlgeschlagen: {verificationError}
+        </p>
+      )}
+    </div>
+  );
+}
+
+function FollowUpQa({ initialToken }: { readonly initialToken: string | null }) {
+  return initialToken === null ? <FollowUpQaChooser /> : <FollowUpQaFlow token={initialToken} />;
+}
+
+const followUpPreviewPreparations = new Map<LiveQaFollowUpPreviewStatus, Promise<string>>();
+
+function prepareFollowUpPreviewOnce(status: LiveQaFollowUpPreviewStatus): Promise<string> {
+  const existing = followUpPreviewPreparations.get(status);
+  if (existing !== undefined) return existing;
+  const preparation = prepareLiveQaFollowUpPreview(liveQaApiBasePath('supportive'), status);
+  followUpPreviewPreparations.set(status, preparation);
+  return preparation;
+}
+
+function FollowUpQaPreview({ status }: { readonly status: LiveQaFollowUpPreviewStatus }) {
+  const [token, setToken] = useState<string | null>(null);
+  const [errorCode, setErrorCode] = useState<string | null>(null);
+
+  useEffect(() => {
+    let active = true;
+    void prepareFollowUpPreviewOnce(status)
+      .then((preparedToken) => {
+        if (active) setToken(preparedToken);
+      })
+      .catch((error: unknown) => {
+        if (active) {
+          setErrorCode(error instanceof Error ? error.message : 'live-qa-request-failed');
+        }
+      });
+    return () => {
+      active = false;
+    };
+  }, [status]);
+
+  if (token !== null) return <FollowUpQaFlow token={token} />;
+  return (
+    <main className={styles.chooser}>
+      <section className={styles.panel}>
+        <p className={styles.eyebrow}>Geschützte Live-QA · Follow-up</p>
+        <h1>{status} wird vorbereitet</h1>
+        {errorCode === null ? (
+          <p role="status">Synthetischer QA-Zustand wird in der In-Memory-Runtime erzeugt …</p>
+        ) : (
+          <p className={styles.error} role="alert">
+            Fehlercode: {errorCode}
+          </p>
+        )}
+        <a className={`${styles.link} ${styles.secondary}`} href={liveQaFollowUpPath}>
+          Follow-up-QA
+        </a>
       </section>
     </main>
   );
@@ -234,8 +526,16 @@ function FullStudy({ condition }: { readonly condition: LiveQaCondition }) {
   );
 }
 
-export function LiveQa({ route }: { readonly route: LiveQaRoute }) {
+export function LiveQa({
+  route,
+  initialFollowUpToken,
+}: {
+  readonly route: LiveQaRoute;
+  readonly initialFollowUpToken: string | null;
+}) {
   if (route.kind === 'chooser') return <QaChooser />;
+  if (route.kind === 'follow-up') return <FollowUpQa initialToken={initialFollowUpToken} />;
+  if (route.kind === 'follow-up-preview') return <FollowUpQaPreview status={route.status} />;
   return route.mode === 'direct' ? (
     <DirectArtifact condition={route.condition} />
   ) : (

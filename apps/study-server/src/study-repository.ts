@@ -115,6 +115,7 @@ const followUpRegistrationAccessSchema = z.object({
   followUpVersion: z.string(),
   tokenHash: followUpTokenHashSchema,
   firstInvitationAtIso: z.string().nullable(),
+  firstInvitationSentAtIso: z.string().nullable(),
   closesAtIso: z.string().nullable(),
 });
 
@@ -491,17 +492,24 @@ export class StudyRepository {
 
     const now = Date.parse(this.#nowIso());
     const opensAt = Date.parse(registration.firstInvitationAtIso);
+    const reportingCutoffAtIso = registration.firstInvitationSentAtIso;
+    const reportingCutoff = reportingCutoffAtIso === null ? null : Date.parse(reportingCutoffAtIso);
     const closesAt = Date.parse(registration.closesAtIso);
-    if (!Number.isFinite(now) || !Number.isFinite(opensAt) || !Number.isFinite(closesAt)) {
+    if (
+      !Number.isFinite(now) ||
+      !Number.isFinite(opensAt) ||
+      (reportingCutoff !== null && !Number.isFinite(reportingCutoff)) ||
+      !Number.isFinite(closesAt)
+    ) {
       return { status: 'invalid' };
     }
-    if (now < opensAt) {
+    if (now >= closesAt) return { status: 'expired' };
+    if (now < opensAt || reportingCutoffAtIso === null) {
       return { status: 'not-yet-open', opensAtIso: registration.firstInvitationAtIso };
     }
-    if (now >= closesAt) return { status: 'expired' };
     return {
       status: 'available',
-      reportingCutoffAtIso: registration.firstInvitationAtIso,
+      reportingCutoffAtIso,
       closesAtIso: registration.closesAtIso,
     };
   }
@@ -893,6 +901,7 @@ export class StudyRepository {
           session.follow_up_version AS followUpVersion,
           registration.token_hash AS tokenHash,
           registration.first_invitation_at_iso AS firstInvitationAtIso,
+          registration.first_invitation_sent_at_iso AS firstInvitationSentAtIso,
           registration.closes_at_iso AS closesAtIso
          FROM recontact.registrations AS registration
          INNER JOIN study_sessions AS session

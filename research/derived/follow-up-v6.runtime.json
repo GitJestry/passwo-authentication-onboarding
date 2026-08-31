@@ -18,16 +18,16 @@
   "email": {
     "subject": "Freiwillige Nachbefragung zur Studie",
     "containsAuthenticationAdvice": false,
-    "body": "Hallo,\n\nvor ungefähr zehn Tagen hast du an unserer Studie zu einem digitalen Lernangebot über Passwörter und den Schutz von Online-Konten teilgenommen. Die freiwillige kurze Nachbefragung ist jetzt verfügbar und dauert etwa zwei Minuten.\n\nZur freiwilligen Nachbefragung: [TOKEN_LINK]\n\nDieser freiwillige Folgefragebogen untersucht, ob du seit deiner Teilnahme konkrete Schritte zum Schutz deiner Online-Konten unternommen hast und welche Gründe eine Umsetzung erleichtert oder verhindert haben. Deine Teilnahme ist freiwillig. Wenn du nicht teilnimmst, entstehen dir keine Nachteile.\n\nBitte beziehe deine Angaben ausschließlich auf Handlungen, die du nach der Studie und bereits vor [STICHTAG] durchgeführt hattest. Der Link ist bis [CLOSES_AT] gültig und darf nicht weitergegeben werden.\n\nVielen Dank für deine Unterstützung."
+    "body": "Hallo,\n\nvor ungefähr zehn Tagen hast du an unserer Studie zu einem digitalen Lernangebot über Passwörter und den Schutz von Online-Konten teilgenommen. Die freiwillige kurze Nachbefragung ist jetzt verfügbar und dauert etwa zwei Minuten.\n\nZur freiwilligen Nachbefragung: [TOKEN_LINK]\n\nDiese freiwillige Nachbefragung fragt nach einigen Schritten zum Schutz deiner Online-Konten in den Tagen nach der damaligen Studie. Falls du einen dieser Schritte nicht unternommen hast, kannst du kurz den wichtigsten Grund angeben. Die Bearbeitung dauert etwa zwei Minuten. Deine Teilnahme ist freiwillig. Wenn du nicht teilnimmst, entstehen dir keine Nachteile.\n\nDie Fragen beziehen sich nur auf die Zeit nach dem Abschluss der damaligen Online-Studie bis zu dieser ersten E-Mail-Einladung. Es zählen nur Handlungen an deinen eigenen Konten außerhalb der Studie. Du musst jetzt nichts an deinen Konten ändern.\n\nBitte nenne keine Konten, Dienste, Passwörter, Anmeldecodes oder Wiederherstellungsdaten.\n\nVielen Dank für deine Unterstützung."
   },
   "reminderEmail": {
     "subject": "Erinnerung an die freiwillige Nachbefragung",
     "containsAuthenticationAdvice": false,
-    "body": "Hallo,\n\ndies ist die einmalige Erinnerung an die freiwillige Nachbefragung zu deiner Studienteilnahme. Falls du bereits teilgenommen hast, kannst du diese Nachricht ignorieren.\n\nZur freiwilligen Nachbefragung: [TOKEN_LINK]\n\nDie Bearbeitung dauert etwa zwei Minuten. Deine Teilnahme ist freiwillig. Wenn du nicht teilnimmst, entstehen dir keine Nachteile. Bitte beziehe deine Angaben ausschließlich auf Handlungen, die du nach der Studie und bereits vor [STICHTAG] durchgeführt hattest. Der Link ist bis [CLOSES_AT] gültig und darf nicht weitergegeben werden."
+    "body": "Hallo,\n\ndies ist die einmalige Erinnerung an die freiwillige Nachbefragung zu deiner Studienteilnahme. Falls du bereits teilgenommen hast, kannst du diese Nachricht ignorieren.\n\nZur freiwilligen Nachbefragung: [TOKEN_LINK]\n\nDiese freiwillige Nachbefragung fragt nach einigen Schritten zum Schutz deiner Online-Konten in den Tagen nach der damaligen Studie. Falls du einen dieser Schritte nicht unternommen hast, kannst du kurz den wichtigsten Grund angeben. Die Bearbeitung dauert etwa zwei Minuten. Deine Teilnahme ist freiwillig. Wenn du nicht teilnimmst, entstehen dir keine Nachteile.\n\nDie Fragen beziehen sich nur auf die Zeit nach dem Abschluss der damaligen Online-Studie bis zur ersten E-Mail-Einladung zu dieser Nachbefragung. Es zählen nur Handlungen an deinen eigenen Konten außerhalb der Studie. Du musst jetzt nichts an deinen Konten ändern.\n\nBitte nenne keine Konten, Dienste, Passwörter, Anmeldecodes oder Wiederherstellungsdaten."
   },
   "landingPage": {
     "title": "Freiwillige Nachbefragung",
-    "disclosure": "Dieser freiwillige Folgefragebogen untersucht, ob du seit deiner Teilnahme konkrete Schritte zum Schutz deiner Online-Konten unternommen hast und welche Gründe eine Umsetzung erleichtert oder verhindert haben. Die Bearbeitung dauert etwa zwei Minuten. Deine Teilnahme ist freiwillig. Wenn du nicht teilnimmst, entstehen dir keine Nachteile.",
+    "disclosure": "Diese freiwillige Nachbefragung fragt nach einigen Schritten zum Schutz deiner Online-Konten in den Tagen nach der damaligen Studie. Falls du einen dieser Schritte nicht unternommen hast, kannst du kurz den wichtigsten Grund angeben. Die Bearbeitung dauert etwa zwei Minuten. Deine Teilnahme ist freiwillig. Wenn du nicht teilnimmst, entstehen dir keine Nachteile.",
     "voluntaryConfirmation": "Ich habe die Informationen gelesen und möchte freiwillig an der Nachbefragung teilnehmen."
   },
   "interface": {
@@ -35,7 +35,7 @@
     "startLabel": "Zur Nachbefragung",
     "submitLabel": "Antworten absenden",
     "submittingLabel": "Antworten werden gespeichert …",
-    "validationError": "Bitte beantworte die beiden Fragen zu deinen Handlungen.",
+    "validationError": "Bitte beantworte die drei Fragen zu deinen Handlungen.",
     "submitError": "Deine Antworten konnten nicht gespeichert werden. Bitte versuche es erneut.",
     "submittedHeading": "Vielen Dank für deine Teilnahme.",
     "submittedBody": "Deine Antworten wurden gespeichert.",
@@ -52,168 +52,221 @@
   },
   "questionnaire": {
     "title": "Freiwillige Nachbefragung",
-    "reportingInstruction": "Bitte beziehe dich ausschließlich auf Handlungen, die du nach deiner Studienteilnahme und bereits vor [STICHTAG] durchgeführt hattest.",
-    "safetyNote": "Öffne oder ändere für diese Befragung keine Kontoeinstellungen. Bitte nenne keine Konten, Dienste, Passwörter, Anmeldecodes oder Wiederherstellungsdaten.",
+    "reportingInstruction": "Die nächsten Fragen beziehen sich nur auf die Zeit nach dem Abschluss der damaligen Online-Studie bis zur ersten E-Mail-Einladung zu dieser Nachbefragung.",
+    "accountScopeInstruction": "Es zählen nur Handlungen an deinen eigenen Konten außerhalb der Studie. Du musst jetzt nichts an deinen Konten ändern.",
+    "safetyNote": "Bitte nenne keine Konten, Dienste, Passwörter, Anmeldecodes oder Wiederherstellungsdaten.",
     "items": [
       {
-        "id": "FU_PASSWORD_PM_ACTIONS",
-        "type": "multiChoice",
-        "heading": "Passwörter und Passwortmanager",
-        "prompt": "Welche der folgenden Handlungen hast du nach der Studie und vor dem oben genannten Zeitpunkt durchgeführt?",
-        "instruction": "Mehrfachauswahl ist möglich. Integrierte und separat installierte Passwortmanager zählen gleichermaßen.",
-        "options": [
-          {
-            "id": "replaced_reused_or_varied_password",
-            "label": "Ich habe bei mindestens einem bestehenden Konto ein Passwort ersetzt, das ich auch bei einem anderen Konto verwendet oder nur leicht verändert hatte."
-          },
-          {
-            "id": "inspected_available_manager",
-            "label": "Ich habe geprüft, welcher Passwortmanager auf meinem Gerät oder in meinem Browser verfügbar ist."
-          },
-          {
-            "id": "generated_stored_account_specific",
-            "label": "Ich habe mit einem Passwortmanager für mindestens eines meiner Konten ein eigenes Passwort erzeugt und gespeichert."
-          },
-          {
-            "id": "used_retrieval_or_autofill",
-            "label": "Ich habe ein gespeichertes Passwort bewusst über Autofill oder durch Abruf aus dem Passwortmanager verwendet."
-          },
-          {
-            "id": "checked_manager_access_or_recovery",
-            "label": "Ich habe geprüft, wie ich auf einem neuen Gerät oder nach einem Geräteverlust wieder auf meinen Passwortmanager zugreifen könnte."
-          },
-          {
-            "id": "none",
-            "label": "Keine dieser Handlungen."
-          }
-        ],
-        "exclusiveOptions": [
-          "none"
-        ]
-      },
-      {
-        "id": "FU_MFA_ACTIONS",
-        "type": "multiChoice",
-        "heading": "MFA/2FA",
-        "prompt": "Welche der folgenden Handlungen hast du nach der Studie und vor dem oben genannten Zeitpunkt durchgeführt?",
-        "instruction": "Mehrfachauswahl ist möglich.",
-        "options": [
-          {
-            "id": "checked_availability_or_status",
-            "label": "Ich habe bei mindestens einem Konto geprüft, ob MFA/2FA verfügbar oder bereits aktiviert ist."
-          },
-          {
-            "id": "enabled_mfa",
-            "label": "Ich habe MFA/2FA bei mindestens einem meiner Konten aktiviert."
-          },
-          {
-            "id": "checked_factor_or_recovery",
-            "label": "Ich habe bei einer bestehenden MFA/2FA-Einrichtung den verwendeten Faktor oder eine Wiederherstellungsoption geprüft."
-          },
-          {
-            "id": "none",
-            "label": "Keine dieser Handlungen."
-          }
-        ],
-        "exclusiveOptions": [
-          "none"
-        ]
-      },
-      {
-        "id": "FU_PASSWORD_PM_NONE_REASON",
+        "id": "FU_REUSE_REPLACED",
         "type": "singleChoice",
+        "required": true,
+        "prompt": "Hast du in dieser Zeit bei mindestens einem deiner Konten ein Passwort ersetzt, das du auch bei einem anderen Konto verwendet oder nur leicht verändert hattest?",
+        "instruction": "Bitte wähle eine Antwort.",
+        "options": [
+          {
+            "id": "yes",
+            "label": "Ja"
+          },
+          {
+            "id": "no",
+            "label": "Nein"
+          },
+          {
+            "id": "unsure",
+            "label": "Unsicher"
+          }
+        ]
+      },
+      {
+        "id": "FU_PM_ACCOUNT_SPECIFIC",
+        "type": "singleChoice",
+        "required": true,
+        "prompt": "Hast du in dieser Zeit mit einem Passwortmanager für mindestens eines deiner Konten ein eigenes Passwort erzeugt und gespeichert?",
+        "instruction": "Bitte wähle eine Antwort. Dabei zählen auch im Browser, Betriebssystem oder Gerät integrierte Passwortmanager.",
+        "options": [
+          {
+            "id": "yes",
+            "label": "Ja"
+          },
+          {
+            "id": "no",
+            "label": "Nein"
+          },
+          {
+            "id": "unsure",
+            "label": "Unsicher"
+          }
+        ]
+      },
+      {
+        "id": "FU_MFA_ENABLED",
+        "type": "singleChoice",
+        "required": true,
+        "prompt": "Hast du in dieser Zeit MFA/2FA bei mindestens einem deiner Konten aktiviert?",
+        "instruction": "Bitte wähle eine Antwort.",
+        "options": [
+          {
+            "id": "yes",
+            "label": "Ja"
+          },
+          {
+            "id": "no",
+            "label": "Nein"
+          },
+          {
+            "id": "unsure",
+            "label": "Unsicher"
+          }
+        ]
+      },
+      {
+        "id": "FU_REUSE_REPLACED_REASON",
+        "type": "conditionalSingleChoice",
         "participantOptional": true,
         "displayWhen": {
-          "itemId": "FU_PASSWORD_PM_ACTIONS",
-          "contains": "none"
+          "itemId": "FU_REUSE_REPLACED",
+          "equals": "no"
         },
-        "prompt": "Was war der wichtigste Grund dafür, dass du in diesem Bereich keine der genannten Handlungen durchgeführt hast?",
+        "prompt": "Was war der wichtigste Grund dafür, dass du das in dieser Zeit nicht gemacht hast?",
         "instruction": "Du kannst diese Frage unbeantwortet lassen.",
         "options": [
           {
-            "id": "already_completed",
-            "label": "Die relevanten Schritte waren bereits vor der Studie erledigt."
+            "id": "no_reuse_before_study",
+            "label": "Nach meinem Wissen hatte ich schon vor der Studie kein solches wiederverwendetes oder leicht verändertes Passwort."
           },
           {
             "id": "no_opportunity",
-            "label": "Im Zeitraum bestand keine passende Gelegenheit."
+            "label": "In dieser Zeit ergab sich keine passende Gelegenheit, ein Passwort zu ändern."
           },
           {
             "id": "intended_not_done",
-            "label": "Die Handlung ist weiterhin beabsichtigt, aber noch nicht erfolgt."
+            "label": "Ich wollte es noch tun, habe es aber noch nicht gemacht."
           },
           {
             "id": "unsure_how",
-            "label": "Unsicherheit über die konkrete Umsetzung."
+            "label": "Ich war unsicher, welche Passwörter betroffen sind oder wie ich vorgehen sollte."
           },
           {
             "id": "time_or_effort",
-            "label": "Zu hoher zeitlicher oder praktischer Aufwand."
+            "label": "Der zeitliche oder praktische Aufwand war mir zu hoch."
+          },
+          {
+            "id": "technical_barrier",
+            "label": "Es gab technische Hindernisse."
+          },
+          {
+            "id": "not_wanted_or_needed",
+            "label": "Ich hielt es für mich in dieser Zeit nicht für notwendig."
+          },
+          {
+            "id": "other",
+            "label": "Ein anderer Grund."
+          }
+        ]
+      },
+      {
+        "id": "FU_PM_ACCOUNT_SPECIFIC_REASON",
+        "type": "conditionalSingleChoice",
+        "participantOptional": true,
+        "displayWhen": {
+          "itemId": "FU_PM_ACCOUNT_SPECIFIC",
+          "equals": "no"
+        },
+        "prompt": "Was war der wichtigste Grund dafür, dass du das in dieser Zeit nicht gemacht hast?",
+        "instruction": "Du kannst diese Frage unbeantwortet lassen.",
+        "options": [
+          {
+            "id": "pm_already_used_no_new_need",
+            "label": "Ich nutzte einen Passwortmanager dafür schon vor der Studie und hatte in dieser Zeit keinen Anlass, ein weiteres Passwort damit einzurichten."
+          },
+          {
+            "id": "no_opportunity",
+            "label": "In dieser Zeit ergab sich keine passende Gelegenheit, zum Beispiel kein neues oder zu änderndes Konto."
+          },
+          {
+            "id": "intended_not_done",
+            "label": "Ich wollte es noch tun, habe es aber noch nicht gemacht."
+          },
+          {
+            "id": "unsure_how",
+            "label": "Ich war unsicher über die konkrete Umsetzung."
+          },
+          {
+            "id": "time_or_effort",
+            "label": "Der zeitliche oder praktische Aufwand war mir zu hoch."
           },
           {
             "id": "manager_trust_concerns",
-            "label": "Bedenken, dem Passwortmanager Passwörter anzuvertrauen."
+            "label": "Ich hatte Bedenken, einem Passwortmanager meine Passwörter anzuvertrauen."
           },
           {
-            "id": "manager_access_or_recovery_concerns",
-            "label": "Bedenken, später den Zugang zum Passwortmanager oder zu gespeicherten Passwörtern zu verlieren."
+            "id": "manager_access_concerns",
+            "label": "Ich hatte Bedenken, später nicht auf meine gespeicherten Passwörter zugreifen zu können."
           },
           {
             "id": "technical_barrier",
-            "label": "Technische Hindernisse."
+            "label": "Es gab technische Hindernisse."
           },
           {
-            "id": "not_relevant",
-            "label": "Derzeit keine persönliche Relevanz."
+            "id": "not_wanted_or_needed",
+            "label": "Ich hielt es für mich in dieser Zeit nicht für notwendig."
+          },
+          {
+            "id": "other",
+            "label": "Ein anderer Grund."
           }
         ]
       },
       {
-        "id": "FU_MFA_NONE_REASON",
-        "type": "singleChoice",
+        "id": "FU_MFA_ENABLED_REASON",
+        "type": "conditionalSingleChoice",
         "participantOptional": true,
         "displayWhen": {
-          "itemId": "FU_MFA_ACTIONS",
-          "contains": "none"
+          "itemId": "FU_MFA_ENABLED",
+          "equals": "no"
         },
-        "prompt": "Was war der wichtigste Grund dafür, dass du in diesem Bereich keine der genannten Handlungen durchgeführt hast?",
+        "prompt": "Was war der wichtigste Grund dafür, dass du das in dieser Zeit nicht gemacht hast?",
         "instruction": "Du kannst diese Frage unbeantwortet lassen.",
         "options": [
           {
-            "id": "already_completed",
-            "label": "Die relevanten Schritte waren bereits vor der Studie erledigt."
+            "id": "mfa_already_enabled",
+            "label": "Bei den für mich relevanten Konten war MFA/2FA schon vor der Studie aktiviert."
+          },
+          {
+            "id": "mfa_unavailable",
+            "label": "Bei den Konten, bei denen ich MFA/2FA hätte aktivieren wollen, war die Funktion nicht verfügbar."
           },
           {
             "id": "no_opportunity",
-            "label": "Im Zeitraum bestand keine passende Gelegenheit."
+            "label": "In dieser Zeit ergab sich keine passende Gelegenheit."
           },
           {
             "id": "intended_not_done",
-            "label": "Die Handlung ist weiterhin beabsichtigt, aber noch nicht erfolgt."
+            "label": "Ich wollte es noch tun, habe es aber noch nicht gemacht."
           },
           {
             "id": "unsure_how",
-            "label": "Unsicherheit über die konkrete Umsetzung."
+            "label": "Ich war unsicher über die konkrete Umsetzung."
           },
           {
             "id": "time_or_effort",
-            "label": "Zu hoher zeitlicher oder praktischer Aufwand."
+            "label": "Der zeitliche oder praktische Aufwand war mir zu hoch."
           },
           {
-            "id": "factor_availability_concerns",
-            "label": "Bedenken, dass der zusätzliche Faktor später nicht verfügbar sein könnte."
-          },
-          {
-            "id": "factor_recovery_concerns",
-            "label": "Unsicherheit oder Bedenken bezüglich Wiederherstellung oder Ersatz des zusätzlichen Faktors."
+            "id": "factor_access_concerns",
+            "label": "Ich hatte Bedenken, später ohne den zusätzlichen Faktor nicht auf mein Konto zugreifen zu können."
           },
           {
             "id": "technical_barrier",
-            "label": "Technische Hindernisse."
+            "label": "Es gab technische Hindernisse."
           },
           {
-            "id": "not_relevant",
-            "label": "Derzeit keine persönliche Relevanz."
+            "id": "not_wanted_or_needed",
+            "label": "Ich hielt es für mich in dieser Zeit nicht für notwendig."
+          },
+          {
+            "id": "other",
+            "label": "Ein anderer Grund."
           }
         ]
       }
@@ -221,20 +274,26 @@
   },
   "analysis": {
     "role": "ancillary-exploratory",
-    "outcomeLabel": "selbstberichtete Schutzhandlungen innerhalb von zehn Tagen",
+    "outcomeLabel": "drei eng definierte selbstberichtete Schutzhandlungen in den Tagen nach der Studie",
     "focalOutcomes": [
-      "replaced_reused_or_varied_password",
-      "generated_stored_account_specific",
-      "enabled_mfa"
+      "FU_REUSE_REPLACED",
+      "FU_PM_ACCOUNT_SPECIFIC",
+      "FU_MFA_ENABLED"
     ],
-    "secondaryDescriptiveOutcomes": [
-      "inspected_available_manager",
-      "used_retrieval_or_autofill",
-      "checked_manager_access_or_recovery",
-      "checked_availability_or_status",
-      "checked_factor_or_recovery"
+    "reasonItems": [
+      "FU_REUSE_REPLACED_REASON",
+      "FU_PM_ACCOUNT_SPECIFIC_REASON",
+      "FU_MFA_ENABLED_REASON"
     ],
+    "responseCategories": [
+      "yes",
+      "no",
+      "unsure"
+    ],
+    "reasonTrigger": "no",
+    "reasonRole": "action-specific descriptive context",
     "combinedScore": false,
+    "durableBehaviorChangeClaimed": false,
     "nonResponseMeaning": "missing",
     "opportunityDependent": true,
     "noActionReasonsOptional": true

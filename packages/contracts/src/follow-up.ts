@@ -16,27 +16,27 @@ const optionSchema = z
     label: participantTextSchema,
   })
   .strict();
+const focalResponseOptionIdSchema = z.enum(['yes', 'no', 'unsure']);
 const displayWhenSchema = z
   .object({
     itemId: stableIdSchema,
-    contains: stableIdSchema,
+    equals: z.literal('no'),
   })
   .strict();
-const multiChoiceItemSchema = z
-  .object({
-    id: stableIdSchema,
-    type: z.literal('multiChoice'),
-    heading: participantTextSchema,
-    prompt: participantTextSchema,
-    instruction: participantTextSchema,
-    options: z.array(optionSchema).min(1).max(20),
-    exclusiveOptions: z.array(stableIdSchema).min(1).max(5),
-  })
-  .strict();
-const singleChoiceItemSchema = z
+const focalActionItemSchema = z
   .object({
     id: stableIdSchema,
     type: z.literal('singleChoice'),
+    required: z.literal(true),
+    prompt: participantTextSchema,
+    instruction: participantTextSchema,
+    options: z.array(optionSchema.extend({ id: focalResponseOptionIdSchema })).length(3),
+  })
+  .strict();
+const conditionalReasonItemSchema = z
+  .object({
+    id: stableIdSchema,
+    type: z.literal('conditionalSingleChoice'),
     participantOptional: z.literal(true),
     displayWhen: displayWhenSchema,
     prompt: participantTextSchema,
@@ -45,8 +45,8 @@ const singleChoiceItemSchema = z
   })
   .strict();
 const followUpItemSchema = z.discriminatedUnion('type', [
-  multiChoiceItemSchema,
-  singleChoiceItemSchema,
+  focalActionItemSchema,
+  conditionalReasonItemSchema,
 ]);
 const emailTemplateSchema = z
   .object({
@@ -113,8 +113,9 @@ export const followUpInstrumentSchema = z
       .object({
         title: participantTextSchema,
         reportingInstruction: participantTextSchema,
+        accountScopeInstruction: participantTextSchema,
         safetyNote: participantTextSchema,
-        items: z.array(followUpItemSchema).length(4),
+        items: z.array(followUpItemSchema).length(6),
       })
       .strict(),
     analysis: z
@@ -122,8 +123,12 @@ export const followUpInstrumentSchema = z
         role: z.literal('ancillary-exploratory'),
         outcomeLabel: participantTextSchema,
         focalOutcomes: z.array(stableIdSchema).length(3),
-        secondaryDescriptiveOutcomes: z.array(stableIdSchema).length(5),
+        reasonItems: z.array(stableIdSchema).length(3),
+        responseCategories: z.tuple([z.literal('yes'), z.literal('no'), z.literal('unsure')]),
+        reasonTrigger: z.literal('no'),
+        reasonRole: z.literal('action-specific descriptive context'),
         combinedScore: z.literal(false),
+        durableBehaviorChangeClaimed: z.literal(false),
         nonResponseMeaning: z.literal('missing'),
         opportunityDependent: z.literal(true),
         noActionReasonsOptional: z.literal(true),
@@ -140,7 +145,42 @@ export const followUpInstrumentSchema = z
       })
       .strict(),
   })
-  .strict();
+  .strict()
+  .superRefine((instrument, context) => {
+    const focalIds = instrument.questionnaire.items
+      .filter((item) => item.type === 'singleChoice')
+      .map((item) => item.id);
+    const reasonIds = instrument.questionnaire.items
+      .filter((item) => item.type === 'conditionalSingleChoice')
+      .map((item) => item.id);
+    if (JSON.stringify(focalIds) !== JSON.stringify(instrument.analysis.focalOutcomes)) {
+      context.addIssue({
+        code: 'custom',
+        path: ['analysis', 'focalOutcomes'],
+        message: 'follow-up-focal-outcomes-must-match-items',
+      });
+    }
+    if (JSON.stringify(reasonIds) !== JSON.stringify(instrument.analysis.reasonItems)) {
+      context.addIssue({
+        code: 'custom',
+        path: ['analysis', 'reasonItems'],
+        message: 'follow-up-reason-items-must-match-items',
+      });
+    }
+    for (const item of instrument.questionnaire.items) {
+      if (item.type !== 'singleChoice') continue;
+      if (
+        JSON.stringify(item.options.map((option) => option.id)) !==
+        JSON.stringify(instrument.analysis.responseCategories)
+      ) {
+        context.addIssue({
+          code: 'custom',
+          path: ['questionnaire', 'items', item.id, 'options'],
+          message: 'follow-up-focal-options-must-be-yes-no-unsure',
+        });
+      }
+    }
+  });
 
 export type FollowUpInstrument = z.infer<typeof followUpInstrumentSchema>;
 export type FollowUpItem = FollowUpInstrument['questionnaire']['items'][number];
@@ -174,11 +214,7 @@ export const followUpAccessResponseSchema = z.discriminatedUnion('status', [
 ]);
 export type FollowUpAccessResponse = z.infer<typeof followUpAccessResponseSchema>;
 
-const followUpResponseValueSchema = z.union([
-  z.string().max(80),
-  z.array(stableIdSchema).max(20),
-  z.null(),
-]);
+const followUpResponseValueSchema = z.union([z.string().max(80), z.null()]);
 const followUpItemResponseSchema = z
   .object({
     itemId: stableIdSchema,
@@ -205,7 +241,7 @@ export const followUpSubmissionRequestSchema = z
   .object({
     token: followUpRawTokenSchema,
     voluntaryConfirmation: z.literal(true),
-    responses: z.array(followUpItemResponseSchema).length(4),
+    responses: z.array(followUpItemResponseSchema).length(6),
   })
   .strict()
   .superRefine((request, context) => {
@@ -227,31 +263,16 @@ export const followUpSubmissionRequestSchema = z
       const response = responseFor(request.responses, item.id);
       if (response === undefined) continue;
       const optionIds = new Set(item.options.map(({ id }) => id));
-      if (item.type === 'multiChoice') {
+      if (item.type === 'singleChoice') {
         const value = response.value;
-        if (
-          !Array.isArray(value) ||
-          value.length === 0 ||
-          value.length > optionIds.size ||
-          new Set(value).size !== value.length ||
-          value.some((optionId) => !optionIds.has(optionId))
-        ) {
-          addResponseIssue(context, item.id, 'invalid-follow-up-multi-choice');
-          continue;
-        }
-        if (
-          value.length > 1 &&
-          value.some((optionId) => item.exclusiveOptions.includes(optionId))
-        ) {
-          addResponseIssue(context, item.id, 'exclusive-option-conflict');
+        if (typeof value !== 'string' || !optionIds.has(value)) {
+          addResponseIssue(context, item.id, 'invalid-follow-up-focal-response');
         }
         continue;
       }
 
       const controllingResponse = responseFor(request.responses, item.displayWhen.itemId);
-      const displayed =
-        Array.isArray(controllingResponse?.value) &&
-        controllingResponse.value.includes(item.displayWhen.contains);
+      const displayed = controllingResponse?.value === item.displayWhen.equals;
       if (!displayed && response.value !== null) {
         addResponseIssue(context, item.id, 'hidden-follow-up-response');
       } else if (
