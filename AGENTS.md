@@ -24,11 +24,9 @@ Wähle danach nur die zum Auftrag passenden Quellen:
   sowie ADR 0004, 0005 beziehungsweise `ADR 0008-Reference` aus dem ADR-Index.
 - BrowserShell, PassWo, Animation oder Knotennetzwerk: das einschlägige Dokument unter
   `docs/design/` sowie ADR 0003 und 0007.
-- Teilnehmertexte und Segmente: `docs/design/TRAINING-COPY.md`, der passende segmentbezogene
-  Copy-Audit, `research/derived/segment-index.md` und die
-  `packages/training-content/AGENTS.md`; private Skriptseiten nur für das ausdrücklich benannte
-  Segment. Das aktuelle Trainingsskript ist innerhalb dieses Segments die Quelle für narrative
-  Absicht, Reihenfolge und Ton.
+- Teilnehmertexte und Segmente: die versionierten Daten unter `packages/training-content`,
+  `docs/design/TRAINING-COPY.md`, der passende segmentbezogene Copy-Audit,
+  `research/derived/segment-index.md` und `packages/training-content/AGENTS.md`.
 - Passwortanalyse: `packages/password-analysis/AGENTS.md` und
   `docs/research/RESEARCH-GUARDRAILS.md`; private S05-/S06-Seiten nur bei explizitem Auftrag.
 - Fragebogen und Guardrails: `docs/research/DATA-CONTRACT.md`,
@@ -72,8 +70,6 @@ Stoppe nur, wenn ein Auftrag:
 - echte Passwörter, Konten oder Sicherheitsvorfälle voraussetzt;
 - aus der Simulation eine Produktions-Passwortbewertung ableitet;
 - ohne ADR einen Kern-Renderer oder eine State-Library einführt;
-- Teilnehmertext ohne benannte Inhaltsquelle, Copy-Delta und konkrete Änderungsbegründung
-  verändert;
 - geschützten Wortlaut aus `docs/design/TRAINING-COPY.md` ohne ausdrückliche Freigabe ändert.
 
 ## 3. Architekturregeln
@@ -141,17 +137,17 @@ Vor Änderungen:
 
 1. Fasse Ziel, erlaubte Pfade und Akzeptanzkriterien intern zusammen.
 2. Lies nur die in der Aufgabe genannten Dokumente plus die zutreffenden Agentenregeln.
-3. Prüfe, ob eine aktuelle akzeptierte Entscheidung bereits vorliegt. Behandle frühere
-   ADR-Revisionen oder Roadmap-Platzhalter nicht als offene Gates, wenn sie später ersetzt wurden.
+3. Prüfe, ob eine aktuelle akzeptierte Entscheidung bereits vorliegt. Frühere ADR-Revisionen sind
+   keine parallelen offenen Gates, wenn sie später ersetzt wurden.
 
 Während der Änderung:
 
 - Halte den Diff klein und auf genau eine vertikale Aufgabe begrenzt. Unterscheide dabei klar
   zwischen akzeptiertem Zielverhalten und bereits implementiertem Stand; dokumentiere offene
   Implementierungsarbeit, ohne die fachliche Entscheidung erneut zu öffnen.
-- Ändere keine Teilnehmertexte außerhalb des beauftragten Segments. Vor jeder Copy-Änderung
-  klassifiziere die Textrolle und dokumentiere das Copy-Delta gemäß
-  `docs/design/TRAINING-COPY.md`. Bestehender Wortlaut bleibt standardmäßig erhalten.
+- Ändere keine Teilnehmertexte außerhalb des beauftragten Segments. Bestehender Wortlaut bleibt
+  standardmäßig erhalten; fachliche Änderungen werden über die versionierten Segmentdaten und
+  den passenden Copy-Audit nachvollziehbar gehalten.
 - Füge keine Bibliothek hinzu, wenn eine vorhandene Abstraktion genügt.
 - Schreibe keine Platzhalterlogik, die wie eine validierte Passwortbewertung wirkt.
 

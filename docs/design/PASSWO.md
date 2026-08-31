@@ -2,104 +2,42 @@
 
 ## Rolle
 
-PassWo ist ein unterstützender Guide, kein Prüfer und kein Belohnungssystem. Die Figur erklärt,
-zeigt, warnt vorsichtig und macht Fortschritt sichtbar. Sie bewertet nicht die Person.
+PassWo ist unterstützender Guide, kein Prüfer oder Belohnungssystem. Die Figur erklärt eine
+sichtbare Wirkung, verweist auf Handlungen und gibt nicht wertendes Feedback.
 
-## Semantische Posen
+## Vertrag
 
-Die Runtime referenziert stabile IDs statt konkreter Bilddateien:
+Content referenziert stabile Pose- und Placement-IDs; der Renderer ordnet lokale Assets zu.
 
 | Pose | Zweck |
 |---|---|
 | `wave` | Begrüßung und Wiedereinstieg |
 | `explain` | neutrale Erklärung |
-| `point` | einen konkreten Knoten oder Befund zeigen |
-| `caution` | vorsichtiger Sicherheitshinweis |
-| `idea` | umsetzbare nächste Handlung |
-| `dock` | ruhiger Guide am unteren linken Rand |
-| `flight` | Übergang in oder aus der Browserbühne |
+| `point` | konkretes Element zeigen |
+| `caution` | begrenzter Warnhinweis |
+| `idea` | nächste Handlung |
+| `dock` | ruhiger Guidezustand |
+| `flight` | räumlicher Übergang |
 
-Ein Renderer übersetzt diese IDs in PNG-, SVG- oder Rive-Assets.
+Placements sind `center`, `bottom-left`, `bottom-right`, `focused-node` und die beiden
+Offscreen-Positionen. Neue IDs werden nur über den gemeinsamen Contract eingeführt.
 
-## Platzierungen
+## Sprech- und Interaktionsmodell
 
-Die Runtime verwendet ausschließlich die IDs von `PassWoPlacement`:
+`PassWoGuide` verbindet Figur, kurzen Aufgabenstatus, optionale Hilfe und Sprechblase.
+Segmentkomponenten liefern nur Zustand und versionierten Content.
 
-- `center`: Einführung oder zentraler Wendepunkt;
-- `bottom-left`: dauerhaft verfügbare Hilfe und Taskstatus;
-- `focused-node`: kurze Erklärung direkt an Knoten oder Element;
-- `offscreen-right`: Start- oder Endpunkt einer Flugbewegung.
+- Pro Sprechschritt gilt ein Hauptgedanke.
+- Reiner Dialogfortschritt verwendet genau eine Aktion `Weiter`.
+- Eine fachliche Aktion in der Blase benennt ihre tatsächliche Wirkung.
+- Sichtbare Tabs, Knoten, Fenster- oder Websiteelemente erhalten keinen Ersatzbutton.
+- `Schließen` beendet nur optionale Hilfe.
+- Replay wiederholt ausschließlich die Visualisierung.
+- Aufgabenfortschritt erscheint als knapper Zähler; vollständige Bezeichnungen bleiben zugänglich.
 
-`bottom-right` wird für die geführten Browserhandlungen in S07 und den S08-Rücklauf verwendet.
-`offscreen-left` bleibt für passende künftige Szenen reserviert; neue Bezeichnungen außerhalb
-des Contracts werden nicht eingeführt.
+Die Sprechblase misst Figur und Bühne, wechselt bei Bedarf die Seite und richtet ihre Spitze neu
+aus. S02 darf Guide und Sprechblase am aktiven Knoten platzieren; nach Kontoabschluss kehren beide
+in den Dockzustand zurück.
 
-## Sprechprotokoll
-
-Eine MissionSequence folgt normalerweise:
-
-1. PassWo spricht einen kurzen Gedanken.
-2. Genau eine zentrale visuelle Änderung geschieht.
-3. `Animation wiederholen` und `Weiter` werden angeboten.
-
-Lange Monologe werden in mehrere Sequenzen geteilt. Teilnehmertexte liegen in Training Content,
-nicht in der Komponente. Für Textrolle, Copy-Locks, Button-Semantik und Hervorhebung gilt
-`docs/design/TRAINING-COPY.md`.
-
-## Assetstrategie
-
-Die gelieferten Designbilder sind Stil- und Kompositionsreferenzen. Sie enthalten mehrere Posen
-und UI-Elemente in einem Bild und werden deshalb nicht direkt als Runtime-Sprite verwendet.
-
-Die Runtime verwendet zentral das zugeschnittene Waiting-Asset für den stillen Zustand und das
-Dock-Asset während eines Sprechschritts. `PassWoGuide` verbindet Figur, Aufgabenstatus, Hilfe und
-`PassWoSpeechBubble`; segmentbezogene Komponenten liefern nur Zustand und versionierte Texte. Der
-frühere separate `PassWoQuestDock`-Adapter ist entfernt.
-
-S02 bildet die ausdrücklich begrenzte Ausnahme: Während ein Konto erkundet wird, steht PassWo
-neben dem aktiven Kontoknoten und die Sprechblase folgt als gemeinsame Guide-Einheit. Beim Intro,
-nach Abschluss eines Kontos und beim Segmentabschluss kehrt die Einheit an den unteren linken
-Ausgangspunkt zurück.
-
-Die Namenszeile zeigt den einwortigen Aufgabenstatus statt des Figurennamens. Direkt daneben
-öffnet ein Fragezeichen-Button die jeweilige Erklärung. Während PassWo spricht, verschwindet
-dieser Button vollständig. Wie jeder bedienbare Button besitzt auch der Fragezeichen-Button das
-in `docs/design/ANIMATION-SYSTEM.md` definierte Hover- und Druckfeedback. Der vollständige
-Sprechblasentext ist sofort verfügbar und darf nur
-kurz einblenden. Reine Dialogfortschritte verwenden genau einen sichtbaren Button `Weiter`;
-`Schließen` ist ausschließlich für optionale Hinweise zulässig, die keinen Trainingsübergang
-auslösen. Wenn eine konkrete Handlung innerhalb der Sprechblase nötig ist, etwa `Passwort prüfen`,
-ist diese Handlung die einzige primäre Aktion. Soll die Person dagegen einen sichtbaren Tab,
-eine Fenstersteuerung, einen Knoten oder ein Website-Element bedienen, besitzt die Sprechblase
-keinen Ersatzbutton; nur das Zielobjekt löst den Übergang aus. Falls eine Aufgabe Fortschritt besitzt, zeigt die
-schmale Zeile darunter ausschließlich den Zähler und eine Fortschrittsleiste; der ausführliche
-Text bleibt als zugängliche Bezeichnung erhalten.
-
-Die Sprechblase wird anhand der gerenderten Position von PassWo und der sichtbaren
-Browserbühne gemessen. Bei Größen-, Layout-, Pose- oder Positionswechsel wählt sie bei Bedarf
-eine andere Seite und richtet ihre Spitze erneut auf PassWo aus.
-
-Phase 2 nur bei Bedarf:
-
-- Layered SVG oder Rive, wenn Augen, Arme, Schal und Körper tatsächlich getrennt animiert werden
-  sollen.
-
-Kein Rive-Einstieg, bevor die benötigten Layer-Assets und Animationsanforderungen feststehen.
-
-## Verbleibendes Asset-Risiko
-
-Für `wave`, `explain`, `point`, `caution`, `idea` und `flight` liegen noch keine freigegebenen
-transparenten Einzelassets vor. Bis zu einer fachlich begründeten Erweiterung verwendet der Guide
-die beiden vorhandenen lokalen Rasterassets; es gibt keinen zusätzlichen Textplatzhalter-Adapter.
-
-## Inhaltliche Regeln
-
-- PassWo darf technische Aussagen nur aus dem versionierten Content wiedergeben.
-- Kein Sarkasmus bei Fehlern.
-- Vorsichtszustände vermeiden unnötigen Alarmismus.
-- Erfolgsfeedback beschreibt die Wirkung einer Entscheidung, nicht den moralischen Wert der
-  Person.
-- PassWo wiederholt keine vollständig sichtbare Vorschau, sondern erklärt nur den nicht
-  selbsterklärenden Zusammenhang.
-- Hervorhebung markiert höchstens den einen Kerngedanken des Sprechschritts; mehrere Kontonamen
-  erhalten nur dann Identitätsmarkierung, wenn sie zur Referenzauflösung nötig ist.
+Text- und Claim-Grenzen stehen in [TRAINING-COPY.md](TRAINING-COPY.md). PassWo fragt nie nach
+realen Sicherheitsdaten, verspricht keine absolute Sicherheit und bewertet keine Person.

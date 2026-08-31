@@ -9,8 +9,8 @@
 
 ## Aktuelle wirksame Fassung
 
-Für die nächste Web-Pilot- und Hauptstudienfreigabe gelten die eingecheckten aktuellen Manifeste
-und die folgende Versionskombination:
+Für die implementierte Webstudie gelten die eingecheckten Manifeste und die folgende
+Versionskombination:
 
 | Bestandteil | Version |
 |---|---|
@@ -102,5 +102,5 @@ Migration bestehender Datenbanken.
   ADR.
 - Die optionale Nachbefragung bleibt ein getrennt versioniertes Instrument und läuft gemäß ADR 0011
   und ADR 0016 auf einer tokenisierten same-origin Route.
-- Die zweite qualifizierte Inhaltsprüfung bleibt fachliche Research QA, keine psychometrische
-  Validierung und keine zusätzliche Softwarefunktion.
+- Qualifizierte Inhaltsprüfung bleibt fachliche Research QA, keine psychometrische Validierung
+  und keine zusätzliche Softwarefunktion.

@@ -1,6 +1,6 @@
-# Messinstrumente — Pilotkandidat 3.0
+# Messinstrumente — implementierter Stand 3.0
 
-Status: **verbindliche fachliche Übersicht für Cognitive Pretest und End-to-End-Pilot.**
+Status: **verbindliche fachliche Übersicht der implementierten Webstudie.**
 Teilnehmerwortlaut, Reihenfolge, Skalen und Guardrail-Formen werden aus
 `research/derived/instruments-v1.yaml` in die geprüfte Runtime-Projektion
 `research/derived/instruments-v1.runtime.json` übernommen. Die generierte Contract-Kopie muss
@@ -213,12 +213,3 @@ zugänglichen Ankern gerendert; Farbe ist nie der einzige Bedeutungsträger. PAN
 - keine Equivalence-, Non-Inferiority-, Mastery- oder Langzeitwirkungsbehauptung;
 - kein Wissenszuwachs ohne Pretest;
 - keine kausale Zuschreibung an einzelne Foci oder Interfaceelemente.
-
-## Vor dem Hauptstudien-Versions-Freeze
-
-Erforderlich sind Cognitive Pretest, End-to-End-Pilot in beiden Bedingungen, zweite qualifizierte
-Prüfung von Artefaktaudit, Shared-Content-Matrix und Guardrail-Klassifikationen sowie dokumentierte
-Auflösung konkreter Befunde. Diese Prüfung ist eine manuelle fachliche Research-QA-Aufgabe. Sie
-erfordert keine Runtime-Funktion und keine psychometrische Interrater-Studie. Pilotpersonen werden
-nicht in die Hauptstudie aufgenommen; Pilotdaten werden nicht mit Hauptstudiendaten
-zusammengeführt.

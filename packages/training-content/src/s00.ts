@@ -35,8 +35,6 @@ export interface S00SegmentContent {
     }[];
   };
   readonly source: {
-    readonly document: string;
-    readonly internalPage: 2;
     readonly uxReference: string;
     readonly copyReference: string;
   };
@@ -109,8 +107,6 @@ export const s00Content: S00SegmentContent = {
     ],
   },
   source: {
-    document: 'research/private/training-script.pdf',
-    internalPage: 2,
     uxReference: 'Vom Nutzer bereitgestellte UX-Konzeptboards, 2026-07-31',
     copyReference:
       'docs/design/S00-S05-COPY-AUDIT.md#copy-delta-s00-eigene-passwoerter-23-august-2026',

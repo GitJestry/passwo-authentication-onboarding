@@ -1,26 +1,8 @@
-# Teilnahmeinformation und Einwilligung — Pilotkandidat v14
+# Teilnahmeinformation und Einwilligung — implementierte Fassung v14
 
-Status: **Zieltextkandidat für den Web-Pilot und die Hauptstudie.** Die Fassung darf erst
-teilnehmerseitig eingesetzt werden, wenn Wiederaufnahme, `resumeCloseAt` und Datensatzabschluss
-gemäß ADR 0016 implementiert und geprüft sind. Die ausführbare Projektion liegt in
+Status: **versionierter Teilnehmertext der implementierten Webstudie.** Wiederaufnahme,
+`resumeCloseAt` und Datensatzabschluss entsprechen ADR 0016. Die ausführbare Projektion liegt in
 `research/derived/instruments-v1.runtime.json`.
-
-## Änderungsnachweis 2026-08-30
-
-- **Textrolle:** Teilnahmeinformation, Einwilligung und optionale Kontaktaufnahme.
-- **Quelle:** Entscheidung zum Webbetrieb und Datenlebenszyklus in
-  `ADR 0016-Web-Resume-Lifecycle` und `DATA-CONTRACT.md`.
-- **Änderung:** Die bereits vorgesehene Wiederaufnahme wird für S01–S07 nach einem Reload im selben
-  Tab technisch segmentgenau. Die Information zu fiktiven Passwörtern wird präzisiert: Sie können
-  dafür vorübergehend im Browser liegen, werden nicht an den Server übertragen und nicht als
-  Forschungsdaten gespeichert.
-- **Bedeutungsänderung:** nur operative Präzisierung der Reload-Recovery und ihrer transparenten
-  Beschreibung; erhobene Forschungsinhalte, Randomisierung, Messitems und Instrumentreihenfolge
-  bleiben unverändert.
-- **Versionen:** `consent-v14-pilot`, `instrument-runtime-v10-pilot`.
-
-Ältere Copy-Deltas bleiben über die Git-Historie nachvollziehbar und werden hier nicht als zweite
-aktuelle Textquelle wiederholt.
 
 ## Methodische Offenlegung
 

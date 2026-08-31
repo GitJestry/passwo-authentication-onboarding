@@ -2,11 +2,9 @@ import { describe, expect, it } from 'vitest';
 import { S03_CONTENT_VERSION, s03Content } from './s03.js';
 
 describe('S03 content traceability', () => {
-  it('keeps S03 linked to its named pages and canonical account structure', () => {
+  it('keeps S03 linked to its current copy audit and canonical account structure', () => {
     expect(S03_CONTENT_VERSION).toBe('1.19.4');
     expect(s03Content.source).toMatchObject({
-      document: 'research/private/training-script.pdf',
-      internalPages: [8, 9, 10, 11],
       copyReference:
         'docs/design/S00-S05-COPY-AUDIT.md#copy-delta-s03-optionale-anmeldehilfe-13-august-2026',
     });

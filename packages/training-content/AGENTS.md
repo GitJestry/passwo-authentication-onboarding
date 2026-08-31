@@ -3,11 +3,9 @@
 - Teilnehmertexte und Segmentdaten sind versionierter Forschungscontent.
 - Lies vor jeder Copy-Änderung `docs/design/TRAINING-COPY.md` und den passenden
   segmentbezogenen Copy-Audit.
-- Das aktuelle Trainingsskript ist innerhalb des ausdrücklich benannten Segments die Quelle für
-  narrative Absicht, Reihenfolge, Lernfunktion und Ton. Konto- oder UI-Migrationen erlauben keine
-  pauschale stilistische Neufassung.
-- Ändere nur das im Auftrag benannte Segment und dokumentiere Quelle, Copy-Delta, Textrolle,
-  Interaktionsziel und Änderungsgrund.
+- Die versionierten Segmentdaten sind der implementierte und kanonische Trainingsstand.
+- Ändere nur das im Auftrag benannte Segment und halte fachliche Änderungen im passenden
+  Copy-Audit nachvollziehbar.
 - Geschützte Formulierungen bleiben ohne ausdrückliche Freigabe wortgleich.
 - Keine React-, Motion- oder React-Flow-Imports.
 - Textvarianten bleiben technisch korrekt, nicht beschämend und frei von Sicherheitsgarantien.

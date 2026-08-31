@@ -6,11 +6,9 @@ import { S02_CONTENT_VERSION, s02Content } from './s02.js';
 const canonicalAccountIds = ['master-campus', 'campus-email', 'campusgram'] as const;
 
 describe('S00 to S02 training-content traceability', () => {
-  it('keeps S00 linked to its named source page and canonical accounts', () => {
+  it('keeps S00 linked to its current copy audit and canonical accounts', () => {
     expect(S00_CONTENT_VERSION).toBe('1.25.1');
     expect(s00Content.source).toMatchObject({
-      document: 'research/private/training-script.pdf',
-      internalPage: 2,
       copyReference:
         'docs/design/S00-S05-COPY-AUDIT.md#copy-delta-s00-eigene-passwoerter-23-august-2026',
     });
@@ -49,11 +47,9 @@ describe('S00 to S02 training-content traceability', () => {
     );
   });
 
-  it('keeps S01 linked to its named source page and canonical account order', () => {
+  it('keeps S01 linked to its current copy audit and canonical account order', () => {
     expect(S01_CONTENT_VERSION).toBe('2.16.5');
     expect(s01Content.source).toMatchObject({
-      document: 'research/private/training-script.pdf',
-      internalPage: 3,
       copyReference:
         'docs/design/S00-S05-COPY-AUDIT.md#copy-delta-s01-einheitliche-master-campus-navigation-26-august-2026',
     });
@@ -68,11 +64,9 @@ describe('S00 to S02 training-content traceability', () => {
     expect(s01Content.controls.passwordTooLong).toBe('max. 128 Zeichen');
   });
 
-  it('keeps S02 linked to its named pages and essential account-node structure', () => {
+  it('keeps S02 linked to its current copy audit and essential account-node structure', () => {
     expect(S02_CONTENT_VERSION).toBe('5.4.1');
     expect(s02Content.source).toEqual({
-      document: 'research/private/training-script.pdf',
-      internalPages: [4, 5, 6, 7],
       copyReference:
         'docs/design/S00-S05-COPY-AUDIT.md#copy-delta-s02-entlastender-auswahlhinweis-11-august-2026',
     });

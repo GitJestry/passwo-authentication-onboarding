@@ -86,8 +86,8 @@ werden.
 - Passwortmanager unterstützen einzigartige Passwörter, ersetzen deren Einzigartigkeit aber
   nicht.
 
-## Hauptstudien-Versions-Freeze
+## Versionierung
 
-Vor der Hauptstudie werden Content, Referenzpfad, Instrumenttexte, Guardrail-Formen und Rubrik,
-separates Follow-up, Consent, Debrief, Timing, Persistenz und Export gemeinsam versioniert. Nach
-Studienbeginn erfolgen keine Itemänderungen anhand sichtbarer Bedingungsunterschiede.
+Content, Referenzpfad, Instrumenttexte, Guardrail-Formen und Rubrik, Follow-up, Consent, Debrief,
+Timing, Persistenz und Export bilden eine gemeinsame versionierte Release-Einheit. Nach
+Rekrutierungsbeginn erfolgen keine Itemänderungen anhand sichtbarer Bedingungsunterschiede.

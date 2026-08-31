@@ -16,8 +16,6 @@ export interface S01SegmentContent {
   readonly version: string;
   readonly trainingAriaLabel: string;
   readonly source: {
-    readonly document: string;
-    readonly internalPage: 3;
     readonly uxReference: string;
     readonly copyReference: string;
   };
@@ -137,8 +135,6 @@ export const s01Content: S01SegmentContent = {
   version: S01_CONTENT_VERSION,
   trainingAriaLabel: 'PassWo Training, Segment S01',
   source: {
-    document: 'research/private/training-script.pdf',
-    internalPage: 3,
     uxReference: 'Vom Nutzer bereitgestellte UX-Konzeptboards, 2026-07-31',
     copyReference:
       'docs/design/S00-S05-COPY-AUDIT.md#copy-delta-s01-einheitliche-master-campus-navigation-26-august-2026',

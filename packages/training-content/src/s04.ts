@@ -3,8 +3,6 @@ import type { TrainingSectionId } from '@passwo/contracts';
 export interface S04SegmentContent {
   readonly version: string;
   readonly source: {
-    readonly document: string;
-    readonly internalPages: readonly [12];
     readonly revision: string;
     readonly copyReference: string;
   };
@@ -59,8 +57,6 @@ export const S04_CONTENT_VERSION = '1.12.0';
 export const s04Content: S04SegmentContent = {
   version: S04_CONTENT_VERSION,
   source: {
-    document: 'research/private/training-script.pdf',
-    internalPages: [12],
     revision: 'Userauftrag vom 2026-08-24 · Campusgram-Passwortwechsel direkt begründet',
     copyReference:
       'docs/design/S00-S05-COPY-AUDIT.md#copy-delta-s04-direkter-campusgram-passworthinweis-24-august-2026',

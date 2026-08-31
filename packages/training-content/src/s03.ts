@@ -26,8 +26,6 @@ export interface S03AnimationSequence {
 export interface S03SegmentContent {
   readonly version: string;
   readonly source: {
-    readonly document: string;
-    readonly internalPages: readonly [8, 9, 10, 11];
     readonly revision: string;
     readonly copyReference: string;
   };
@@ -144,8 +142,6 @@ const animations = [
 export const s03Content: S03SegmentContent = {
   version: S03_CONTENT_VERSION,
   source: {
-    document: 'research/private/training-script.pdf',
-    internalPages: [8, 9, 10, 11],
     revision: 'Userauftrag vom 2026-08-13 · einmaliger Anmeldehinweis',
     copyReference:
       'docs/design/S00-S05-COPY-AUDIT.md#copy-delta-s03-optionale-anmeldehilfe-13-august-2026',

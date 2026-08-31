@@ -2,7 +2,7 @@
   "name": "passwo-authentication-onboarding",
   "version": "0.1.2",
   "private": true,
-  "description": "Research-grade foundation for the PassWo supportive authentication onboarding and local between-subjects study runtime.",
+  "description": "Complete PassWo authentication onboarding and between-subjects web study runtime.",
   "type": "module",
   "packageManager": "pnpm@11.15.1",
   "engines": {

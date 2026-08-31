@@ -1,6 +1,6 @@
 # Data Contract
 
-Status: **kanonische Datengrenze und Datenlebenszyklus-Definition für die Hauptstudie.**
+Status: **kanonische implementierte Datengrenze und Datenlebenszyklus-Definition.**
 Der Webbetrieb und die Wiederaufnahme sind in `ADR 0016-Web-Resume-Lifecycle` entschieden.
 
 ## Begriffe

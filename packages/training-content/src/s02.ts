@@ -130,8 +130,6 @@ export interface S02AccountContent {
 export interface S02SegmentContent {
   readonly version: string;
   readonly source: {
-    readonly document: string;
-    readonly internalPages: readonly [4, 5, 6, 7];
     readonly copyReference: string;
   };
   readonly segment: {
@@ -526,8 +524,6 @@ const animations = [
 export const s02Content: S02SegmentContent = {
   version: S02_CONTENT_VERSION,
   source: {
-    document: 'research/private/training-script.pdf',
-    internalPages: [4, 5, 6, 7],
     copyReference:
       'docs/design/S00-S05-COPY-AUDIT.md#copy-delta-s02-entlastender-auswahlhinweis-11-august-2026',
   },

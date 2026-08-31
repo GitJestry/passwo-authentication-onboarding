@@ -67,8 +67,6 @@ export const S06_CONSEQUENCE_CONTENT_VERSION = '2.51.0';
 export const s06ConsequenceContent = {
   version: S06_CONSEQUENCE_CONTENT_VERSION,
   source: {
-    document: 'research/private/training-script.pdf',
-    internalPages: [36, 37, 38, 39, 40, 41, 42, 43, 44] as const,
     revision: 'Userauftrag vom 2026-08-26 · erlebnisnahe Konsequenzcopy gestrafft',
     copyReference:
       'docs/design/S06-S07-COPY-AUDIT.md#copy-delta-s06-erlebnisnahe-konsequenzcopy-26-august-2026',

@@ -194,7 +194,6 @@ export interface TrainingSegmentDefinition {
   readonly id: SegmentId;
   readonly title: string;
   readonly section: TrainingSectionId;
-  readonly sourcePages: string;
   readonly foci: readonly TranslationFocusId[];
   readonly learningObjective: string;
 }

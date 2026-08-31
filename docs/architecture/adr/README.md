@@ -1,38 +1,28 @@
 # ADR Index
 
-Dieses Verzeichnis enthält angenommene und versioniert fortgeschriebene
-Architekturentscheidungen. Der Index erleichtert die Auswahl einschlägiger Entscheidungen, ersetzt
-aber keine ADR.
+Maßgeblich ist die jüngste akzeptierte oder ausdrücklich ersetzende Entscheidung. Git bewahrt die
+Entstehungsgeschichte; die Dateien beschreiben nur den aktuellen Geltungsbereich.
 
-## Zitierhinweis zu den beiden ADR 0008
-
-Historisch tragen zwei angenommene Entscheidungen den numerischen Präfix `0008`. Ihre Dateinamen
-bleiben unverändert; neue Verweise verwenden deshalb die folgenden eindeutigen Zitierlabels:
-
-| Zitierlabel | Entscheidung | Pfad |
+| ADR | Entscheidung | Status |
 |---|---|---|
-| `ADR 0008-Lease` | Operative Artefakt-Lease | [0008-artifact-operational-lease.md](./0008-artifact-operational-lease.md) |
-| `ADR 0008-Reference` | Eingebettetes, studienadaptiertes Referenzartefakt | [0008-embedded-adapted-reference-artifact.md](./0008-embedded-adapted-reference-artifact.md) |
+| [0001](0001-technology-stack.md) | Technologie-Stack | accepted |
+| [0002](0002-research-data-boundary.md) | Forschungsdatengrenze | accepted |
+| [0003](0003-statechart-orchestration.md) | getrennte Statecharts | accepted |
+| [0004](0004-timing-events.md) | ereignisbasierte Zeitmessung | accepted |
+| [0005](0005-condition-assignment.md) | verdeckte Condition-Zuweisung | accepted |
+| [0007](0007-renderer-adapters.md) | Renderer-Adapter | accepted |
+| [0008-Reference](0008-embedded-adapted-reference-artifact.md) | eingebettetes SecAware-Artefakt | accepted |
+| [0008-Lease](0008-artifact-operational-lease.md) | lokale Artefakt-Lease | legacy; Web durch 0016 ersetzt |
+| [0009](0009-desktop-runtime-and-reference-supplements.md) | Electron-Hülle und Zusatzviewer | Desktop accepted; Web durch 0016 geregelt |
+| [0010](0010-reference-native-quiz.md) | SecAware-Quizgrenze | accepted |
+| [0011-Follow-up](0011-delayed-follow-up-recontact.md) | getrennte Recontact-Registry | accepted |
+| [0011-PDF](0011-local-reference-pdf-viewer.md) | lokaler PDF-Viewer | accepted |
+| [0012](0012-versioned-instrument-submissions.md) | Instrumentblöcke und Guardrail-Formen | accepted |
+| [0013](0013-research-id-and-deletion-code-separation.md) | Forschungs-ID und Löschcode | accepted |
+| [0014](0014-bounded-local-password-guessing-analysis.md) | lokale Passwort-Kandidatenanalyse | accepted |
+| [0015](0015-bounded-artifact-viewport.md) | Full-Bleed-Artefakt-Viewport | accepted |
+| [0016](0016-web-runtime-resume-and-data-lifecycle.md) | Webbetrieb, Resume und Datenabschluss | accepted; übergeordnet für Webbetrieb |
+| [0017](0017-recruitment-source.md) | Rekrutierungsquelle | accepted |
 
-ADR 0006 bleibt als durch `ADR 0008-Reference` abgelöste historische Entscheidung erhalten.
-
-## Leseregel
-
-Maßgeblich ist jeweils die jüngste akzeptierte oder ausdrücklich ersetzende Entscheidung.
-Historische Revisionen erklären die Entwicklung, gelten aber nicht gleichzeitig als aktuelle
-Anforderung. Für Webbetrieb, Wiederaufnahme, Follow-up-Betrieb und Datenabschluss ist
-`ADR 0016-Web-Resume-Lifecycle` die übergeordnete aktuelle Entscheidung.
-
-## Neuere Ergänzungen
-
-| Zitierlabel | Entscheidung | Pfad |
-|---|---|---|
-| `ADR 0010-Reference-Quiz` | Natives SecAware-Quiz innerhalb der Artefaktzeit | [0010-reference-native-quiz.md](./0010-reference-native-quiz.md) |
-| `ADR 0011-Reference-PDF` | Lokaler PDF-Viewer für SecAware-Zusatzinformationen | [0011-local-reference-pdf-viewer.md](./0011-local-reference-pdf-viewer.md) |
-| `ADR 0011-Follow-up-Recontact` | Getrennte Recontact-Registry für das verzögerte Follow-up | [0011-delayed-follow-up-recontact.md](./0011-delayed-follow-up-recontact.md) |
-| `ADR 0012-Instrument-Submissions` | Versionierte Instrumentblöcke und balancierte Guardrail-Präsentation | [0012-versioned-instrument-submissions.md](./0012-versioned-instrument-submissions.md) |
-| `ADR 0013-Deletion-Code-Separation` | Trennung von Forschungs-ID und Löschcode | [0013-research-id-and-deletion-code-separation.md](./0013-research-id-and-deletion-code-separation.md) |
-| `ADR 0014-Bounded-Password-Guessing` | Begrenzte lokale Passwort-Rateweganalyse | [0014-bounded-local-password-guessing-analysis.md](./0014-bounded-local-password-guessing-analysis.md) |
-| `ADR 0015-Artifact-Viewport` | Gemeinsamer Full-Bleed Artefakt-Viewport | [0015-bounded-artifact-viewport.md](./0015-bounded-artifact-viewport.md) |
-| `ADR 0016-Web-Resume-Lifecycle` | Webbetrieb, Wiederaufnahme und Datenabschluss | [0016-web-runtime-resume-and-data-lifecycle.md](./0016-web-runtime-resume-and-data-lifecycle.md) |
-| `ADR 0017-Recruitment-Source` | Minimale Rekrutierungsquellen-Erfassung | [0017-recruitment-source.md](./0017-recruitment-source.md) |
+Der historische, durch `ADR 0008-Reference` ersetzte Separate-Tab-Entwurf ADR 0006 wurde aus der
+Arbeitsdokumentation entfernt. Seine Entwicklung bleibt in Git nachvollziehbar.

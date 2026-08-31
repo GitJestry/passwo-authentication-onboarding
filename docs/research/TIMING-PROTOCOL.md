@@ -1,6 +1,6 @@
 # Timing Protocol
 
-Status: **kanonische Zeitdefinition für neue Hauptstudien-Websitzungen.**
+Status: **kanonische implementierte Zeitdefinition der Webstudie.**
 Das Wiederaufnahmemodell steht in `ADR 0016-Web-Resume-Lifecycle`; das frühere
 Lease-/`incomplete-reload`-Verhalten gilt nur für lokale oder historische Sitzungen.
 

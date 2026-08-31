@@ -2,11 +2,9 @@ import { describe, expect, it } from 'vitest';
 import { S04_CONTENT_VERSION, s04Content } from './s04.js';
 
 describe('S04 content traceability', () => {
-  it('keeps the leak explanation within its named source and research boundary', () => {
+  it('keeps the leak explanation within its copy audit and research boundary', () => {
     expect(S04_CONTENT_VERSION).toBe('1.12.0');
     expect(s04Content.source).toMatchObject({
-      document: 'research/private/training-script.pdf',
-      internalPages: [12],
       copyReference:
         'docs/design/S00-S05-COPY-AUDIT.md#copy-delta-s04-direkter-campusgram-passworthinweis-24-august-2026',
     });

@@ -78,11 +78,6 @@ export const S05_CONTENT_VERSION = '2.136.1';
 export const s05Content = {
   version: S05_CONTENT_VERSION,
   source: {
-    document: 'research/private/training-script.pdf',
-    internalPages: [
-      12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34,
-      35,
-    ] as const,
     revision: 'Userauftrag vom 2026-08-26 · Abschlusscopy weiter gestrafft',
     copyReference:
       'docs/design/S00-S05-COPY-AUDIT.md#copy-delta-s05-abschlusscopy-weiter-gestrafft-26-august-2026',

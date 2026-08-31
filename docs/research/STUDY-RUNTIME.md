@@ -1,224 +1,101 @@
 # Study Runtime
 
-Status: **kanonisches Zielverhalten für den Webbetrieb der Hauptstudie.**
-Die Architekturentscheidung steht in `ADR 0016-Web-Resume-Lifecycle`; die Datengrenze und spätere
-Anonymisierung stehen in `DATA-CONTRACT.md`.
+Status: **kanonisches implementiertes Verhalten der Webstudie.** ADR 0016 entscheidet Resume und
+Datenabschluss; `DATA-CONTRACT.md` entscheidet Datengrenze und Anonymisierung.
 
-## Zweck und Systemgrenze
-
-Die Study Runtime umschließt beide Artefaktbedingungen mit demselben Ablauf. Study State und
-Training State bleiben getrennt. React rendert Zustände; Zuweisung, erlaubte Persistenz, Timing,
-Wiederaufnahme und Abschluss liegen in der same-origin Study API.
-
-Die Hauptstudie wird über HTTPS im Browser bereitgestellt. Die vorhandene Electron-Hülle bleibt ein
-lokaler Entwicklungs- und QA-Pfad. Sie ist keine zweite fachliche Runtime.
-
-## Verbindlicher Ablauf
+## Ablauf
 
 ```text
-Eligibility lokal prüfen
-→ gemeinsame Teilnahmeinformation
-→ erforderliche Hauptstudien-Einwilligung
-→ optional: Nachbefragung auswählen und E-Mail-Adresse angeben
-→ zufälligen `HttpOnly`-Rückkehrschlüssel setzen und Löschcode serverseitig ableiten
-→ Session serverseitig anlegen; Condition und Guardrail-Form verdeckt zuweisen
-→ nur bei Opt-in: E-Mail getrennt registrieren
-→ Pre sample
-→ Pre experience
+Eligibility lokal
+→ Teilnahmeinformation und Hauptstudien-Einwilligung
+→ optionales Follow-up-Opt-in mit getrennt registrierter E-Mail
+→ Session, verdeckte Condition und Guardrail-Form
+→ Pre sample → Pre experience
 → zugewiesenes Artefakt
-→ PANAS
-→ Zeiturteile
-→ UEQ-S
-→ UEQ+ Inhaltsseriosität
-→ Design-Diagnostik
-→ Risikoproportionalität und wahrgenommenes Verständnis
-→ Guardrail-Szenarien
-→ Guardrail-Recognition
-→ Post-Guardrail-Self-Efficacy
-→ retrospektive SecAware-Vorerfahrung
-→ automatischer Datenabschluss mit der letzten erforderlichen Submission
+→ PANAS → Zeiturteile → UEQ-S → UEQ+ Inhaltsseriosität
+→ Design-Diagnostik → Risikoproportionalität → wahrgenommenes Verständnis
+→ Guardrail-Szenarien → Recognition
+→ Post-Guardrail-Self-Efficacy → retrospektive SecAware-Vorerfahrung
+→ atomarer Datenabschluss
 → gemeinsames Debriefing und Abschlussbildschirm
 ```
 
-Eligibility wird nicht persistiert. Die E-Mail-Adresse ist keine Voraussetzung. Scheitert die
-optionale Kontaktregistrierung, kann sie erneut versucht oder verworfen werden; die Hauptstudie
-bleibt davon unberührt.
+Study- und Training-Statechart bleiben getrennt. Eligibility wird nicht persistiert. Die
+E-Mail-Adresse ist optional und liegt ausschließlich im Kontaktregister. Jeder Instrumentblock
+wird vollständig, atomar und idempotent gespeichert; ein abweichender Retry wird abgelehnt.
 
-## Unterbrechen, Wiederaufnehmen und Beenden
+Die letzte erforderliche Submission setzt einen datenkompletten Run in derselben Transaktion auf
+`completed`, invalidiert Resume und plant bei Opt-in das Follow-up. Debriefing und Abschlussbild
+benötigen keinen weiteren Statusklick. Nur `completed` Runs gehen in die Analyse.
 
-Es gibt während der Studie keinen gesonderten Button zum vorzeitigen „Abbrechen“, „Beenden“ oder
-„Schließen“. Eine Person kann jederzeit den Tab oder Browser schließen. Dadurch endet nur die aktuelle
-Browser-Sitzung; der Run bleibt `in-progress` und kann im selben Browser fortgesetzt werden.
+## Unterbrechung und Resume
 
-Die Wiederaufnahme verwendet einen zufälligen Rückkehrschlüssel in einem technisch notwendigen,
-`Secure`- und `HttpOnly`-geschützten first-party Cookie. Es ist höchstens 30 Tage gültig, wird nach
-einem bestätigten Checkpoint erneuert und endet spätestens am vor Rekrutierungsbeginn
-konfigurierten `resumeCloseAt`. Dieser Zeitpunkt ist zugleich der Datenerhebungsschluss für
-Hauptsitzungen. Serverseitig liegen nur Hash und Ablaufzeit. Der Rückkehrschlüssel enthält weder
-Antworten noch Condition, E-Mail-Adresse oder Forschungs-ID.
+Tab- oder Browser-Schließen unterbricht die Browser-Sitzung; der Run bleibt `in-progress`. Es gibt
+keinen separaten vorzeitigen Abschlussbutton.
 
-Die Runtime stellt den letzten bestätigten sicheren Checkpoint wieder her:
+Ein zufälliger Rückkehrschlüssel liegt ausschließlich als `Secure`, `HttpOnly`, first-party Cookie
+im Browser. Der Server speichert Hash und Ablaufzeit. Er gilt höchstens 30 Tage, wird an sicheren
+Checkpoints erneuert und endet spätestens bei `resumeCloseAt`.
 
-- atomar gespeicherte Fragebogenblöcke bleiben abgeschlossen;
-- der nächste noch nicht abgeschlossene Fragebogenabschnitt wird geöffnet;
-- SecAware öffnet den letzten bestätigten Seiteneinstieg;
-- PassWo setzt S01–S07 nach einem Reload am zuletzt bestätigten Segment-Einstieg fort, wenn im
-  selben Tab ein passender, mit zweistündiger TTL versehener `sessionStorage`-Reload-Checkpoint für
-  dieselbe Session vorliegt; fehlt er oder ist er ungültig, bleibt S01 der sichere Fallback;
-- Sessions, die noch mit einer Teilnahmeinformation vor `consent-v14-pilot` begonnen wurden,
-  verwenden diese lokale Ausnahme nicht und behalten auch nach einem Resume den bisherigen
-  S01-Fallback;
-- beim Eintritt in S08 verwirft der Client alle frei eingegebenen Passwortstrings, Teilstrings und
-  semantischen Detailbefunde und bestätigt atomar den minimalen S08-Resume-Zustand;
-- Resume ab S08 rekonstruiert ausschließlich vorgegebene Passphrasen über Content-IDs sowie die
-  noch erforderlichen kanonischen Schwäche-/Relationsflags;
-- ab S08 öffnet Resume den Einstieg des zuletzt bestätigten Segments S08 bis S17; dafür wird neben
-  dem minimalen S08-Zustand nur die inhaltsfreie Segment-ID fortgeschrieben;
-- Trainingsinputs werden für die Wiederaufnahme nie an den Server gesendet oder als Forschungsdaten
-  gespeichert. Der enge S01–S07-Reload-Checkpoint bleibt ausschließlich tab-lokal und wird nach
-  bestätigtem S08-Checkpoint gelöscht.
+| Bereich | Wiederaufnahme |
+|---|---|
+| Instrumente | bereits atomar gespeicherte Blöcke überspringen |
+| SecAware | letzter bestätigter Seiteneinstieg |
+| PassWo S00 | einmaligen Einstieg wiederholen |
+| PassWo S01–S07 | bestätigten Segmenteinstieg aus tab-lokalem Snapshot rekonstruieren; sonst S01 |
+| PassWo S08–S17 | letztes bestätigtes Segment mit minimalem S08-Resume-Zustand öffnen |
 
-Im aktuell integrierten PassWo-Lauf gehören S00 bis S07 zur flüchtigen Sektion 1 `passwords`. Eine
-Unterbrechung im einmaligen S00-Einstieg beginnt wieder bei S00. Für S01 bis S07 kann ein Reload im
-selben Tab den zuletzt bestätigten Segment-Einstieg exakt rekonstruieren, sofern der dazugehörige
-kurzlebige lokale Snapshot vorhanden und zur serverseitigen Segment-ID konsistent ist. Ohne diesen
-Snapshot beginnt die Sektion weiterhin bei S01 neu. Der bestätigte Checkpoint `supportive:S08` ist
-die harte Grenze für frei eingegebene Trainingswerte. Danach wird bei jedem neuen Segment
-ausschließlich dessen inhaltsfreie ID S09 bis S17 bestätigt, sodass die Wiederaufnahme am Einstieg
-des zuletzt erreichten Segments beginnt.
+Der S01–S07-Snapshot liegt nur in `sessionStorage`, gehört exakt zu Session und Segment, läuft nach
+zwei Stunden ab, wird nie übertragen und nach bestätigtem S08-Checkpoint gelöscht. Ältere Sessions
+vor `consent-v14-pilot` verwenden weiterhin S01 als Fallback.
 
-Wenn die Person nicht vor `resumeCloseAt` zurückkehrt, bleibt die Sitzung unvollständig. Sie wird
-nicht ausgewertet und beim Datensatz-Freeze gelöscht. Eine vorzeitige individuelle Löschung bleibt
-bis zur Anonymisierung über den Löschcode möglich.
+Vor S08 verwirft der Client Passwortstrings, Teilstrings und semantische Detailbefunde. Der danach
+zulässige `supportive-s08-resume-v1`-Zustand enthält nur drei vorgegebene Passphrasen-IDs,
+kanonische Schwäche-/Relationsflags und die inhaltsfreie Segment-ID S08–S17. Er wird am
+Artefaktabschluss gelöscht und nicht exportiert.
 
-Sobald Artefaktabschluss und alle erforderlichen Instrumentabschnitte atomar gespeichert sind,
-setzt die letzte Submission die Sitzung in derselben Servertransaktion auf `completed`. Ihr
-persistierter Submission-Zeitpunkt ist der Abschlusszeitpunkt und plant bei Opt-in die
-Nachbefragung. Das danach angezeigte gemeinsame Debriefing mit Abschlussbildschirm verlangt keine
-weitere statusbestimmende Aktion. Ältere datenkomplette `in-progress`-Sitzungen werden beim
-Runtime-Start idempotent anhand ihrer letzten Submission abgeschlossen.
+Geht das Cookie verloren, wird keine Sitzung über E-Mail, Forschungs-ID oder Antworten gesucht.
+Bis zur Anonymisierung bleibt die individuelle lokale Löschung über den selbst gesicherten
+Löschcode möglich.
 
-## Instrumentreihenfolge und Writes
+## Timing und Fehler
 
-Jeder Fragebogenabschnitt wird als atomare, idempotente Submission gespeichert. Ein
-Forschungsdatenfehler blockiert nur den betroffenen Übergang und erlaubt denselben Retry.
+Auswertbare Artefaktzeit ist die Summe bestätigter Webintervalle. Eine Unterbrechung schließt das
+aktuelle Intervall; Offline-Zeit zählt nicht mit. Resume beginnt am sicheren Checkpoint ein neues
+Intervall. Completed Runs mit Unterbrechung erhalten ein Qualitätsflag, bleiben aber für
+nichtzeitliche Outcomes auswertbar.
 
-Pre muss vollständig vor dem Artefakt vorliegen. Die unmittelbaren Post-Abschnitte müssen vor den
-Guardrail-Szenarien gespeichert sein. Recognition folgt erst nach allen Szenarien. Self-Efficacy und
-die retrospektive SecAware-Frage folgen nach dem no-feedback Guardrail. Erst danach wird das
-gemeinsame Debriefing angezeigt. Der erfolgreiche Write des letzten dieser Pflichtabschnitte ist
-zugleich der serverseitige Datenabschluss.
+Methodisch relevante Writes blockieren nur den betroffenen Übergang und sind mit derselben
+Sequenz idempotent wiederholbar. Der lokale Lease-Mechanismus und `incomplete-reload` bleiben
+ausschließlich als Legacy lesbar.
 
-Es gibt keinen offenen Post-Kommentar und kein condition-spezifisches terminales Knowledge Quiz vor
-dem gemeinsamen Guardrail. Instruktive Fragen innerhalb der Lernpfade bleiben Bestandteil des
-jeweiligen Artefakts.
+## Datengrenze
 
-## Timing bei Unterbrechungen
+- Anzeigename, fiktive Passwörter, Teile, Markierungen und Befunde werden nicht an den Server
+  übertragen oder als Forschungsdaten gespeichert.
+- `localStorage`, IndexedDB und Service Worker sind für Teilnehmer- und Trainingszustand verboten.
+- Langfristige Browserpersistenz ist ausschließlich das JavaScript-unlesbare Resume-Cookie.
+- Serverseitig liegen nur erlaubte Session-, Zuweisungs-, Instrument-, Timing-, Checkpoint- und
+  Abschlussdaten sowie der temporäre minimale S08-Zustand.
+- E-Mail und Raw Follow-up-Token liegen ausschließlich in `recontact.sqlite`.
+- Logs enthalten keine Request-Bodies, IP-Adressen, User-Agents, Trainingswerte oder Raw Tokens.
 
-Die objektive Bearbeitungszeit besteht aus bestätigten Artefakt-Sitzungsintervallen. Zeit zwischen
-dem Schließen des Browsers und einer späteren Wiederaufnahme wird nicht mitgezählt.
+## Referenz und Follow-up
 
-Ein unterbrochener flüchtiger Trainingsschritt erhält bei Wiederaufnahme ein neues
-Sitzungsintervall und ein technisches Unterbrechungsflag. Completed Sitzungen mit Unterbrechung
-bleiben für nicht zeitbezogene Outcomes auswertbar. Für die Daueranalyse werden
-Unterbrechungsflags berichtet und in einer Sensitivitätsprüfung berücksichtigt.
+Der deterministische SecAware-V9-Study-Build läuft same-origin bis zum definierten Completion-
+Event vor dem entfernten terminalen Quiz. Es werden keine SCORM-Interaktionen oder Segmentzeiten
+übernommen.
 
-Der bisherige lokale Lease-Mechanismus und `incomplete-reload` bleiben als Legacy-Verhalten lesbar,
-werden aber für neue Web-Sitzungen nicht mehr erzeugt.
+Bei Follow-up-Opt-in gelten Einladung nach 240 Stunden, höchstens eine Erinnerung 48 Stunden nach
+bestätigtem Erstversand und Fensterschluss nach 336 Stunden. Die Nachbefragung ist eine getrennte
+tokenisierte same-origin Route. Der Versand erfolgt kontrolliert über das Universitätskonto; die
+Runtime enthält keine Mail-Credentials. Kontaktkopien werden gemäß Data Contract gelöscht.
 
-## Referenzpfad
+## Betrieb
 
-Der deterministische SecAware-V9-Study-Build wird same-origin bis unmittelbar vor das terminale
-Knowledge Quiz administriert. Quiz und Lösungshinweise werden ausgelassen; der
-Referenz-Completion-Event liegt an dieser Grenze. Adaptation und Shared-Content-Nachweis sind im
-Artefaktmanifest und Content Audit dokumentiert.
+Die Hauptstudie nutzt `permuted-block`; erzwungene Bedingungen sind ausschließlich QA- und
+Pretest-Konfiguration. Der Client besitzt keinen Condition-Schalter. Webdeployment und Live-QA
+stehen in `docs/operations/WEB-DEPLOYMENT.md`.
 
-## Teilnahmeinformationen und Löschcode
-
-Kerninformationen und ausführliche Fassung sind vor Einwilligung sichtbar. Nach Sessionerstellung
-wird der Löschcode angezeigt. Im Fragebogen bleibt die ausführliche Fassung über
-`© Universität Bonn · Teilnahmeinformationen` erreichbar.
-
-Die Runtime zeigt keine Forschungs-ID, Condition, Antworten oder Timingdaten. Der rohe Löschcode
-wird nicht serverseitig gespeichert. Bei einer gültigen Wiederaufnahme im selben Browser wird er
-aus dem `HttpOnly`-Rückkehrschlüssel erneut abgeleitet und nur nach Hash-Abgleich angezeigt.
-Teilnehmende müssen ihn weiterhin selbst sichern, wenn sie später unabhängig von diesem Browser
-eine Löschung anfragen möchten.
-
-## Zustands- und Datenschutzgrenzen
-
-- Anzeigename, fiktive Passwörter, Passwortteile, lokale Detailfindings und semantische Evidenz
-  werden nie an den Server übertragen oder als Forschungsdaten gespeichert. Für S01–S07 darf nur
-  der minimal erforderliche Reload-Zustand höchstens zwei Stunden im tab-lokalen `sessionStorage`
-  liegen; nach bestätigtem S08-Checkpoint wird er gelöscht;
-- `localStorage`, IndexedDB und Service Worker sind für Teilnehmer- und Trainingszustand
-  unzulässig; `sessionStorage` ist ausschließlich für diesen versionierten Reload-Checkpoint
-  erlaubt;
-- langfristige Browserpersistenz ist weiterhin ausschließlich der opake, JavaScript-unlesbare
-  Rückkehrschlüssel im `HttpOnly`-Cookie;
-- Session, Zuweisung, Versionen, atomare Antworten, Timing, inhaltsfreier Checkpoint und
-  Abschlussstatus liegen serverseitig. Zwischen S08 und Artefaktabschluss kommt ausschließlich der
-  in ADR 0016 abschließend typisierte, nicht rekonstruierende Simulationsresume-Zustand hinzu; der
-  inhaltsfreie Checkpoint enthält dabei nur die zuletzt bestätigte Segment-ID S08 bis S17;
-- E-Mail und Raw-Follow-up-Token liegen ausschließlich im getrennten Kontaktregister;
-- Request-Bodies, IP-Adressen, User-Agents, Trainingswerte und Raw Tokens werden nicht in
-  projektkontrollierten Anwendungs- oder Access-Logs persistiert.
-
-## Follow-up-Betrieb
-
-Nach Opt-in und Completion werden Einladung nach 240 Stunden, höchstens eine Erinnerung 48 Stunden
-später und Fensterschluss nach 336 Stunden geplant.
-
-Das Follow-up wird als getrennte tokenisierte Route derselben Webanwendung bereitgestellt. Es gibt
-keine externe Umfrageplattform und keinen Antwortimport. Die Follow-up-Fragen sind nicht Teil des
-Hauptstudien-Bundles und erscheinen nur nach gültigem Token und erneuter freiwilliger Bestätigung.
-
-Einladung und Erinnerung werden kontrolliert über das Universitätskonto versendet. Die Study Runtime
-enthält keine Mail-Credentials und sendet keine Nachrichten selbst. Es gibt keine verzögerte
-Debrief-Mail.
-
-Spätestens sieben Kalendertage nach Schließung des letzten Follow-up-Fensters löscht die
-Studienleitung Kontaktregister, lokale Schedule-Dateien, versandte Follow-up-Nachrichten im
-projektkontrollierten Postfach und sonstige projektkontrollierte Kontaktkopien. Die dokumentierte
-Bestätigung enthält keine Kontaktdaten.
-
-## Researcher-Konfiguration
-
-Die Hauptstudie nutzt `permuted-block`. `forced-supportive` und `forced-reference` sind nur für
-Cognitive Pretest, End-to-End-Pilot und technische QA zulässig. Der Client besitzt keinen
-Condition-Schalter.
-
-## Manuelle Qualitätssicherung
-
-Vor dem Hauptstudien-Versions-Freeze bleiben folgende fachliche Aufgaben bestehen:
-
-- Cognitive Pretest und End-to-End-Pilot in beiden Bedingungen;
-- zweite qualifizierte Prüfung von Artefaktaudit, Shared-Content-Matrix und
-  Guardrail-Klassifikationen;
-- dokumentierte Auflösung konkreter Befunde;
-- Smoke-Test des Webbetriebs, der Wiederaufnahme und des Follow-up-Links;
-- kontrollierte Probe von Kontaktlöschung und späterer Anonymisierungsprozedur.
-
-Die zweite Inhaltsprüfung ist wissenschaftliche QA, keine psychometrische Validierung und keine
-neue Softwarefunktion.
-
-## Kontrollierte Abschlussbegriffe
-
-- **Hauptstudien-Versions-Freeze:** vor Rekrutierungsbeginn; fixiert Commit, Inhalte, Instrumente,
-  Referenzartefakt und Analyseplan.
-- **Datenerhebungsschluss:** das vorab festgelegte `resumeCloseAt`; danach werden keine neuen oder
-  wiederaufgenommenen Hauptsitzungen mehr angenommen.
-- **Datensatz-Freeze:** nach Datenerhebung und Follow-up; entfernt unvollständige Sitzungen,
-  anonymisiert den Archivdatensatz und startet dessen zehnjährige Aufbewahrung.
-
-Die vollständige Prozedur und Frist stehen ausschließlich in `DATA-CONTRACT.md` und werden hier
-nicht dupliziert.
-
-## Lokale Löschung vor der Anonymisierung
-
-Die bestehende CLI kann über den Löschcode eine pseudonymisierte Session und alle abhängigen
-Datensätze in Forschungs- und Kontaktregister auflösen. Standard ist Dry-Run; Schreiben erfordert
-`--confirm`.
-
-Arbeits-Exporte und Backups werden nicht still als gelöscht behandelt. Sie sind im kontrollierten
-Lösch- beziehungsweise Anonymisierungsvorgang ausdrücklich mit einzubeziehen.
+Versions-Freeze, `resumeCloseAt` und Datensatz-Freeze sind getrennte Zeitpunkte. Die verbindliche
+Anonymisierungs- und Löschprozedur steht ausschließlich in `DATA-CONTRACT.md`.

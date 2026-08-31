@@ -1,6 +1,6 @@
 # Freiwillige Nachbefragung nach ungefähr zehn Tagen
 
-Status: **Pilotkandidat `follow-up-v6-pilot`.** Der verbindliche Wortlaut liegt in
+Status: **implementierte Fassung `follow-up-v6-pilot`.** Der verbindliche Wortlaut liegt in
 `research/derived/follow-up-v6.yaml`. Die Nachbefragung ist eine ancillary exploratory extension
 und nicht erforderlich, um die Hauptforschungsfrage zu beantworten.
 
@@ -87,21 +87,11 @@ sie enthält keine E-Mail-Adresse und keinen Token.
 Die weitere pseudonymisierte Verknüpfung der bereits abgegebenen Follow-up-Antworten endet beim
 Datensatz-Freeze gemäß `DATA-CONTRACT.md`.
 
-## Finale Messrevision und Versionskompatibilität
-
-Die finale Revision ersetzt die bisherigen zwei großen Mehrfachauswahlblöcke und ihre beiden
-Bereichs-Reasons durch die oben beschriebenen drei fokalen Einzelitems und drei
-handlungsspezifischen Reasons. Inspection-, Retrieval-, Autofill-, Recovery- und
-Maintenance-Handlungen sind keine Follow-up-Outcomes mehr. Participant Framing, Landingpage,
-Einladung und Reminder verwenden keinen sichtbaren Kalenderstichtag; der technisch maßgebliche
-Reporting-Cutoff bleibt unverändert der bestätigte Zeitpunkt der ersten Einladung.
+## Versionskompatibilität
 
 `follow_up_version` wird beim Session-Create als `follow-up-v6-pilot` gespeichert und ist derzeit
-ein harter Gate-Wert für Zugriff und Scheduler. Ein Versionssprung würde bereits consentierte
-Sessions ohne produktive Datenmigration ungültig machen. Deshalb bleibt dieser Wert für die
-laufende Studie unverändert und die finale Revision wird über den Release-Commit nachvollziehbar.
-Bestehende und neu consentierte Fälle bleiben damit im selben Follow-up-Betrieb erreichbar; es ist
-keine Datenbankmigration oder Umschreibung bestehender Sessions erforderlich.
+ein harter Gate-Wert für Zugriff und Scheduler. Ein Versionssprung benötigt deshalb eine
+produktive Datenmigration; der laufende Release behält diesen Wert unverändert.
 
 Es gibt keine Hervorhebung und keinen Eingriff in Training, Trainingsdramaturgie, Hauptfragebogen
 oder geschützten PassWo-Wortlaut.
