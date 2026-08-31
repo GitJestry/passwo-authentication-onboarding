@@ -1,6 +1,5 @@
 import { createHash } from 'node:crypto';
-import { mkdtempSync, readFileSync, rmSync } from 'node:fs';
-import { tmpdir } from 'node:os';
+import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import {
@@ -22,6 +21,7 @@ import { exportResearchData } from './research-export.js';
 import { runStudyDataDeletion } from './study-data-deletion.js';
 import {
   completeWebTestStudy,
+  createTestResourceScope,
   createWebTestSession,
   deterministicTestRandomSource,
   openWebArtifactInterval,
@@ -32,8 +32,7 @@ import {
   webStudyWriteHeaders,
 } from './test-support.js';
 
-const servers: FastifyInstance[] = [];
-const temporaryDirectories: string[] = [];
+const resources = createTestResourceScope();
 const referenceArtifactFixtureDirectory = fileURLToPath(
   new URL('./test-fixtures/reference-artifact/', import.meta.url),
 );
@@ -55,16 +54,10 @@ const sessionPersistenceSchema = z
   .strict();
 const countSchema = z.object({ count: z.number().int().nonnegative() }).strict();
 
-afterEach(async () => {
-  await Promise.all(servers.splice(0).map((server) => server.close()));
-  for (const directory of temporaryDirectories.splice(0)) {
-    rmSync(directory, { recursive: true, force: true });
-  }
-});
+afterEach(() => resources.cleanup());
 
 function temporaryDatabasePaths(prefix: string) {
-  const directory = mkdtempSync(join(tmpdir(), prefix));
-  temporaryDirectories.push(directory);
+  const directory = resources.createTemporaryDirectory(prefix);
   return {
     directory,
     study: join(directory, 'study.sqlite'),
@@ -98,14 +91,7 @@ function createWebServer(
       },
     },
   });
-  servers.push(server);
-  return server;
-}
-
-async function closeTrackedServer(server: FastifyInstance): Promise<void> {
-  await server.close();
-  const index = servers.indexOf(server);
-  if (index >= 0) servers.splice(index, 1);
+  return resources.track(server);
 }
 
 function rowCount(database: Database.Database, table: string, sessionId: string): number {
@@ -181,7 +167,7 @@ it('persists the canonical recruitment source across create, resume and export',
     { sessionId: createdInvalid.session.sessionId, recruitmentSource: 'ub' },
   ]);
 
-  await closeTrackedServer(firstServer);
+  await resources.close(firstServer);
   const restartedServer = createWebServer('forced-supportive', paths.study, paths.recontact);
   const resumedResponse = await webPost(
     restartedServer,
@@ -192,7 +178,7 @@ it('persists the canonical recruitment source across create, resume and export',
   expect(webResumeResponseSchema.parse(resumedResponse.json()).session?.sessionId).toBe(
     createdTu.session.sessionId,
   );
-  await closeTrackedServer(restartedServer);
+  await resources.close(restartedServer);
 
   const resumedDatabase = new Database(paths.study, { readonly: true, fileMustExist: true });
   expect(
@@ -279,7 +265,7 @@ for (const assignmentMode of ['forced-supportive', 'forced-reference'] as const)
         )
       ).json(),
     ).toEqual({ completionStatus: 'completed' });
-    await closeTrackedServer(server);
+    await resources.close(server);
 
     const studyDatabase = new Database(paths.study, { readonly: true, fileMustExist: true });
     const persisted = sessionPersistenceSchema.parse(
@@ -445,7 +431,7 @@ describe('Web resume and concurrency acceptance', () => {
       created.session.sessionId,
       '81000000-0000-4000-8000-000000000198',
     );
-    await closeTrackedServer(server);
+    await resources.close(server);
 
     const database = new Database(paths.study, { readonly: true });
     expect(
@@ -466,7 +452,7 @@ describe('Web resume and concurrency acceptance', () => {
       created,
       '81000000-0000-4000-8000-000000000199',
     );
-    await closeTrackedServer(firstServer);
+    await resources.close(firstServer);
 
     const legacyStudyDatabase = new Database(paths.study);
     legacyStudyDatabase.prepare(
@@ -496,7 +482,7 @@ describe('Web resume and concurrency acceptance', () => {
       false,
       '2026-08-29T12:00:00.000Z',
     );
-    await closeTrackedServer(restartedServer);
+    await resources.close(restartedServer);
 
     const reconciledStudyDatabase = new Database(paths.study, { readonly: true });
     expect(
@@ -568,7 +554,7 @@ describe('Web resume and concurrency acceptance', () => {
       `/api/study/sessions/${created.session.sessionId}/artifact-intervals/heartbeat`,
       { intervalId: firstInterval.intervalId, elapsedMs: 125 },
     );
-    await closeTrackedServer(firstServer);
+    await resources.close(firstServer);
 
     const restartedServer = createWebServer('forced-supportive', paths.study, paths.recontact);
     const resumedResponse = await webPost(
@@ -640,7 +626,7 @@ describe('Web resume and concurrency acceptance', () => {
       created.session.sessionId,
       mainInstrumentBlocks.slice(preBlocks.length),
     );
-    await closeTrackedServer(restartedServer);
+    await resources.close(restartedServer);
 
     const database = new Database(paths.study, { readonly: true });
     expect(
@@ -729,7 +715,7 @@ describe('Web resume and concurrency acceptance', () => {
       throughS04,
       201,
     );
-    await closeTrackedServer(firstServer);
+    await resources.close(firstServer);
 
     const legacyDatabase = new Database(paths.study);
     legacyDatabase
@@ -819,7 +805,7 @@ describe('Web resume and concurrency acceptance', () => {
         elapsedMs: null,
       },
     );
-    await closeTrackedServer(restartedServer);
+    await resources.close(restartedServer);
   });
 
   it('resumes at the last confirmed post-S08 segment with only minimal simulation state', async () => {
@@ -866,7 +852,7 @@ describe('Web resume and concurrency acceptance', () => {
         checkpoint: 'supportive:S15',
       },
     );
-    await closeTrackedServer(firstServer);
+    await resources.close(firstServer);
 
     const database = new Database(paths.study, { readonly: true });
     const persistedState = z
@@ -902,7 +888,7 @@ describe('Web resume and concurrency acceptance', () => {
       resumeTarget: 'artifact',
       supportiveS08ResumeState: supportiveS08ResumeStateFixture,
     });
-    await closeTrackedServer(restartedServer);
+    await resources.close(restartedServer);
   });
 
   it('keeps condition and form blocks balanced under simultaneous Web session creation', async () => {
@@ -962,7 +948,7 @@ describe('Web resume and concurrency acceptance', () => {
       ),
     ).toEqual([sessions[0]?.session.sessionId, sessions[0]?.session.sessionId]);
 
-    await closeTrackedServer(server);
+    await resources.close(server);
     runStudyDataDeletion({
       databasePath: paths.study,
       recontactDatabasePath: paths.recontact,
@@ -973,7 +959,7 @@ describe('Web resume and concurrency acceptance', () => {
     const replacement = await createWebTestSession(replacementServer, 2_000, false);
     expect(replacement.session.condition).toBe(deletedSession.condition);
     expect(replacement.session.guardrailFormId).toBe(deletedSession.guardrailFormId);
-    await closeTrackedServer(replacementServer);
+    await resources.close(replacementServer);
 
     const database = new Database(paths.study, { readonly: true });
     expect(

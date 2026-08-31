@@ -1,6 +1,5 @@
 import { createHash } from 'node:crypto';
-import { mkdtempSync, readFileSync, readdirSync, rmSync, statSync } from 'node:fs';
-import { tmpdir } from 'node:os';
+import { readFileSync, readdirSync, statSync } from 'node:fs';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import {
@@ -30,6 +29,7 @@ import type { FollowUpDeliveryMessage } from './followup-message.js';
 import { exportResearchData } from './research-export.js';
 import {
   completeWebArtifact,
+  createTestResourceScope,
   createWebTestSession,
   deterministicTestRandomSource,
   submitWebInstrumentBlocks,
@@ -38,8 +38,7 @@ import {
   type CreatedWebTestSession,
 } from './test-support.js';
 
-const servers: FastifyInstance[] = [];
-const temporaryDirectories: string[] = [];
+const resources = createTestResourceScope();
 const referenceArtifactFixtureDirectory = fileURLToPath(
   new URL('./test-fixtures/reference-artifact/', import.meta.url),
 );
@@ -65,16 +64,10 @@ class RecordingDeliveredTransport implements FollowUpMailTransport {
   }
 }
 
-afterEach(async () => {
-  await Promise.all(servers.splice(0).map((server) => server.close()));
-  for (const directory of temporaryDirectories.splice(0)) {
-    rmSync(directory, { recursive: true, force: true });
-  }
-});
+afterEach(() => resources.cleanup());
 
 function temporaryDatabasePaths(): TemporaryDatabasePaths {
-  const directory = mkdtempSync(join(tmpdir(), 'passwo-followup-operations-test-'));
-  temporaryDirectories.push(directory);
+  const directory = resources.createTemporaryDirectory('passwo-followup-operations-test-');
   return {
     directory,
     study: join(directory, 'study.sqlite'),
@@ -87,26 +80,26 @@ function createServer(
   nowIso: () => string,
   tokens: string[],
 ): FastifyInstance {
-  const server = buildStudyServer({
-    version: '0.1.2',
-    assignmentMode: 'permuted-block',
-    databasePath: paths.study,
-    recontactDatabasePath: paths.recontact,
-    randomSource: deterministicTestRandomSource(),
-    referenceArtifactDirectory: referenceArtifactFixtureDirectory,
-    nowIso,
-    createRecontactToken: () => {
-      const token = tokens.shift();
-      if (token === undefined) throw new Error('missing-synthetic-follow-up-token');
-      return token;
-    },
-    webRuntime: {
-      resumeCloseAtIso: '2026-09-30T12:00:00.000Z',
-      secureCookies: false,
-    },
-  });
-  servers.push(server);
-  return server;
+  return resources.track(
+    buildStudyServer({
+      version: '0.1.2',
+      assignmentMode: 'permuted-block',
+      databasePath: paths.study,
+      recontactDatabasePath: paths.recontact,
+      randomSource: deterministicTestRandomSource(),
+      referenceArtifactDirectory: referenceArtifactFixtureDirectory,
+      nowIso,
+      createRecontactToken: () => {
+        const token = tokens.shift();
+        if (token === undefined) throw new Error('missing-synthetic-follow-up-token');
+        return token;
+      },
+      webRuntime: {
+        resumeCloseAtIso: '2026-09-30T12:00:00.000Z',
+        secureCookies: false,
+      },
+    }),
+  );
 }
 
 async function completeStudyWithDefinedBaseline(
@@ -206,7 +199,7 @@ describe('follow-up operations and research linkage', () => {
         qaControlsEnabled: true,
       },
     });
-    servers.push(server);
+    resources.track(server);
 
     const messages = liveQaFollowUpMessagesResponseSchema.parse(
       (await webPost(server, null, '/api/qa/follow-up/messages', {})).json(),
@@ -533,8 +526,7 @@ describe('follow-up operations and research linkage', () => {
       expect(exportedContent).not.toContain(forbiddenValue);
     }
 
-    await server.close();
-    servers.splice(servers.indexOf(server), 1);
+    await resources.close(server);
     expect(
       runFollowUpContactDeletion({
         databasePath: paths.recontact,

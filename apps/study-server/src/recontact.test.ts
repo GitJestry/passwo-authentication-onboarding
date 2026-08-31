@@ -1,6 +1,5 @@
 import { createHash } from 'node:crypto';
-import { mkdtempSync, readFileSync, rmSync, statSync } from 'node:fs';
-import { tmpdir } from 'node:os';
+import { readFileSync, statSync } from 'node:fs';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import {
@@ -18,33 +17,27 @@ import { exportResearchData } from './research-export.js';
 import {
   completeWebTestStudy,
   createSession,
+  createTestResourceScope,
   createWebTestSession,
   savePreAndStartArtifact,
   submitBlock,
   webPost,
 } from './test-support.js';
 
-const servers: FastifyInstance[] = [];
-const temporaryDirectories: string[] = [];
+const resources = createTestResourceScope();
 const referenceArtifactFixtureDirectory = fileURLToPath(
   new URL('./test-fixtures/reference-artifact/', import.meta.url),
 );
 const requestId = 'f5d74d44-f700-4dc7-ac00-5e251a8890c3';
 
-afterEach(async () => {
-  await Promise.all(servers.splice(0).map((server) => server.close()));
-  for (const directory of temporaryDirectories.splice(0)) {
-    rmSync(directory, { recursive: true, force: true });
-  }
-});
+afterEach(() => resources.cleanup());
 
 function temporaryDatabasePaths(): {
   readonly directory: string;
   readonly study: string;
   readonly recontact: string;
 } {
-  const root = mkdtempSync(join(tmpdir(), 'passwo-recontact-'));
-  temporaryDirectories.push(root);
+  const root = resources.createTemporaryDirectory('passwo-recontact-');
   const directory = join(root, 'data');
   return {
     directory,
@@ -58,16 +51,16 @@ function createServer(
   recontactDatabasePath: string,
   createRecontactToken?: () => string,
 ): FastifyInstance {
-  const server = buildStudyServer({
-    version: '0.1.2',
-    assignmentMode: 'forced-supportive',
-    databasePath,
-    recontactDatabasePath,
-    nowIso: () => '2026-07-24T12:00:00.000Z',
-    ...(createRecontactToken === undefined ? {} : { createRecontactToken }),
-  });
-  servers.push(server);
-  return server;
+  return resources.track(
+    buildStudyServer({
+      version: '0.1.2',
+      assignmentMode: 'forced-supportive',
+      databasePath,
+      recontactDatabasePath,
+      nowIso: () => '2026-07-24T12:00:00.000Z',
+      ...(createRecontactToken === undefined ? {} : { createRecontactToken }),
+    }),
+  );
 }
 
 describe('follow-up recontact boundary', () => {
@@ -104,8 +97,7 @@ describe('follow-up recontact boundary', () => {
     expect(retry.json()).toEqual({ registered: true });
     expect(conflict.statusCode).toBe(409);
 
-    await firstServer.close();
-    servers.splice(servers.indexOf(firstServer), 1);
+    await resources.close(firstServer);
     const restartedServer = createServer(paths.study, paths.recontact, () => 'B'.repeat(43));
     const recoveredRetry = await restartedServer.inject({
       method: 'POST',
@@ -172,8 +164,7 @@ describe('follow-up recontact boundary', () => {
     const paths = temporaryDatabasePaths();
     const firstServer = createServer(paths.study, paths.recontact, () => 'F'.repeat(43));
     const session = await createSession(firstServer, 5);
-    await firstServer.close();
-    servers.splice(servers.indexOf(firstServer), 1);
+    await resources.close(firstServer);
 
     const legacyStudyDatabase = new Database(paths.study);
     legacyStudyDatabase.exec(`
@@ -214,7 +205,7 @@ describe('follow-up recontact boundary', () => {
       nowIso: () => '2026-07-24T12:00:00.000Z',
       createRecontactToken: () => token,
     });
-    servers.push(server);
+    resources.track(server);
     const session = await createSession(server, 2, false, true);
     expect(
       (
@@ -344,8 +335,7 @@ describe('follow-up recontact boundary', () => {
       contactCountAfter: 1,
       deletionDeadlineAtIso: '2026-08-14T12:00:00.000Z',
     });
-    await server.close();
-    servers.splice(servers.indexOf(server), 1);
+    await resources.close(server);
     expect(
       runFollowUpContactDeletion({
         databasePath: paths.recontact,
@@ -378,7 +368,7 @@ describe('follow-up recontact boundary', () => {
         secureCookies: false,
       },
     });
-    servers.push(server);
+    resources.track(server);
     const first = await createWebTestSession(server, 31);
     const second = await createWebTestSession(server, 32);
     await completeWebTestStudy(server, first, '81000000-0000-4000-8000-000000000031');
@@ -502,7 +492,7 @@ describe('follow-up recontact boundary', () => {
       referenceArtifactDirectory: referenceArtifactFixtureDirectory,
       nowIso: () => '2026-07-24T12:00:00.000Z',
     });
-    servers.push(server);
+    resources.track(server);
     const session = await createSession(server, 3, false);
     await savePreAndStartArtifact(server, session.sessionId);
     expect(

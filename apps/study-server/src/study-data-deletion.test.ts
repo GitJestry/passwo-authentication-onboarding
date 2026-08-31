@@ -1,28 +1,19 @@
-import { mkdtempSync, rmSync } from 'node:fs';
-import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { deletionCodeSchema, hashDeletionCode, mainInstrumentBlocks } from '@passwo/contracts';
 import Database from 'better-sqlite3';
-import type { FastifyInstance } from 'fastify';
 import { afterEach, describe, expect, it } from 'vitest';
 import { z } from 'zod';
 import { buildStudyServer } from './app.js';
 import { runStudyDataDeletion } from './study-data-deletion.js';
-import { savePreAndStartArtifact } from './test-support.js';
+import { createTestResourceScope, savePreAndStartArtifact } from './test-support.js';
 
-const servers: FastifyInstance[] = [];
-const temporaryDirectories: string[] = [];
+const resources = createTestResourceScope();
 const referenceArtifactFixtureDirectory = fileURLToPath(
   new URL('./test-fixtures/reference-artifact/', import.meta.url),
 );
 
-afterEach(async () => {
-  await Promise.all(servers.splice(0).map((server) => server.close()));
-  for (const directory of temporaryDirectories.splice(0)) {
-    rmSync(directory, { recursive: true, force: true });
-  }
-});
+afterEach(() => resources.cleanup());
 
 function countRows(database: Database.Database, table: string, sessionId: string): number {
   return z
@@ -34,8 +25,7 @@ function countRows(database: Database.Database, table: string, sessionId: string
 
 describe('local study-data deletion repository', () => {
   it('reports and deletes every session-dependent record by deletion-code hash', async () => {
-    const directory = mkdtempSync(join(tmpdir(), 'passwo-study-data-deletion-'));
-    temporaryDirectories.push(directory);
+    const directory = resources.createTemporaryDirectory('passwo-study-data-deletion-');
     const databasePath = join(directory, 'study.sqlite');
     const recontactDatabasePath = join(directory, 'recontact.sqlite');
     const deletionCode = deletionCodeSchema.parse('PW-AB12-CD34-EF56-7890');
@@ -48,7 +38,7 @@ describe('local study-data deletion repository', () => {
       referenceArtifactDirectory: referenceArtifactFixtureDirectory,
       nowIso: () => '2026-08-02T12:00:00.000Z',
     });
-    servers.push(server);
+    resources.track(server);
     expect(server.printRoutes()).not.toMatch(/delet/iu);
     const created = await server.inject({
       method: 'POST',

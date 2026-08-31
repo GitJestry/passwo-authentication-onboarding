@@ -1,6 +1,5 @@
 import { createHash } from 'node:crypto';
-import { mkdtempSync, readFileSync, rmSync } from 'node:fs';
-import { tmpdir } from 'node:os';
+import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import {
@@ -21,40 +20,35 @@ import { exportResearchData } from './research-export.js';
 import {
   createSession,
   createSessionBody,
+  createTestResourceScope,
   deterministicTestRandomSource,
   recordSupportiveSegmentsThroughEnd,
   submitBlock,
   validSubmission,
 } from './test-support.js';
 
-const servers: FastifyInstance[] = [];
-const temporaryDirectories: string[] = [];
+const resources = createTestResourceScope();
 const referenceArtifactFixtureDirectory = fileURLToPath(
   new URL('./test-fixtures/reference-artifact/', import.meta.url),
 );
 
-afterEach(async () => {
-  await Promise.all(servers.splice(0).map((server) => server.close()));
-  for (const directory of temporaryDirectories.splice(0)) {
-    rmSync(directory, { recursive: true, force: true });
-  }
-});
+afterEach(() => resources.cleanup());
 
 function createServer(
   assignmentMode: AssignmentMode,
   databasePath = ':memory:',
   randomSource = deterministicTestRandomSource(),
 ): FastifyInstance {
-  const server = buildStudyServer({
-    version: '0.1.2',
-    assignmentMode,
-    databasePath,
-    randomSource,
-    referenceArtifactDirectory: referenceArtifactFixtureDirectory,
-    nowIso: () => '2026-07-24T12:00:00.000Z',
-  });
-  servers.push(server);
-  return server;
+  return resources.track(
+    buildStudyServer({
+      version: '0.1.2',
+      assignmentMode,
+      databasePath,
+      randomSource,
+      referenceArtifactDirectory: referenceArtifactFixtureDirectory,
+      nowIso: () => '2026-07-24T12:00:00.000Z',
+    }),
+  );
 }
 
 function parsePresentationOrder(json: string): string[] {
@@ -64,9 +58,10 @@ function parsePresentationOrder(json: string): string[] {
 
 describe('study server research core', () => {
   it('assigns the condition only from server configuration', async () => {
-    const supportive = await createSession(createServer('forced-supportive'), 1);
+    const supportiveServer = createServer('forced-supportive');
+    const supportive = await createSession(supportiveServer, 1);
     const reference = await createSession(createServer('forced-reference'), 2);
-    const clientCondition = await servers[0]?.inject({
+    const clientCondition = await supportiveServer.inject({
       method: 'POST',
       url: '/api/study/sessions',
       payload: { ...createSessionBody(3), condition: 'reference' },
@@ -109,8 +104,7 @@ describe('study server research core', () => {
   });
 
   it('persists only approved research session fields and condition-derived versions', async () => {
-    const temporaryDirectory = mkdtempSync(join(tmpdir(), 'passwo-study-core-'));
-    temporaryDirectories.push(temporaryDirectory);
+    const temporaryDirectory = resources.createTemporaryDirectory('passwo-study-core-');
     const databasePath = join(temporaryDirectory, 'study.sqlite');
     const randomSource = deterministicTestRandomSource();
     const supportiveServer = createServer('forced-supportive', databasePath, randomSource);
@@ -163,8 +157,7 @@ describe('study server research core', () => {
   });
 
   it('persists the supportive timing sequence through completion and preserves completed reloads', async () => {
-    const temporaryDirectory = mkdtempSync(join(tmpdir(), 'passwo-study-core-'));
-    temporaryDirectories.push(temporaryDirectory);
+    const temporaryDirectory = resources.createTemporaryDirectory('passwo-study-core-');
     const databasePath = join(temporaryDirectory, 'study.sqlite');
     const server = createServer('forced-supportive', databasePath);
     const session = await recordSupportiveSegmentsThroughEnd(server, [
@@ -247,8 +240,7 @@ describe('study server research core', () => {
   });
 
   it('applies numbered schema and guardrail assignment migrations', () => {
-    const temporaryDirectory = mkdtempSync(join(tmpdir(), 'passwo-study-migration-'));
-    temporaryDirectories.push(temporaryDirectory);
+    const temporaryDirectory = resources.createTemporaryDirectory('passwo-study-migration-');
     const databasePath = join(temporaryDirectory, 'study.sqlite');
     const legacy = new Database(databasePath);
     legacy.exec(`
@@ -389,8 +381,7 @@ describe('study server research core', () => {
   });
 
   it('balances F1 through F6 independently within each assigned condition', async () => {
-    const temporaryDirectory = mkdtempSync(join(tmpdir(), 'passwo-study-form-balance-'));
-    temporaryDirectories.push(temporaryDirectory);
+    const temporaryDirectory = resources.createTemporaryDirectory('passwo-study-form-balance-');
     const databasePath = join(temporaryDirectory, 'study.sqlite');
     const server = createServer('permuted-block', databasePath);
     for (let identity = 1; identity <= 12; identity += 1) {
@@ -447,8 +438,7 @@ describe('study server research core', () => {
   });
 
   it('stores one atomic block idempotently and rejects a conflicting retry', async () => {
-    const temporaryDirectory = mkdtempSync(join(tmpdir(), 'passwo-study-submission-'));
-    temporaryDirectories.push(temporaryDirectory);
+    const temporaryDirectory = resources.createTemporaryDirectory('passwo-study-submission-');
     const databasePath = join(temporaryDirectory, 'study.sqlite');
     const server = createServer('forced-supportive', databasePath);
     const session = await createSession(server);

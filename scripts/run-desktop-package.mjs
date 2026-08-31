@@ -1,31 +1,46 @@
 import { spawn } from 'node:child_process';
-import { lstat, mkdir, readFile, rmdir, symlink, unlink, writeFile } from 'node:fs/promises';
+import { cp, lstat, mkdir, readFile, rm, symlink, writeFile } from 'node:fs/promises';
 import { dirname, join, relative, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const repositoryRoot = fileURLToPath(new URL('..', import.meta.url));
 const desktopDirectory = resolve(repositoryRoot, 'apps/study-desktop');
-const desktopModulesDirectory = resolve(desktopDirectory, 'node_modules');
+const desktopDistributionDirectory = resolve(desktopDirectory, 'dist');
 const desktopPackagePath = resolve(desktopDirectory, 'package.json');
-const createdDependencyLinks = [];
+const forgeConfigPath = resolve(desktopDirectory, 'forge.config.mjs');
+const forgeExecutable = resolve(repositoryRoot, 'node_modules/.bin/electron-forge');
+const stagingDirectory = resolve(desktopDirectory, '.forge-package');
+const stagingModulesDirectory = resolve(stagingDirectory, 'node_modules');
 const preparedDependencyNames = new Set();
 
-async function preparePackageManifest() {
-  const originalManifest = await readFile(desktopPackagePath, 'utf8');
-  const packageManifest = JSON.parse(originalManifest);
+async function prepareStagingDirectory() {
+  const packageManifest = JSON.parse(await readFile(desktopPackagePath, 'utf8'));
+  const electronVersion = packageManifest.devDependencies?.electron;
+  if (typeof electronVersion !== 'string') {
+    throw new Error('Desktop package manifest does not declare Electron.');
+  }
+
+  await rm(stagingDirectory, { recursive: true, force: true });
+  await mkdir(stagingDirectory, { recursive: true });
+  await cp(desktopDistributionDirectory, resolve(stagingDirectory, 'dist'), {
+    recursive: true,
+  });
   await writeFile(
-    desktopPackagePath,
+    resolve(stagingDirectory, 'package.json'),
     `${JSON.stringify(
       {
         ...packageManifest,
-        devDependencies: { electron: packageManifest.devDependencies.electron },
+        config: {
+          ...packageManifest.config,
+          forge: relative(stagingDirectory, forgeConfigPath),
+        },
+        devDependencies: { electron: electronVersion },
       },
       null,
       2,
     )}\n`,
     'utf8',
   );
-  return originalManifest;
 }
 
 async function dependencyLink(packageName, optional) {
@@ -33,21 +48,16 @@ async function dependencyLink(packageName, optional) {
   preparedDependencyNames.add(packageName);
 
   const dependencyPath = resolve(repositoryRoot, 'node_modules', packageName);
-  const linkPath = resolve(desktopModulesDirectory, packageName);
   try {
-    await lstat(linkPath);
+    await lstat(dependencyPath);
   } catch (error) {
-    if (error.code !== 'ENOENT') throw error;
-    try {
-      await lstat(dependencyPath);
-    } catch (dependencyError) {
-      if (optional && dependencyError.code === 'ENOENT') return;
-      throw dependencyError;
-    }
-    await mkdir(dirname(linkPath), { recursive: true });
-    await symlink(relative(dirname(linkPath), dependencyPath), linkPath);
-    createdDependencyLinks.push(linkPath);
+    if (optional && error.code === 'ENOENT') return;
+    throw error;
   }
+
+  const linkPath = resolve(stagingModulesDirectory, packageName);
+  await mkdir(dirname(linkPath), { recursive: true });
+  await symlink(relative(dirname(linkPath), dependencyPath), linkPath);
 
   const packageManifest = JSON.parse(await readFile(join(dependencyPath, 'package.json'), 'utf8'));
   for (const dependencyName of Object.keys(packageManifest.dependencies ?? {})) {
@@ -61,9 +71,9 @@ async function dependencyLink(packageName, optional) {
 function runForge() {
   return new Promise((resolveRun, rejectRun) => {
     const forgeProcess = spawn(
-      'pnpm',
-      ['exec', 'electron-forge', 'package', '.', '--platform=darwin', '--arch=arm64'],
-      { cwd: desktopDirectory, stdio: 'inherit' },
+      forgeExecutable,
+      ['package', '.', '--platform=darwin', '--arch=arm64'],
+      { cwd: stagingDirectory, stdio: 'inherit' },
     );
     forgeProcess.once('error', rejectRun);
     forgeProcess.once('exit', (code, signal) => {
@@ -76,27 +86,11 @@ function runForge() {
   });
 }
 
-async function removeEmptyParentDirectories(linkPath) {
-  let directoryPath = dirname(linkPath);
-  while (directoryPath !== desktopModulesDirectory) {
-    try {
-      await rmdir(directoryPath);
-    } catch {
-      return;
-    }
-    directoryPath = dirname(directoryPath);
-  }
-}
-
-const originalPackageManifest = await preparePackageManifest();
 try {
+  await prepareStagingDirectory();
   await dependencyLink('better-sqlite3', false);
   await dependencyLink('electron', false);
   await runForge();
 } finally {
-  await writeFile(desktopPackagePath, originalPackageManifest, 'utf8');
-  for (const linkPath of createdDependencyLinks.reverse()) {
-    await unlink(linkPath);
-    await removeEmptyParentDirectories(linkPath);
-  }
+  await rm(stagingDirectory, { recursive: true, force: true });
 }

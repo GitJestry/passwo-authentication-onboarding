@@ -215,25 +215,18 @@ describe('S08 open action needs', () => {
 
     expect(model.localFindingAccountIds).toEqual(['master-campus', 'campus-email']);
     expect(model.relationships).toHaveLength(3);
-    expect(model.relationships).toEqual(
-      expect.arrayContaining([
-        expect.objectContaining({
-          sourceId: 'campusgram',
-          targetId: 'master-campus',
-          kind: 'similar-pattern',
-        }),
-        expect.objectContaining({
-          sourceId: 'campusgram',
-          targetId: 'campus-email',
-          kind: 'identical-reuse',
-        }),
-        expect.objectContaining({
-          sourceId: 'master-campus',
-          targetId: 'campus-email',
-          kind: 'similar-pattern',
-        }),
-      ]),
-    );
+    expect(
+      Object.fromEntries(
+        model.relationships.map(({ kind, sourceId, targetId }) => [
+          [sourceId, targetId].sort().join('--'),
+          kind,
+        ] as const),
+      ),
+    ).toEqual({
+      'campus-email--campusgram': 'identical-reuse',
+      'campus-email--master-campus': 'similar-pattern',
+      'campusgram--master-campus': 'similar-pattern',
+    });
     expect(
       network.edges.filter(
         ({ kind }) => kind === 'identical-reuse' || kind === 'similar-pattern',

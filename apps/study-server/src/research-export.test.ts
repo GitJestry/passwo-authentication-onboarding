@@ -1,28 +1,23 @@
 import { createHash } from 'node:crypto';
-import { existsSync, mkdtempSync, readFileSync, rmSync } from 'node:fs';
-import { tmpdir } from 'node:os';
+import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { instrumentRuntimeManifest } from '@passwo/contracts';
-import type { FastifyInstance } from 'fastify';
 import { afterEach, describe, expect, it } from 'vitest';
 import { buildStudyServer } from './app.js';
 import { exportResearchData } from './research-export.js';
-import { createSession, savePreAndStartArtifact } from './test-support.js';
+import {
+  createSession,
+  createTestResourceScope,
+  savePreAndStartArtifact,
+} from './test-support.js';
 
-const servers: FastifyInstance[] = [];
-const temporaryDirectories: string[] = [];
+const resources = createTestResourceScope();
 
-afterEach(async () => {
-  await Promise.all(servers.splice(0).map((server) => server.close()));
-  for (const directory of temporaryDirectories.splice(0)) {
-    rmSync(directory, { recursive: true, force: true });
-  }
-});
+afterEach(() => resources.cleanup());
 
 describe('research export', () => {
   it('exports the approved tables and excludes private training data', async () => {
-    const temporaryDirectory = mkdtempSync(join(tmpdir(), 'passwo-research-export-'));
-    temporaryDirectories.push(temporaryDirectory);
+    const temporaryDirectory = resources.createTemporaryDirectory('passwo-research-export-');
     const databasePath = join(temporaryDirectory, 'study.sqlite');
     const recontactDatabasePath = join(temporaryDirectory, 'recontact.sqlite');
     const rawToken = 'D'.repeat(43);
@@ -34,7 +29,7 @@ describe('research export', () => {
       nowIso: () => '2026-07-24T12:00:00.000Z',
       createRecontactToken: () => rawToken,
     });
-    servers.push(server);
+    resources.track(server);
     const session = await createSession(server, 1, false, true);
     expect(
       (
@@ -122,8 +117,7 @@ describe('research export', () => {
   });
 
   it('emits an analysis profile without active free-text responses or calendar timestamps', async () => {
-    const temporaryDirectory = mkdtempSync(join(tmpdir(), 'passwo-analysis-export-'));
-    temporaryDirectories.push(temporaryDirectory);
+    const temporaryDirectory = resources.createTemporaryDirectory('passwo-analysis-export-');
     const databasePath = join(temporaryDirectory, 'study.sqlite');
     const recontactDatabasePath = join(temporaryDirectory, 'recontact.sqlite');
     const rawToken = 'E'.repeat(43);
@@ -135,7 +129,7 @@ describe('research export', () => {
       nowIso: () => '2026-07-24T12:00:00.000Z',
       createRecontactToken: () => rawToken,
     });
-    servers.push(server);
+    resources.track(server);
     const session = await createSession(server, 2, false, true);
     expect(
       (

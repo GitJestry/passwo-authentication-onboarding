@@ -1,3 +1,6 @@
+import { mkdtempSync, rmSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 import {
   artifactIntervalStartResponseSchema,
   type CreateSessionResponse,
@@ -17,6 +20,57 @@ import {
 import type { FastifyInstance, InjectOptions, LightMyRequestResponse } from 'fastify';
 import { expect } from 'vitest';
 import type { StudyRandomSource } from './random-source.js';
+
+interface TestCloseableResource {
+  close(): Promise<void>;
+}
+
+export interface TestResourceScope {
+  createTemporaryDirectory(prefix: string): string;
+  track<Resource extends TestCloseableResource>(resource: Resource): Resource;
+  close(resource: TestCloseableResource): Promise<void>;
+  cleanup(): Promise<void>;
+}
+
+export function createTestResourceScope(): TestResourceScope {
+  const resources = new Set<TestCloseableResource>();
+  const temporaryDirectories = new Set<string>();
+
+  return {
+    createTemporaryDirectory(prefix) {
+      const directory = mkdtempSync(join(tmpdir(), prefix));
+      temporaryDirectories.add(directory);
+      return directory;
+    },
+    track<Resource extends TestCloseableResource>(resource: Resource): Resource {
+      resources.add(resource);
+      return resource;
+    },
+    async close(resource) {
+      await resource.close();
+      resources.delete(resource);
+    },
+    async cleanup() {
+      const pendingResources = [...resources];
+      resources.clear();
+      const closeResults = await Promise.allSettled(
+        pendingResources.map((resource) => resource.close()),
+      );
+      for (const directory of temporaryDirectories) {
+        rmSync(directory, { recursive: true, force: true });
+      }
+      temporaryDirectories.clear();
+
+      const closeErrors: unknown[] = [];
+      for (const result of closeResults) {
+        if (result.status === 'rejected') closeErrors.push(result.reason);
+      }
+      if (closeErrors.length > 0) {
+        throw new AggregateError(closeErrors, 'test-resource-close-failed');
+      }
+    },
+  };
+}
 
 const supportiveSegmentTimingBounds = {
   S00: { startSequence: 1, startMs: 125, endSequence: 2, endMs: 425 },

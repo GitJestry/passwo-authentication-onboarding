@@ -198,10 +198,10 @@ describe('S06 transition and S07 passphrase-search copy traceability', () => {
       'campus-email': { fictionalPassword: 'rQ7mL2vX9pK4?' },
     });
     expect(s06ConsequenceContent.dispositionLabels['whole-password-recognized']).toMatch(
-      /vollständige(?:s|r) Passwort|vollständiger früher Kandidat/u,
+      /vollständige(?:s|r) Passwort|vollständiger früher Kandidat/iu,
     );
     expect(s06ConsequenceContent.dispositionLabels['no-whole-password-recognized']).toMatch(
-      /vollständige(?:s|r) Passwort|vollständiger früher Kandidat/u,
+      /vollständige(?:s|r) Passwort|vollständiger früher Kandidat/iu,
     );
     expect(JSON.stringify(s06ConsequenceContent.narrations)).not.toMatch(
       /garantiert stark|Passwort ist sicher|Crack-Zeit/iu,
