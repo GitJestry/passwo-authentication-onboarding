@@ -23,8 +23,8 @@ export const researchIdSchema = researchCodeSchema;
 export const researchExportProfileSchema = z.enum(['audit', 'analysis']);
 export type ResearchExportProfile = z.infer<typeof researchExportProfileSchema>;
 export const researchExportSchemaProfileVersionSchema = z.enum([
-  'research-audit-v3',
-  'research-analysis-v3',
+  'research-audit-v4',
+  'research-analysis-v4',
 ]);
 
 export const researchExportSessionRecordSchema = z
@@ -57,9 +57,7 @@ export const researchAnalysisSessionRecordSchema = researchExportSessionRecordSc
   createdAtIso: true,
   completedAtIso: true,
 });
-export type ResearchAnalysisSessionRecord = z.infer<
-  typeof researchAnalysisSessionRecordSchema
->;
+export type ResearchAnalysisSessionRecord = z.infer<typeof researchAnalysisSessionRecordSchema>;
 
 export const researchExportTimingRecordSchema = timingEventSchema
   .extend({ researchId: researchIdSchema, serverReceivedAtIso: z.iso.datetime() })
@@ -107,8 +105,9 @@ export type ResearchExportPresentationRecord = z.infer<
   typeof researchExportPresentationRecordSchema
 >;
 
-export const researchAnalysisPresentationRecordSchema =
-  researchExportPresentationRecordSchema.omit({ createdAtIso: true });
+export const researchAnalysisPresentationRecordSchema = researchExportPresentationRecordSchema.omit(
+  { createdAtIso: true },
+);
 export type ResearchAnalysisPresentationRecord = z.infer<
   typeof researchAnalysisPresentationRecordSchema
 >;
@@ -124,15 +123,16 @@ export const researchFreeTextReviewRecordSchema = z
     reviewStatus: z.literal('pending-review'),
   })
   .strict();
-export type ResearchFreeTextReviewRecord = z.infer<
-  typeof researchFreeTextReviewRecordSchema
->;
+export type ResearchFreeTextReviewRecord = z.infer<typeof researchFreeTextReviewRecordSchema>;
 
 export const researchExportDataDictionaryRecordSchema = z
   .object({
     instrumentId: z.string().trim().min(1).max(80),
     sectionId: z.string().trim().min(1).max(80),
+    variableGroupId: z.string().trim().min(1).max(80),
+    variableGroupLabel: z.string().trim().min(1).max(200),
     itemId: z.string().trim().min(1).max(80),
+    itemPrompt: z.string().trim().min(1).max(2_000),
     responseType: z.enum([
       'singleChoice',
       'multiChoice',
@@ -141,21 +141,56 @@ export const researchExportDataDictionaryRecordSchema = z
       'integer',
       'text',
     ]),
+    measurementLevel: z.enum(['nominal', 'ordinal', 'free-text']),
+    analysisRole: z.string().trim().min(1).max(80),
     required: z.boolean(),
     minimum: z.number().int().nullable(),
     maximum: z.number().int().nullable(),
     maxLength: z.number().int().positive().nullable(),
+    scaleId: z.string().trim().min(1).max(80).nullable(),
+    scaleAnchors: z
+      .array(
+        z
+          .object({
+            value: z.number().int(),
+            label: z.string().trim().min(1).max(500),
+          })
+          .strict(),
+      )
+      .max(20),
+    derivedTransform: z.string().trim().min(1).max(200).nullable(),
     optionId: z.string().trim().min(1).max(80).nullable(),
-    interpretationNote: z.string().trim().min(1).max(500).nullable(),
+    optionLabel: z.string().trim().min(1).max(2_000).nullable(),
+    optionClassification: z.enum(['appropriate', 'incomplete-or-unsafe', 'uncertain']).nullable(),
+    displayWhenItemId: z.string().trim().min(1).max(80).nullable(),
+    displayWhenValue: z.string().trim().min(1).max(80).nullable(),
+    missingValueRule: z.string().trim().min(1).max(1_000),
+    source: z.string().trim().min(1).max(500).nullable(),
+    itemInterpretation: z.string().trim().min(1).max(1_000),
+    groupInterpretation: z.string().trim().min(1).max(1_000),
+    aggregationRule: z.string().trim().min(1).max(1_000),
   })
   .strict();
 export type ResearchExportDataDictionaryRecord = z.infer<
   typeof researchExportDataDictionaryRecordSchema
 >;
 
+export const researchExportGuideRecordSchema = z
+  .object({
+    entryType: z.enum(['overview', 'dataset', 'analysis-boundary']),
+    entryId: z.string().trim().min(1).max(80),
+    title: z.string().trim().min(1).max(200),
+    relatedFile: z.string().trim().min(1).max(200).nullable(),
+    recordDefinition: z.string().trim().min(1).max(1_000),
+    joinRule: z.string().trim().min(1).max(1_000),
+    analysisNote: z.string().trim().min(1).max(2_000),
+  })
+  .strict();
+export type ResearchExportGuideRecord = z.infer<typeof researchExportGuideRecordSchema>;
+
 export const researchExportFileManifestSchema = z
   .object({
-    fileName: z.string().regex(/^[a-z-]+\.(?:csv|json)$/u),
+    fileName: z.string().regex(/^[a-z-]+\.(?:csv|json|xlsx)$/u),
     sha256: z.string().regex(/^[a-f0-9]{64}$/u),
   })
   .strict();
@@ -172,7 +207,7 @@ export type ResearchExportSessionCount = z.infer<typeof researchExportSessionCou
 
 export const researchExportManifestSchema = z
   .object({
-    schemaVersion: z.literal('research-export-v8'),
+    schemaVersion: z.literal('research-export-v9'),
     profile: researchExportProfileSchema,
     schemaProfileVersion: researchExportSchemaProfileVersionSchema,
     exportedAtIso: z.iso.datetime(),
@@ -200,7 +235,7 @@ export const researchExportManifestSchema = z
   .strict()
   .superRefine((manifest, context) => {
     const expectedVersion =
-      manifest.profile === 'audit' ? 'research-audit-v3' : 'research-analysis-v3';
+      manifest.profile === 'audit' ? 'research-audit-v4' : 'research-analysis-v4';
     if (manifest.schemaProfileVersion !== expectedVersion) {
       context.addIssue({
         code: 'custom',

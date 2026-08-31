@@ -211,6 +211,20 @@ individuell gelöscht werden könnte.
 - **Archivfassung:** Ergebnis der Anonymisierungsprozedur; neue `analysis_case_id`, keine
   Zuordnungsmittel, vergröberte Hintergrunddaten und keine Arbeitskopien.
 
+Der kontrollierte Arbeits-Export schreibt jede Datentabelle als CSV und JSON sowie dieselben
+Tabellen in eine formatierte Excel-Arbeitsmappe. `export-guide` beschreibt das Zeilenkorn, die
+Verknüpfungsschlüssel und die profilabhängigen Analysegrenzen. `data-dictionary` ist das
+Variablen-Cookbook: Für jedes Item und jeden Optionscode enthält es Wortlaut, Variablengruppe,
+Messniveau, Skala und Anker, Missing- und Verzweigungsregel, inhaltliche Einordnung sowie die
+zulässige oder ausdrücklich ausgeschlossene Aggregation. Guardrail-Optionscodes werden dort gemäß
+dem akzeptierten Content-Audit als `appropriate`, `incomplete-or-unsafe` oder `uncertain`
+klassifiziert; diese Klassifikation wird nicht an Teilnehmende ausgeliefert und begründet weder
+Pass/Fail noch einen Gesamtscore.
+
+Alle Dateien einschließlich der Excel-Arbeitsmappe stehen mit SHA-256-Prüfsumme im Manifest. Der
+Exporter überschreibt keine vorhandene gleichnamige Datei. CSV, JSON und Excel enthalten dieselbe
+profilabhängige Fallauswahl; das Dateiformat verändert weder Einschluss noch Datengrenze.
+
 Keines der beiden regulären Exportprofile ist allein durch seinen Dateinamen anonym.
 Der temporäre S08-Simulationsresume-Zustand gehört zu keinem Exportprofil.
 

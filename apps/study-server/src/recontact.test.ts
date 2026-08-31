@@ -11,8 +11,8 @@ import Database from 'better-sqlite3';
 import type { FastifyInstance } from 'fastify';
 import { afterEach, describe, expect, it } from 'vitest';
 import { buildStudyServer } from './app.js';
-import { exportFollowUpSchedule } from './followup-schedule-export.js';
 import { runFollowUpContactDeletion } from './followup-contact-deletion.js';
+import { exportFollowUpSchedule } from './followup-schedule-export.js';
 import { exportResearchData } from './research-export.js';
 import {
   completeWebTestStudy,
@@ -467,7 +467,7 @@ describe('follow-up recontact boundary', () => {
     studyDatabase.close();
 
     const exportDirectory = join(paths.directory, 'follow-up-analysis-export');
-    exportResearchData({
+    await exportResearchData({
       databasePath: paths.study,
       outputDirectory: exportDirectory,
       exportedAtIso: nowIso,

@@ -26,6 +26,7 @@ import {
   useState,
 } from 'react';
 import passWoWelcomeAsset from '../../assets/passwo/passwo-welcome.webp';
+import { useInitialFocus } from '../../app/useInitialFocus.js';
 import { PassWoSpeechBubble } from './PassWoSpeechBubble.js';
 import { passWoSpeechEmphasisFor } from './PassWoSpeechEmphasis.js';
 import {
@@ -273,6 +274,7 @@ function PasswordModuleTrainingContent({
   onPostS08Checkpoint,
   onComplete,
 }: PasswordModuleTrainingProps) {
+  const initialInputRef = useInitialFocus<HTMLInputElement>();
   const [snapshot, setSnapshot] = useState<PasswordModuleSnapshot | null>(null);
   const [platform, setPlatform] = useState<DesktopPlatform>(reloadCheckpoint?.platform ?? 'mac');
   const [lateTrainingTools, setLateTrainingTools] = useState<LateTrainingTools | null>(null);
@@ -627,7 +629,7 @@ function PasswordModuleTrainingContent({
               autoComplete="off"
               maxLength={40}
               placeholder="benutzername"
-              autoFocus
+              ref={initialInputRef}
             />
           </label>
           <button type="submit">{s00Content.entry.startLabel}</button>

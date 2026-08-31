@@ -74,8 +74,13 @@ pnpm followup:delete-contacts
 ```
 
 Schreibende Lösch- und Versandbestätigungen verlangen jeweils den dokumentierten `--confirm`-
-Aufruf. Audit- und Analyseexport sind pseudonymisierte Arbeitsdaten, nicht der anonyme
-Archivdatensatz. Verbindlich sind [DATA-CONTRACT.md](docs/research/DATA-CONTRACT.md) und
+Aufruf. `study:export` erzeugt die Einzeltabellen als CSV und JSON sowie eine formatierte
+`study-export.xlsx`. `export-guide.*` erklärt Tabellen, Verknüpfungen und Analysegrenzen;
+`data-dictionary.*` ist das Variablen-Cookbook mit Itemwortlaut, Gruppen, Skalenankern,
+Optionscodes, Missing-Regeln und zulässiger Aggregation. Das Zielverzeichnis muss für diese
+Dateinamen leer sein und wird nicht überschrieben. Audit- und Analyseexport sind
+pseudonymisierte Arbeitsdaten, nicht der anonyme Archivdatensatz. Verbindlich sind
+[DATA-CONTRACT.md](docs/research/DATA-CONTRACT.md) und
 [STUDY-RUNTIME.md](docs/research/STUDY-RUNTIME.md).
 
 ## QA und Checks

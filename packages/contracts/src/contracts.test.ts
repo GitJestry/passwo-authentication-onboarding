@@ -1,9 +1,9 @@
 import { createHash } from 'node:crypto';
 import { describe, expect, it } from 'vitest';
-import reviewedInstrumentRuntimeManifest from '../../../research/derived/instruments-v1.runtime.json' with {
+import reviewedFollowUpInstrument from '../../../research/derived/follow-up-v6.runtime.json' with {
   type: 'json',
 };
-import reviewedFollowUpInstrument from '../../../research/derived/follow-up-v6.runtime.json' with {
+import reviewedInstrumentRuntimeManifest from '../../../research/derived/instruments-v1.runtime.json' with {
   type: 'json',
 };
 import {
@@ -13,11 +13,6 @@ import {
 } from './follow-up.js';
 import {
   type AuthoredStructureDemonstration,
-  type LocalPasswordDisposition,
-  type PasswordComparisonResult,
-  type RuntimeStructureFinding,
-  type TheoreticalSearchSpaceModel,
-  type TransientPasswordSemanticEvidence,
   confirmArtifactCheckpointRequestSchema,
   createSessionRequestSchema,
   deletionCodeSchema,
@@ -26,24 +21,31 @@ import {
   hashDeletionCode,
   instrumentRuntimeManifest,
   instrumentSubmissionRequestSchema,
+  type LocalPasswordDisposition,
+  type PasswordComparisonResult,
   persistedSessionRecordSchema,
+  REFERENCE_ARTIFACT_VERSION,
+  type RuntimeStructureFinding,
+  recruitmentSourceSchema,
+  registerRecontactRequestSchema,
   researchAnalysisPresentationRecordSchema,
   researchAnalysisResponseRecordSchema,
   researchAnalysisSessionRecordSchema,
   researchAnalysisTimingRecordSchema,
+  researchExportDataDictionaryRecordSchema,
+  researchExportGuideRecordSchema,
   researchExportManifestSchema,
   researchExportProfileSchema,
   researchExportSessionRecordSchema,
-  recruitmentSourceSchema,
-  REFERENCE_ARTIFACT_VERSION,
-  registerRecontactRequestSchema,
-  s07RecommendationIds,
   SUPPORTIVE_ARTIFACT_SEGMENT_IDS,
   SUPPORTIVE_ARTIFACT_VERSION,
-  supportiveSectionResumeTargetFor,
-  supportiveS08ResumeStateSchema,
-  studyTimingEventSchema,
+  s07RecommendationIds,
   studyDataDeletionReportSchema,
+  studyTimingEventSchema,
+  supportiveS08ResumeStateSchema,
+  supportiveSectionResumeTargetFor,
+  type TheoreticalSearchSpaceModel,
+  type TransientPasswordSemanticEvidence,
   webCreateSessionRequestSchema,
   webCreateSessionResponseSchema,
   webResumeSessionSchema,
@@ -780,9 +782,9 @@ describe('research-safe contracts', () => {
 
   it('keeps researcher exports inside the approved data boundary', () => {
     const manifest = {
-      schemaVersion: 'research-export-v8',
+      schemaVersion: 'research-export-v9',
       profile: 'audit',
-      schemaProfileVersion: 'research-audit-v3',
+      schemaProfileVersion: 'research-audit-v4',
       exportedAtIso: '2026-07-24T12:00:00.000Z',
       runtimeManifestVersion: instrumentRuntimeManifest.runtimeManifestVersion,
       versions: {
@@ -796,7 +798,10 @@ describe('research-safe contracts', () => {
       },
       sessionCounts: [{ condition: 'supportive', completionStatus: 'completed', count: 1 }],
       freeTextReview: { recordCount: 0, status: 'included-in-audit' },
-      files: [{ fileName: 'sessions.csv', sha256: 'f'.repeat(64) }],
+      files: [
+        { fileName: 'sessions.csv', sha256: 'f'.repeat(64) },
+        { fileName: 'study-export.xlsx', sha256: 'e'.repeat(64) },
+      ],
     };
 
     expect(researchExportManifestSchema.safeParse(manifest).success).toBe(true);
@@ -818,6 +823,47 @@ describe('research-safe contracts', () => {
       ]),
     );
     expect(researchExportProfileSchema.options).toEqual(['audit', 'analysis']);
+    expect(
+      researchExportDataDictionaryRecordSchema.safeParse({
+        instrumentId: 'guardrail-v2',
+        sectionId: 'scenarios',
+        variableGroupId: 'understanding-guardrail-scenarios',
+        variableGroupLabel: 'Understanding Guardrail – Anwendungsszenarien',
+        itemId: 'SC_DISTINCT_PASSWORDS',
+        itemPrompt: 'Beispielwortlaut',
+        responseType: 'singleChoice',
+        measurementLevel: 'nominal',
+        analysisRole: 'guardrail-scenario',
+        required: true,
+        minimum: null,
+        maximum: null,
+        maxLength: null,
+        scaleId: null,
+        scaleAnchors: [],
+        derivedTransform: null,
+        optionId: 'own_strong_each',
+        optionLabel: 'Für jedes Konto ein eigenes starkes Passwort verwenden.',
+        optionClassification: 'appropriate',
+        displayWhenItemId: null,
+        displayWhenValue: null,
+        missingValueRule: 'Pflichtitem im eingereichten Block.',
+        source: 'docs/research/GUARDRAIL-CONTENT-AUDIT.md',
+        itemInterpretation: 'Nominal codierte Kategorie.',
+        groupInterpretation: 'Kriteriumsbezogener gemeinsamer Guardrail.',
+        aggregationRule: 'Itemweise; kein Gesamtscore.',
+      }).success,
+    ).toBe(true);
+    expect(
+      researchExportGuideRecordSchema.safeParse({
+        entryType: 'dataset',
+        entryId: 'responses',
+        title: 'Instrumentantworten',
+        relatedFile: 'responses.csv',
+        recordDefinition: 'Eine Zeile pro Item.',
+        joinRule: 'Über researchId verbinden.',
+        analysisNote: 'Rohwerte mit dem Cookbook einordnen.',
+      }).success,
+    ).toBe(true);
     expect(Object.keys(researchAnalysisSessionRecordSchema.shape)).not.toEqual(
       expect.arrayContaining(['createdAtIso', 'completedAtIso']),
     );

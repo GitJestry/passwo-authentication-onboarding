@@ -10,7 +10,7 @@ import {
   referenceSupplementLinkIdSchema,
   type ReferenceArtifactLessonCheckpointId,
 } from '@passwo/contracts';
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import styles from './ReferenceArtifact.module.css';
 
 function isCompletionMessage(event: MessageEvent<unknown>, expectedSource: Window | null): boolean {
@@ -170,25 +170,26 @@ export function ReferenceArtifact({
   onCompleteRef.current = onComplete;
   onCheckpointRef.current = onCheckpoint;
 
-  const persistCheckpoint = (
-    checkpointId: ReferenceArtifactLessonCheckpointId,
-  ): Promise<void> => {
-    const operation = checkpointQueueRef.current.then(async () => {
-      if (lastPersistedCheckpointRef.current === checkpointId) return;
-      await onCheckpointRef.current?.(checkpointId);
-      lastPersistedCheckpointRef.current = checkpointId;
-      failedCheckpointRef.current = null;
-      setCheckpointWriteFailed(false);
-    });
-    checkpointQueueRef.current = operation.catch(() => undefined);
-    void operation.catch(() => {
-      failedCheckpointRef.current = checkpointId;
-      setCheckpointWriteFailed(true);
-    });
-    return operation;
-  };
+  const persistCheckpoint = useCallback(
+    (checkpointId: ReferenceArtifactLessonCheckpointId): Promise<void> => {
+      const operation = checkpointQueueRef.current.then(async () => {
+        if (lastPersistedCheckpointRef.current === checkpointId) return;
+        await onCheckpointRef.current?.(checkpointId);
+        lastPersistedCheckpointRef.current = checkpointId;
+        failedCheckpointRef.current = null;
+        setCheckpointWriteFailed(false);
+      });
+      checkpointQueueRef.current = operation.catch(() => undefined);
+      void operation.catch(() => {
+        failedCheckpointRef.current = checkpointId;
+        setCheckpointWriteFailed(true);
+      });
+      return operation;
+    },
+    [],
+  );
 
-  const completeAfterCheckpoint = () => {
+  const completeAfterCheckpoint = useCallback(() => {
     completionRequestedRef.current = true;
     if (completionFinishedRef.current || completionInFlightRef.current) return;
     completionInFlightRef.current = true;
@@ -204,7 +205,7 @@ export function ReferenceArtifact({
       .finally(() => {
         completionInFlightRef.current = false;
       });
-  };
+  }, [persistCheckpoint]);
 
   useEffect(() => {
     const receiveReferenceMessage = (event: MessageEvent<unknown>) => {
@@ -251,7 +252,7 @@ export function ReferenceArtifact({
         void window.passwoDesktop?.closeReferenceSupplement();
       }
     };
-  }, []);
+  }, [completeAfterCheckpoint, persistCheckpoint]);
 
   const retryLoading = () => {
     completionRequestedRef.current = false;

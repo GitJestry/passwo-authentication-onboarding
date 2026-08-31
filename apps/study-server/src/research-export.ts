@@ -3,18 +3,14 @@ import { existsSync, mkdirSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import {
   completionStatusSchema,
-  FOLLOW_UP_INSTRUMENT_ID,
-  FOLLOW_UP_SECTION_ID,
-  followUpInstrument,
   instrumentRuntimeManifest,
   type ResearchAnalysisPresentationRecord,
   type ResearchAnalysisResponseRecord,
   type ResearchAnalysisSessionRecord,
   type ResearchAnalysisTimingRecord,
-  type ResearchExportDataDictionaryRecord,
   type ResearchExportManifest,
-  type ResearchExportProfile,
   type ResearchExportPresentationRecord,
+  type ResearchExportProfile,
   type ResearchExportResponseRecord,
   type ResearchExportSessionRecord,
   type ResearchFreeTextReviewRecord,
@@ -22,7 +18,6 @@ import {
   researchAnalysisResponseRecordSchema,
   researchAnalysisSessionRecordSchema,
   researchAnalysisTimingRecordSchema,
-  researchExportDataDictionaryRecordSchema,
   researchExportManifestSchema,
   researchExportPresentationRecordSchema,
   researchExportResponseRecordSchema,
@@ -33,6 +28,15 @@ import {
 } from '@passwo/contracts';
 import Database from 'better-sqlite3';
 import { z } from 'zod';
+import {
+  createResearchDataDictionary,
+  createResearchExportGuide,
+} from './research-export-cookbook.js';
+import {
+  createResearchWorkbook,
+  type ResearchWorkbookCell,
+  type ResearchWorkbookSheet,
+} from './research-export-workbook.js';
 import { mapSessionRow, sessionRowSelection } from './session-row.js';
 
 const sharedExportFileNames = [
@@ -41,11 +45,14 @@ const sharedExportFileNames = [
   'responses.csv',
   'response-presentations.csv',
   'data-dictionary.csv',
+  'export-guide.csv',
   'sessions.json',
   'timing.json',
   'responses.json',
   'response-presentations.json',
   'data-dictionary.json',
+  'export-guide.json',
+  'study-export.xlsx',
 ] as const;
 
 const freeTextReviewFileNames = ['free-text-review.csv', 'free-text-review.json'] as const;
@@ -75,25 +82,11 @@ const databasePresentationRowSchema = z.object({
 
 interface ExportFile {
   readonly fileName: ExportFileName;
-  readonly content: string;
+  readonly content: string | Buffer;
 }
 
-interface DictionaryItem {
-  readonly id: string;
-  readonly type: string;
-  readonly scale?: string;
-  readonly min?: number;
-  readonly max?: number;
-  readonly maxLength?: number;
-  readonly participantOptional?: true | undefined;
-  readonly displayWhen?:
-    | {
-        readonly itemId: string;
-        readonly contains?: string | undefined;
-        readonly equals?: string | undefined;
-      }
-    | undefined;
-  readonly options?: readonly { readonly id: string }[];
+interface ExportTable extends ResearchWorkbookSheet {
+  readonly fileName: Extract<ExportFileName, `${string}.csv`>;
 }
 
 export interface ResearchExportResult {
@@ -189,20 +182,20 @@ function compactJson(value: unknown): string {
   return serialized;
 }
 
-function csvCell(value: string | number | boolean | null): string {
+function csvCell(value: ResearchWorkbookCell): string {
   const raw = value === null ? '' : String(value);
   return /[",\n\r]/u.test(raw) ? `"${raw.replaceAll('"', '""')}"` : raw;
 }
 
 function csvFile(
   columns: readonly string[],
-  rows: readonly (readonly (string | number | boolean | null)[])[],
+  rows: readonly (readonly ResearchWorkbookCell[])[],
 ): string {
   return `${[columns, ...rows].map((row) => row.map(csvCell).join(',')).join('\n')}\n`;
 }
 
-function sha256(content: string): string {
-  return createHash('sha256').update(content, 'utf8').digest('hex');
+function sha256(content: string | Buffer): string {
+  return createHash('sha256').update(content).digest('hex');
 }
 
 function sortedVersions(values: readonly (string | null)[]): string[] {
@@ -224,72 +217,6 @@ function sessionCounts(
   );
 }
 
-function scaleBounds(scaleId: string | undefined): {
-  readonly minimum: number | null;
-  readonly maximum: number | null;
-} {
-  if (scaleId === undefined) return { minimum: null, maximum: null };
-  const scales: Readonly<Record<string, { readonly min: number; readonly max: number }>> =
-    instrumentRuntimeManifest.scales;
-  const scale = scales[scaleId];
-  return scale === undefined
-    ? { minimum: null, maximum: null }
-    : { minimum: scale.min, maximum: scale.max };
-}
-
-function dictionaryRowsForItems(
-  instrumentId: string,
-  sectionId: string,
-  items: readonly DictionaryItem[],
-): ResearchExportDataDictionaryRecord[] {
-  const interpretationNotes: Readonly<Record<string, string>> = {
-    PERCEIVED_DURATION:
-      'Subjektiv erlebte Länge; einzeln und als vollständige Verteilung auswerten. Höhere Werte bedeuten länger, nicht bessere Qualität.',
-    TIME_FIT:
-      'Bewertung der zeitlichen Angemessenheit; einzeln und als vollständige Verteilung auswerten. Höhere Werte bedeuten nicht bessere Qualität.',
-  };
-  return items.flatMap((item) => {
-    const scale = scaleBounds(item.scale);
-    const optionIds = item.options?.map((option) => option.id) ?? [null];
-    return optionIds.map((optionId) =>
-      researchExportDataDictionaryRecordSchema.parse({
-        instrumentId,
-        sectionId,
-        itemId: item.id,
-        responseType: item.type === 'conditionalSingleChoice' ? 'singleChoice' : item.type,
-        required: item.participantOptional !== true && item.displayWhen === undefined,
-        minimum: item.min ?? scale.minimum,
-        maximum: item.max ?? scale.maximum,
-        maxLength: item.maxLength ?? null,
-        optionId,
-        interpretationNote: interpretationNotes[item.id] ?? null,
-      }),
-    );
-  });
-}
-
-function dataDictionary(): ResearchExportDataDictionaryRecord[] {
-  const pre = instrumentRuntimeManifest.instruments['pre-v1'].sections.flatMap((section) =>
-    dictionaryRowsForItems('pre-v1', section.id, section.items),
-  );
-  const post = instrumentRuntimeManifest.instruments['post-v1'].sections.flatMap((section) =>
-    dictionaryRowsForItems('post-v1', section.id, section.items),
-  );
-  const guardrail = instrumentRuntimeManifest.instruments['guardrail-v2'].blocks.flatMap((block) =>
-    dictionaryRowsForItems(
-      'guardrail-v2',
-      block.id,
-      block.items.map((item) => ({ ...item, type: 'singleChoice' })),
-    ),
-  );
-  const followUp = dictionaryRowsForItems(
-    FOLLOW_UP_INSTRUMENT_ID,
-    FOLLOW_UP_SECTION_ID,
-    followUpInstrument.questionnaire.items,
-  );
-  return [...pre, ...post, ...guardrail, ...followUp];
-}
-
 function assertEmptyExportTarget(
   outputDirectory: string,
   fileNames: readonly ExportFileName[],
@@ -302,12 +229,12 @@ function assertEmptyExportTarget(
   }
 }
 
-export function exportResearchData({
+export async function exportResearchData({
   databasePath,
   outputDirectory,
   exportedAtIso = new Date().toISOString(),
   profile = 'audit',
-}: ResearchExportOptions): ResearchExportResult {
+}: ResearchExportOptions): Promise<ResearchExportResult> {
   const database = new Database(databasePath, { readonly: true });
   try {
     const allSessions = database
@@ -390,34 +317,8 @@ export function exportResearchData({
       .all()
       .map(toPresentationRecord)
       .filter((presentation) => includedResearchIds.has(presentation.researchId));
-    const dictionary = dataDictionary();
-
-    const dictionaryCsv = csvFile(
-      [
-        'instrumentId',
-        'sectionId',
-        'itemId',
-        'responseType',
-        'required',
-        'minimum',
-        'maximum',
-        'maxLength',
-        'optionId',
-        'interpretationNote',
-      ],
-      dictionary.map((entry) => [
-        entry.instrumentId,
-        entry.sectionId,
-        entry.itemId,
-        entry.responseType,
-        entry.required,
-        entry.minimum,
-        entry.maximum,
-        entry.maxLength,
-        entry.optionId,
-        entry.interpretationNote,
-      ]),
-    );
+    const dictionary = createResearchDataDictionary();
+    const guide = createResearchExportGuide(profile);
     const textResponseKeys = new Set(
       dictionary
         .filter((entry) => entry.responseType === 'text')
@@ -442,302 +343,420 @@ export function exportResearchData({
       ];
     });
 
-    const auditFiles: readonly ExportFile[] = [
-      {
-        fileName: 'sessions.csv',
-        content: csvFile(
-          [
-            'researchId',
-            'recruitmentSource',
-            'condition',
-            'assignmentMode',
-            'studyVersion',
-            'contentVersion',
-            'questionnaireVersion',
-            'guardrailVersion',
-            'guardrailFormId',
-            'consentVersion',
-            'referenceArtifactVersion',
-            'consentAccepted',
-            'followUpConsent',
-            'followUpVersion',
-            'completionStatus',
-            'technicalErrorCode',
-            'artifactSessionElapsedMs',
-            'webInterruptionCount',
-            'createdAtIso',
-            'completedAtIso',
-          ],
-          sessions.map((session) => [
-            session.researchId,
-            session.recruitmentSource,
-            session.condition,
-            session.assignmentMode,
-            session.studyVersion,
-            session.contentVersion,
-            session.questionnaireVersion,
-            session.guardrailVersion,
-            session.guardrailFormId,
-            session.consentVersion,
-            session.referenceArtifactVersion,
-            session.consentAccepted,
-            session.followUpConsent,
-            session.followUpVersion,
-            session.completionStatus,
-            session.technicalErrorCode,
-            session.artifactSessionElapsedMs,
-            session.webInterruptionCount,
-            session.createdAtIso,
-            session.completedAtIso,
-          ]),
-        ),
-      },
-      {
-        fileName: 'timing.csv',
-        content: csvFile(
-          [
-            'researchId',
-            'sequence',
-            'phase',
-            'sectionId',
-            'segmentId',
-            'eventType',
-            'clientMonotonicMs',
-            'clientWallClockIso',
-            'elapsedMs',
-            'reasonCode',
-            'serverReceivedAtIso',
-          ],
-          timing.map((event) => [
-            event.researchId,
-            event.sequence,
-            event.phase,
-            event.sectionId,
-            event.segmentId,
-            event.eventType,
-            event.clientMonotonicMs,
-            event.clientWallClockIso,
-            event.elapsedMs,
-            event.reasonCode,
-            event.serverReceivedAtIso,
-          ]),
-        ),
-      },
-      {
-        fileName: 'responses.csv',
-        content: csvFile(
-          [
-            'researchId',
-            'instrumentId',
-            'instrumentVersion',
-            'sectionId',
-            'itemId',
-            'value',
-            'createdAtIso',
-          ],
-          responses.map((response) => [
-            response.researchId,
-            response.instrumentId,
-            response.instrumentVersion,
-            response.sectionId,
-            response.itemId,
-            compactJson(response.value),
-            response.createdAtIso,
-          ]),
-        ),
-      },
-      {
-        fileName: 'response-presentations.csv',
-        content: csvFile(
-          [
-            'researchId',
-            'instrumentId',
-            'instrumentVersion',
-            'sectionId',
-            'itemId',
-            'formId',
-            'displayedOptionIds',
-            'createdAtIso',
-          ],
-          presentations.map((presentation) => [
-            presentation.researchId,
-            presentation.instrumentId,
-            presentation.instrumentVersion,
-            presentation.sectionId,
-            presentation.itemId,
-            presentation.formId,
-            compactJson(presentation.displayedOptionIds),
-            presentation.createdAtIso,
-          ]),
-        ),
-      },
-      { fileName: 'data-dictionary.csv', content: dictionaryCsv },
-      { fileName: 'sessions.json', content: stableJson(sessions) },
-      { fileName: 'timing.json', content: stableJson(timing) },
-      { fileName: 'responses.json', content: stableJson(responses) },
-      { fileName: 'response-presentations.json', content: stableJson(presentations) },
-      { fileName: 'data-dictionary.json', content: stableJson(dictionary) },
-    ];
-
     const analysisSessions = sessions.map(toAnalysisSession);
     const analysisTiming = timing.map(toAnalysisTiming);
     const analysisResponses = responses
       .filter((response) => !isTextResponse(response) || response.value === null)
       .map(toAnalysisResponse);
     const analysisPresentations = presentations.map(toAnalysisPresentation);
-    const analysisFiles: readonly ExportFile[] = [
+    const dictionaryTable: ExportTable = {
+      fileName: 'data-dictionary.csv',
+      name: 'Variablen',
+      columns: [
+        'instrumentId',
+        'sectionId',
+        'variableGroupId',
+        'variableGroupLabel',
+        'itemId',
+        'itemPrompt',
+        'responseType',
+        'measurementLevel',
+        'analysisRole',
+        'required',
+        'minimum',
+        'maximum',
+        'maxLength',
+        'scaleId',
+        'scaleAnchors',
+        'derivedTransform',
+        'optionId',
+        'optionLabel',
+        'optionClassification',
+        'displayWhenItemId',
+        'displayWhenValue',
+        'missingValueRule',
+        'source',
+        'itemInterpretation',
+        'groupInterpretation',
+        'aggregationRule',
+      ],
+      rows: dictionary.map((entry) => [
+        entry.instrumentId,
+        entry.sectionId,
+        entry.variableGroupId,
+        entry.variableGroupLabel,
+        entry.itemId,
+        entry.itemPrompt,
+        entry.responseType,
+        entry.measurementLevel,
+        entry.analysisRole,
+        entry.required,
+        entry.minimum,
+        entry.maximum,
+        entry.maxLength,
+        entry.scaleId,
+        compactJson(entry.scaleAnchors),
+        entry.derivedTransform,
+        entry.optionId,
+        entry.optionLabel,
+        entry.optionClassification,
+        entry.displayWhenItemId,
+        entry.displayWhenValue,
+        entry.missingValueRule,
+        entry.source,
+        entry.itemInterpretation,
+        entry.groupInterpretation,
+        entry.aggregationRule,
+      ]),
+    };
+    const guideTable: ExportTable = {
+      fileName: 'export-guide.csv',
+      name: 'Hinweise',
+      columns: [
+        'entryType',
+        'entryId',
+        'title',
+        'relatedFile',
+        'recordDefinition',
+        'joinRule',
+        'analysisNote',
+      ],
+      rows: guide.map((entry) => [
+        entry.entryType,
+        entry.entryId,
+        entry.title,
+        entry.relatedFile,
+        entry.recordDefinition,
+        entry.joinRule,
+        entry.analysisNote,
+      ]),
+    };
+
+    const auditTables: readonly ExportTable[] = [
       {
         fileName: 'sessions.csv',
-        content: csvFile(
-          [
-            'researchId',
-            'recruitmentSource',
-            'condition',
-            'assignmentMode',
-            'studyVersion',
-            'contentVersion',
-            'questionnaireVersion',
-            'guardrailVersion',
-            'guardrailFormId',
-            'consentVersion',
-            'referenceArtifactVersion',
-            'consentAccepted',
-            'followUpConsent',
-            'followUpVersion',
-            'completionStatus',
-            'technicalErrorCode',
-            'artifactSessionElapsedMs',
-            'webInterruptionCount',
-          ],
-          analysisSessions.map((session) => [
-            session.researchId,
-            session.recruitmentSource,
-            session.condition,
-            session.assignmentMode,
-            session.studyVersion,
-            session.contentVersion,
-            session.questionnaireVersion,
-            session.guardrailVersion,
-            session.guardrailFormId,
-            session.consentVersion,
-            session.referenceArtifactVersion,
-            session.consentAccepted,
-            session.followUpConsent,
-            session.followUpVersion,
-            session.completionStatus,
-            session.technicalErrorCode,
-            session.artifactSessionElapsedMs,
-            session.webInterruptionCount,
-          ]),
-        ),
+        name: 'Sitzungen',
+        columns: [
+          'researchId',
+          'recruitmentSource',
+          'condition',
+          'assignmentMode',
+          'studyVersion',
+          'contentVersion',
+          'questionnaireVersion',
+          'guardrailVersion',
+          'guardrailFormId',
+          'consentVersion',
+          'referenceArtifactVersion',
+          'consentAccepted',
+          'followUpConsent',
+          'followUpVersion',
+          'completionStatus',
+          'technicalErrorCode',
+          'artifactSessionElapsedMs',
+          'webInterruptionCount',
+          'createdAtIso',
+          'completedAtIso',
+        ],
+        rows: sessions.map((session) => [
+          session.researchId,
+          session.recruitmentSource,
+          session.condition,
+          session.assignmentMode,
+          session.studyVersion,
+          session.contentVersion,
+          session.questionnaireVersion,
+          session.guardrailVersion,
+          session.guardrailFormId,
+          session.consentVersion,
+          session.referenceArtifactVersion,
+          session.consentAccepted,
+          session.followUpConsent,
+          session.followUpVersion,
+          session.completionStatus,
+          session.technicalErrorCode,
+          session.artifactSessionElapsedMs,
+          session.webInterruptionCount,
+          session.createdAtIso,
+          session.completedAtIso,
+        ]),
       },
       {
         fileName: 'timing.csv',
-        content: csvFile(
-          [
-            'researchId',
-            'sequence',
-            'phase',
-            'sectionId',
-            'segmentId',
-            'eventType',
-            'elapsedMs',
-            'reasonCode',
-          ],
-          analysisTiming.map((event) => [
-            event.researchId,
-            event.sequence,
-            event.phase,
-            event.sectionId,
-            event.segmentId,
-            event.eventType,
-            event.elapsedMs,
-            event.reasonCode,
-          ]),
-        ),
+        name: 'Timing',
+        columns: [
+          'researchId',
+          'sequence',
+          'phase',
+          'sectionId',
+          'segmentId',
+          'eventType',
+          'clientMonotonicMs',
+          'clientWallClockIso',
+          'elapsedMs',
+          'reasonCode',
+          'serverReceivedAtIso',
+        ],
+        rows: timing.map((event) => [
+          event.researchId,
+          event.sequence,
+          event.phase,
+          event.sectionId,
+          event.segmentId,
+          event.eventType,
+          event.clientMonotonicMs,
+          event.clientWallClockIso,
+          event.elapsedMs,
+          event.reasonCode,
+          event.serverReceivedAtIso,
+        ]),
       },
       {
         fileName: 'responses.csv',
-        content: csvFile(
-          ['researchId', 'instrumentId', 'instrumentVersion', 'sectionId', 'itemId', 'value'],
-          analysisResponses.map((response) => [
-            response.researchId,
-            response.instrumentId,
-            response.instrumentVersion,
-            response.sectionId,
-            response.itemId,
-            compactJson(response.value),
-          ]),
-        ),
+        name: 'Antworten',
+        columns: [
+          'researchId',
+          'instrumentId',
+          'instrumentVersion',
+          'sectionId',
+          'itemId',
+          'value',
+          'createdAtIso',
+        ],
+        rows: responses.map((response) => [
+          response.researchId,
+          response.instrumentId,
+          response.instrumentVersion,
+          response.sectionId,
+          response.itemId,
+          compactJson(response.value),
+          response.createdAtIso,
+        ]),
       },
       {
         fileName: 'response-presentations.csv',
-        content: csvFile(
-          [
-            'researchId',
-            'instrumentId',
-            'instrumentVersion',
-            'sectionId',
-            'itemId',
-            'formId',
-            'displayedOptionIds',
-          ],
-          analysisPresentations.map((presentation) => [
-            presentation.researchId,
-            presentation.instrumentId,
-            presentation.instrumentVersion,
-            presentation.sectionId,
-            presentation.itemId,
-            presentation.formId,
-            compactJson(presentation.displayedOptionIds),
-          ]),
-        ),
+        name: 'Präsentationen',
+        columns: [
+          'researchId',
+          'instrumentId',
+          'instrumentVersion',
+          'sectionId',
+          'itemId',
+          'formId',
+          'displayedOptionIds',
+          'createdAtIso',
+        ],
+        rows: presentations.map((presentation) => [
+          presentation.researchId,
+          presentation.instrumentId,
+          presentation.instrumentVersion,
+          presentation.sectionId,
+          presentation.itemId,
+          presentation.formId,
+          compactJson(presentation.displayedOptionIds),
+          presentation.createdAtIso,
+        ]),
       },
-      { fileName: 'data-dictionary.csv', content: dictionaryCsv },
+    ];
+    const analysisTables: readonly ExportTable[] = [
+      {
+        fileName: 'sessions.csv',
+        name: 'Sitzungen',
+        columns: [
+          'researchId',
+          'recruitmentSource',
+          'condition',
+          'assignmentMode',
+          'studyVersion',
+          'contentVersion',
+          'questionnaireVersion',
+          'guardrailVersion',
+          'guardrailFormId',
+          'consentVersion',
+          'referenceArtifactVersion',
+          'consentAccepted',
+          'followUpConsent',
+          'followUpVersion',
+          'completionStatus',
+          'technicalErrorCode',
+          'artifactSessionElapsedMs',
+          'webInterruptionCount',
+        ],
+        rows: analysisSessions.map((session) => [
+          session.researchId,
+          session.recruitmentSource,
+          session.condition,
+          session.assignmentMode,
+          session.studyVersion,
+          session.contentVersion,
+          session.questionnaireVersion,
+          session.guardrailVersion,
+          session.guardrailFormId,
+          session.consentVersion,
+          session.referenceArtifactVersion,
+          session.consentAccepted,
+          session.followUpConsent,
+          session.followUpVersion,
+          session.completionStatus,
+          session.technicalErrorCode,
+          session.artifactSessionElapsedMs,
+          session.webInterruptionCount,
+        ]),
+      },
+      {
+        fileName: 'timing.csv',
+        name: 'Timing',
+        columns: [
+          'researchId',
+          'sequence',
+          'phase',
+          'sectionId',
+          'segmentId',
+          'eventType',
+          'elapsedMs',
+          'reasonCode',
+        ],
+        rows: analysisTiming.map((event) => [
+          event.researchId,
+          event.sequence,
+          event.phase,
+          event.sectionId,
+          event.segmentId,
+          event.eventType,
+          event.elapsedMs,
+          event.reasonCode,
+        ]),
+      },
+      {
+        fileName: 'responses.csv',
+        name: 'Antworten',
+        columns: [
+          'researchId',
+          'instrumentId',
+          'instrumentVersion',
+          'sectionId',
+          'itemId',
+          'value',
+        ],
+        rows: analysisResponses.map((response) => [
+          response.researchId,
+          response.instrumentId,
+          response.instrumentVersion,
+          response.sectionId,
+          response.itemId,
+          compactJson(response.value),
+        ]),
+      },
+      {
+        fileName: 'response-presentations.csv',
+        name: 'Präsentationen',
+        columns: [
+          'researchId',
+          'instrumentId',
+          'instrumentVersion',
+          'sectionId',
+          'itemId',
+          'formId',
+          'displayedOptionIds',
+        ],
+        rows: analysisPresentations.map((presentation) => [
+          presentation.researchId,
+          presentation.instrumentId,
+          presentation.instrumentVersion,
+          presentation.sectionId,
+          presentation.itemId,
+          presentation.formId,
+          compactJson(presentation.displayedOptionIds),
+        ]),
+      },
       {
         fileName: 'free-text-review.csv',
-        content: csvFile(
-          [
-            'researchId',
-            'instrumentId',
-            'instrumentVersion',
-            'sectionId',
-            'itemId',
-            'value',
-            'reviewStatus',
-          ],
-          freeTextReview.map((review) => [
-            review.researchId,
-            review.instrumentId,
-            review.instrumentVersion,
-            review.sectionId,
-            review.itemId,
-            review.value,
-            review.reviewStatus,
-          ]),
-        ),
+        name: 'Freitextprüfung',
+        columns: [
+          'researchId',
+          'instrumentId',
+          'instrumentVersion',
+          'sectionId',
+          'itemId',
+          'value',
+          'reviewStatus',
+        ],
+        rows: freeTextReview.map((review) => [
+          review.researchId,
+          review.instrumentId,
+          review.instrumentVersion,
+          review.sectionId,
+          review.itemId,
+          review.value,
+          review.reviewStatus,
+        ]),
       },
-      { fileName: 'sessions.json', content: stableJson(analysisSessions) },
-      { fileName: 'timing.json', content: stableJson(analysisTiming) },
-      { fileName: 'responses.json', content: stableJson(analysisResponses) },
-      { fileName: 'response-presentations.json', content: stableJson(analysisPresentations) },
-      { fileName: 'data-dictionary.json', content: stableJson(dictionary) },
-      { fileName: 'free-text-review.json', content: stableJson(freeTextReview) },
     ];
-    const files = profile === 'audit' ? auditFiles : analysisFiles;
+    const dataTables = profile === 'audit' ? auditTables : analysisTables;
+    const tables = [guideTable, ...dataTables, dictionaryTable];
+    const targetFileNames: ExportFileName[] = [
+      ...dataTables.map((table) => table.fileName),
+      dictionaryTable.fileName,
+      guideTable.fileName,
+      'sessions.json',
+      'timing.json',
+      'responses.json',
+      'response-presentations.json',
+      'data-dictionary.json',
+      'export-guide.json',
+      'study-export.xlsx',
+      ...(profile === 'analysis'
+        ? freeTextReviewFileNames.filter((fileName) => fileName.endsWith('.json'))
+        : []),
+    ];
 
-    assertEmptyExportTarget(
-      outputDirectory,
-      files.map((file) => file.fileName),
+    assertEmptyExportTarget(outputDirectory, targetFileNames);
+    const workbook = await createResearchWorkbook({ exportedAtIso, sheets: tables });
+    const tabularFiles: ExportFile[] = dataTables.map((table) => ({
+      fileName: table.fileName,
+      content: csvFile(table.columns, table.rows),
+    }));
+    tabularFiles.push(
+      {
+        fileName: dictionaryTable.fileName,
+        content: csvFile(dictionaryTable.columns, dictionaryTable.rows),
+      },
+      {
+        fileName: guideTable.fileName,
+        content: csvFile(guideTable.columns, guideTable.rows),
+      },
     );
+    const exportedSessions = profile === 'audit' ? sessions : analysisSessions;
+    const exportedTiming = profile === 'audit' ? timing : analysisTiming;
+    const exportedResponses = profile === 'audit' ? responses : analysisResponses;
+    const exportedPresentations = profile === 'audit' ? presentations : analysisPresentations;
+    const files: ExportFile[] = [
+      ...tabularFiles,
+      { fileName: 'sessions.json', content: stableJson(exportedSessions) },
+      { fileName: 'timing.json', content: stableJson(exportedTiming) },
+      { fileName: 'responses.json', content: stableJson(exportedResponses) },
+      {
+        fileName: 'response-presentations.json',
+        content: stableJson(exportedPresentations),
+      },
+      { fileName: 'data-dictionary.json', content: stableJson(dictionary) },
+      { fileName: 'export-guide.json', content: stableJson(guide) },
+      ...(profile === 'analysis'
+        ? ([
+            { fileName: 'free-text-review.json', content: stableJson(freeTextReview) },
+          ] satisfies readonly ExportFile[])
+        : []),
+      { fileName: 'study-export.xlsx', content: workbook },
+    ];
+
     for (const file of files) {
       writeFileSync(join(outputDirectory, file.fileName), file.content, { mode: 0o600 });
     }
 
     const manifest = researchExportManifestSchema.parse({
-      schemaVersion: 'research-export-v8',
+      schemaVersion: 'research-export-v9',
       profile,
-      schemaProfileVersion: profile === 'audit' ? 'research-audit-v3' : 'research-analysis-v3',
+      schemaProfileVersion: profile === 'audit' ? 'research-audit-v4' : 'research-analysis-v4',
       exportedAtIso,
       runtimeManifestVersion: instrumentRuntimeManifest.runtimeManifestVersion,
       versions: {

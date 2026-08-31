@@ -1,10 +1,7 @@
 import { existsSync } from 'node:fs';
 import { homedir } from 'node:os';
 import { resolve } from 'node:path';
-import {
-  type ResearchExportProfile,
-  researchExportProfileSchema,
-} from '@passwo/contracts';
+import { type ResearchExportProfile, researchExportProfileSchema } from '@passwo/contracts';
 import { exportResearchData } from '../apps/study-server/src/research-export.js';
 
 interface ExportCommandOptions {
@@ -62,7 +59,7 @@ if (options === null) {
   process.exitCode = 1;
 } else {
   try {
-    const result = exportResearchData(options);
+    const result = await exportResearchData(options);
     process.stdout.write(
       `${result.manifest.profile} research export created with ${result.files.length} files and ${result.manifest.files.length} data hashes.\n`,
     );

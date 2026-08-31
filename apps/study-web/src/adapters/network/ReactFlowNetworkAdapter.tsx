@@ -939,6 +939,7 @@ function NodeEdge({
           data-network-edge-break-effect
           transform={`translate(${edge.labelX} ${edge.labelY})`}
           aria-hidden="true"
+          focusable="false"
         >
           <path
             data-network-edge-break-impact
@@ -990,6 +991,7 @@ function NodeEdge({
             fill="none"
             mask={`url(#${attackDrawMaskId})`}
             aria-hidden="true"
+            focusable="false"
           />
         </>
       ) : null}
@@ -1023,6 +1025,7 @@ function NodeEdge({
             d={edge.path}
             mask={`url(#${id}-status-cascade-mask)`}
             aria-hidden="true"
+            focusable="false"
           />
         </>
       )}

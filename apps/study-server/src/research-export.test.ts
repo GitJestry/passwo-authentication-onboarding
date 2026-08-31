@@ -2,14 +2,11 @@ import { createHash } from 'node:crypto';
 import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { instrumentRuntimeManifest } from '@passwo/contracts';
+import ExcelJS from 'exceljs';
 import { afterEach, describe, expect, it } from 'vitest';
 import { buildStudyServer } from './app.js';
 import { exportResearchData } from './research-export.js';
-import {
-  createSession,
-  createTestResourceScope,
-  savePreAndStartArtifact,
-} from './test-support.js';
+import { createSession, createTestResourceScope, savePreAndStartArtifact } from './test-support.js';
 
 const resources = createTestResourceScope();
 
@@ -46,7 +43,7 @@ describe('research export', () => {
     await savePreAndStartArtifact(server, session.sessionId);
 
     const outputDirectory = join(temporaryDirectory, 'export');
-    const result = exportResearchData({
+    const result = await exportResearchData({
       databasePath,
       outputDirectory,
       exportedAtIso: '2026-07-25T10:00:00.000Z',
@@ -57,11 +54,13 @@ describe('research export', () => {
       readFileSync(join(outputDirectory, 'responses.csv'), 'utf8'),
       readFileSync(join(outputDirectory, 'response-presentations.csv'), 'utf8'),
       readFileSync(join(outputDirectory, 'data-dictionary.csv'), 'utf8'),
+      readFileSync(join(outputDirectory, 'export-guide.csv'), 'utf8'),
       readFileSync(join(outputDirectory, 'sessions.json'), 'utf8'),
       readFileSync(join(outputDirectory, 'timing.json'), 'utf8'),
       readFileSync(join(outputDirectory, 'responses.json'), 'utf8'),
       readFileSync(join(outputDirectory, 'response-presentations.json'), 'utf8'),
       readFileSync(join(outputDirectory, 'data-dictionary.json'), 'utf8'),
+      readFileSync(join(outputDirectory, 'export-guide.json'), 'utf8'),
     ].join('\n');
 
     expect(result.files).toEqual([
@@ -70,11 +69,14 @@ describe('research export', () => {
       'responses.csv',
       'response-presentations.csv',
       'data-dictionary.csv',
+      'export-guide.csv',
       'sessions.json',
       'timing.json',
       'responses.json',
       'response-presentations.json',
       'data-dictionary.json',
+      'export-guide.json',
+      'study-export.xlsx',
       'manifest.json',
     ]);
     expect(readFileSync(join(outputDirectory, 'sessions.csv'), 'utf8')).toMatch(
@@ -84,7 +86,7 @@ describe('research export', () => {
       '"recruitmentSource": "ub"',
     );
     expect(exportedData).not.toMatch(
-      /display.?name|password.?value|password.?input|password.?part|training.?input|request.?body|user.?agent|ip.?address|email.?address|score|classification|secaware.?quiz/iu,
+      /display.?name|password.?value|password.?input|password.?part|password.?score|password.?classification|training.?input|request.?body|user.?agent|ip.?address|email.?address|secaware.?quiz/iu,
     );
     expect(exportedData).not.toMatch(
       /[{"\n,](?:sessionId|participantCode|deletionCode|deletionCodeHash|email|rawToken|followUpTokenHash)[",:]/u,
@@ -93,9 +95,7 @@ describe('research export', () => {
     expect(exportedData).not.toContain('1'.padStart(64, '0'));
     expect(exportedData).not.toContain('private@example.org');
     expect(exportedData).not.toContain(rawToken);
-    expect(exportedData).not.toContain(
-      createHash('sha256').update(rawToken, 'utf8').digest('hex'),
-    );
+    expect(exportedData).not.toContain(createHash('sha256').update(rawToken, 'utf8').digest('hex'));
     expect(existsSync(databasePath)).toBe(true);
     expect(existsSync(recontactDatabasePath)).toBe(true);
     expect(readFileSync(join(outputDirectory, 'response-presentations.json'), 'utf8')).toContain(
@@ -104,13 +104,35 @@ describe('research export', () => {
     expect(readFileSync(join(outputDirectory, 'data-dictionary.json'), 'utf8')).toContain(
       '"itemId": "MR_DISTINCT_PASSWORDS"',
     );
-    expect(result.manifest.schemaVersion).toBe('research-export-v8');
+    expect(readFileSync(join(outputDirectory, 'data-dictionary.json'), 'utf8')).toContain(
+      '"optionClassification": "appropriate"',
+    );
+    expect(readFileSync(join(outputDirectory, 'data-dictionary.json'), 'utf8')).toMatch(
+      /"itemId": "PRE_AGE"[^}]*"measurementLevel": "ordinal"/u,
+    );
+    expect(readFileSync(join(outputDirectory, 'export-guide.json'), 'utf8')).toContain(
+      '"entryId": "score-boundaries"',
+    );
+    const workbook = new ExcelJS.Workbook();
+    await workbook.xlsx.readFile(join(outputDirectory, 'study-export.xlsx'));
+    expect(workbook.worksheets.map((worksheet) => worksheet.name)).toEqual([
+      'Hinweise',
+      'Sitzungen',
+      'Timing',
+      'Antworten',
+      'Präsentationen',
+      'Variablen',
+    ]);
+    expect(JSON.stringify(workbook.model)).not.toMatch(
+      /display.?name|password.?value|password.?input|password.?part|password.?score|password.?classification|training.?input|request.?body|user.?agent|ip.?address|email.?address|secaware.?quiz/iu,
+    );
+    expect(result.manifest.schemaVersion).toBe('research-export-v9');
     expect(result.manifest.profile).toBe('audit');
-    expect(result.manifest.schemaProfileVersion).toBe('research-audit-v3');
+    expect(result.manifest.schemaProfileVersion).toBe('research-audit-v4');
     for (const file of result.manifest.files) {
       expect(
         createHash('sha256')
-          .update(readFileSync(join(outputDirectory, file.fileName), 'utf8'))
+          .update(readFileSync(join(outputDirectory, file.fileName)))
           .digest('hex'),
       ).toBe(file.sha256);
     }
@@ -146,7 +168,7 @@ describe('research export', () => {
     await savePreAndStartArtifact(server, session.sessionId);
 
     const outputDirectory = join(temporaryDirectory, 'analysis');
-    const result = exportResearchData({
+    const result = await exportResearchData({
       databasePath,
       outputDirectory,
       profile: 'analysis',
@@ -162,13 +184,17 @@ describe('research export', () => {
     const freeTextReview = readFileSync(join(outputDirectory, 'free-text-review.json'), 'utf8');
 
     expect(result.manifest).toMatchObject({
-      schemaVersion: 'research-export-v8',
+      schemaVersion: 'research-export-v9',
       profile: 'analysis',
-      schemaProfileVersion: 'research-analysis-v3',
+      schemaProfileVersion: 'research-analysis-v4',
       freeTextReview: { recordCount: 0, status: 'pending-review' },
     });
     expect(result.files).toEqual(
-      expect.arrayContaining(['free-text-review.csv', 'free-text-review.json']),
+      expect.arrayContaining([
+        'free-text-review.csv',
+        'free-text-review.json',
+        'study-export.xlsx',
+      ]),
     );
     expect([sessions, timing, responses, presentations].join('\n')).not.toMatch(
       /createdAtIso|completedAtIso|clientMonotonicMs|clientWallClockIso|serverReceivedAtIso/u,
@@ -180,10 +206,13 @@ describe('research export', () => {
     expect(exportedData).not.toContain('analysis-private@example.org');
     expect(exportedData).not.toContain(rawToken);
     expect(exportedData).not.toContain(createHash('sha256').update(rawToken, 'utf8').digest('hex'));
+    const workbook = new ExcelJS.Workbook();
+    await workbook.xlsx.readFile(join(outputDirectory, 'study-export.xlsx'));
+    expect(workbook.worksheets.map((worksheet) => worksheet.name)).toContain('Freitextprüfung');
     for (const file of result.manifest.files) {
       expect(
         createHash('sha256')
-          .update(readFileSync(join(outputDirectory, file.fileName), 'utf8'))
+          .update(readFileSync(join(outputDirectory, file.fileName)))
           .digest('hex'),
       ).toBe(file.sha256);
     }

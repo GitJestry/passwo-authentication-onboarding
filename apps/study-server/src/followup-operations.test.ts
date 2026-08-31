@@ -1,5 +1,5 @@
 import { createHash } from 'node:crypto';
-import { readFileSync, readdirSync, statSync } from 'node:fs';
+import { readdirSync, readFileSync, statSync } from 'node:fs';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import {
@@ -18,16 +18,17 @@ import { z } from 'zod';
 import { buildStudyServer } from './app.js';
 import { openStudyDatabase } from './database.js';
 import { runFollowUpContactDeletion } from './followup-contact-deletion.js';
+import type { FollowUpDeliveryMessage } from './followup-message.js';
 import {
+  confirmFollowUpDelivery,
   DryRunFollowUpMailTransport,
   FileFollowUpMailTransport,
   type FollowUpMailTransport,
-  confirmFollowUpDelivery,
   runFollowUpScheduler,
 } from './followup-operations.js';
-import type { FollowUpDeliveryMessage } from './followup-message.js';
 import { exportResearchData } from './research-export.js';
 import {
+  type CreatedWebTestSession,
   completeWebArtifact,
   createTestResourceScope,
   createWebTestSession,
@@ -35,7 +36,6 @@ import {
   submitWebInstrumentBlocks,
   validSubmission,
   webPost,
-  type CreatedWebTestSession,
 } from './test-support.js';
 
 const resources = createTestResourceScope();
@@ -435,7 +435,7 @@ describe('follow-up operations and research linkage', () => {
     });
 
     const exportDirectory = join(paths.directory, 'analysis-before-contact-deletion');
-    exportResearchData({
+    await exportResearchData({
       databasePath: paths.study,
       outputDirectory: exportDirectory,
       exportedAtIso: '2026-08-05T12:00:00.000Z',
@@ -535,7 +535,7 @@ describe('follow-up operations and research linkage', () => {
       }),
     ).toMatchObject({ contactCountBefore: 1, contactCountAfter: 0 });
     const exportAfterDeletion = join(paths.directory, 'analysis-after-contact-deletion');
-    exportResearchData({
+    await exportResearchData({
       databasePath: paths.study,
       outputDirectory: exportAfterDeletion,
       exportedAtIso: '2026-08-07T12:00:00.000Z',

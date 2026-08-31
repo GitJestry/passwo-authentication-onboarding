@@ -6,8 +6,8 @@ import {
   type AssignmentMode,
   instrumentRuntimeManifest,
   mainInstrumentBlocks,
-  recruitmentSourceSchema,
   REFERENCE_ARTIFACT_VERSION,
+  recruitmentSourceSchema,
   SUPPORTIVE_ARTIFACT_VERSION,
 } from '@passwo/contracts';
 import Database from 'better-sqlite3';
@@ -239,7 +239,7 @@ describe('study server research core', () => {
     expect(reload.json()).toEqual({ completionStatus: 'completed' });
   });
 
-  it('applies numbered schema and guardrail assignment migrations', () => {
+  it('applies numbered schema and guardrail assignment migrations', async () => {
     const temporaryDirectory = resources.createTemporaryDirectory('passwo-study-migration-');
     const databasePath = join(temporaryDirectory, 'study.sqlite');
     const legacy = new Database(databasePath);
@@ -326,13 +326,13 @@ describe('study server research core', () => {
       .all();
     migrated.close();
     const legacyExportDirectory = join(temporaryDirectory, 'legacy-export');
-    exportResearchData({ databasePath, outputDirectory: legacyExportDirectory });
+    await exportResearchData({ databasePath, outputDirectory: legacyExportDirectory });
     const legacyExportRaw: unknown = JSON.parse(
       readFileSync(join(legacyExportDirectory, 'sessions.json'), 'utf8'),
     );
-    const legacyExport = z.array(
-      z.object({ recruitmentSource: recruitmentSourceSchema }).passthrough(),
-    ).parse(legacyExportRaw);
+    const legacyExport = z
+      .array(z.object({ recruitmentSource: recruitmentSourceSchema }).passthrough())
+      .parse(legacyExportRaw);
 
     expect(migrationVersions).toEqual([
       { version: 1 },
@@ -357,9 +357,7 @@ describe('study server research core', () => {
       followUpConsent: 0,
       supportiveS08ResumeStateJson: null,
     });
-    expect(legacyExport).toEqual([
-      expect.objectContaining({ recruitmentSource: 'ub' }),
-    ]);
+    expect(legacyExport).toEqual([expect.objectContaining({ recruitmentSource: 'ub' })]);
     expect(guardrailSlot).toEqual({
       condition: 'supportive',
       blockNumber: 0,

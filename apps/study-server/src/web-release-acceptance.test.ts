@@ -7,8 +7,8 @@ import {
   mainInstrumentBlocks,
   recruitmentSourceSchema,
   SUPPORTIVE_ARTIFACT_SEGMENT_IDS,
-  supportiveSectionResumeTargetFor,
   supportiveS08ResumeStateSchema,
+  supportiveSectionResumeTargetFor,
   webCreateSessionResponseSchema,
   webResumeResponseSchema,
 } from '@passwo/contracts';
@@ -26,8 +26,8 @@ import {
   deterministicTestRandomSource,
   openWebArtifactInterval,
   recordWebSupportiveSegments,
-  supportiveS08ResumeStateFixture,
   submitWebInstrumentBlocks,
+  supportiveS08ResumeStateFixture,
   webPost,
   webStudyWriteHeaders,
 } from './test-support.js';
@@ -126,12 +126,7 @@ it('persists the canonical recruitment source across create, resume and export',
   const createdDefault = await createWebTestSession(firstServer, 91, false);
   const createdUb = await createWebTestSession(firstServer, 92, false, 'ub');
   const createdTu = await createWebTestSession(firstServer, 93, false, 'tu');
-  const createdOther = await createWebTestSession(
-    firstServer,
-    94,
-    false,
-    'other-university',
-  );
+  const createdOther = await createWebTestSession(firstServer, 94, false, 'other-university');
   const createdInvalid = await createWebTestSession(firstServer, 95, false, 'not valid!');
 
   const sourceRowSchema = z
@@ -153,10 +148,12 @@ it('persists the canonical recruitment source across create, resume and export',
       .all(),
   );
   database.close();
-  expect(sourceRows.map(({ sessionId, recruitmentSource }) => ({
-    sessionId,
-    recruitmentSource,
-  }))).toEqual([
+  expect(
+    sourceRows.map(({ sessionId, recruitmentSource }) => ({
+      sessionId,
+      recruitmentSource,
+    })),
+  ).toEqual([
     { sessionId: createdDefault.session.sessionId, recruitmentSource: 'ub' },
     { sessionId: createdUb.session.sessionId, recruitmentSource: 'ub' },
     { sessionId: createdTu.session.sessionId, recruitmentSource: 'tu' },
@@ -198,22 +195,25 @@ it('persists the canonical recruitment source across create, resume and export',
     [createdTu.session.sessionId, createdOther.session.sessionId].includes(sessionId),
   );
   const exportDirectory = join(paths.directory, 'research-export');
-  exportResearchData({ databasePath: paths.study, outputDirectory: exportDirectory });
+  await exportResearchData({ databasePath: paths.study, outputDirectory: exportDirectory });
   const exportedSessionsRaw: unknown = JSON.parse(
     readFileSync(join(exportDirectory, 'sessions.json'), 'utf8'),
   );
-  const exportedSessions = z.array(
-    z.object({
-      researchId: z.string(),
-      recruitmentSource: recruitmentSourceSchema,
-    }).passthrough(),
-  ).parse(exportedSessionsRaw);
+  const exportedSessions = z
+    .array(
+      z
+        .object({
+          researchId: z.string(),
+          recruitmentSource: recruitmentSourceSchema,
+        })
+        .passthrough(),
+    )
+    .parse(exportedSessionsRaw);
   expect(
     exportedSourceRows.map(({ researchId, recruitmentSource }) =>
       exportedSessions.find(
         (session) =>
-          session.researchId === researchId &&
-          session.recruitmentSource === recruitmentSource,
+          session.researchId === researchId && session.recruitmentSource === recruitmentSource,
       ),
     ),
   ).toEqual([
@@ -249,12 +249,9 @@ for (const assignmentMode of ['forced-supportive', 'forced-reference'] as const)
     expect(automaticCompletion.json()).toEqual({ completionStatus: 'completed' });
     const finalBlock = mainInstrumentBlocks.at(-1);
     if (finalBlock === undefined) throw new Error('missing-final-instrument-block');
-    await submitWebInstrumentBlocks(
-      server,
-      created.cookie,
-      created.session.sessionId,
-      [finalBlock],
-    );
+    await submitWebInstrumentBlocks(server, created.cookie, created.session.sessionId, [
+      finalBlock,
+    ]);
     expect(
       (
         await webPost(
@@ -341,13 +338,14 @@ for (const assignmentMode of ['forced-supportive', 'forced-reference'] as const)
     recontactDatabase.close();
 
     const exportDirectory = join(paths.directory, 'research-export');
-    const exported = exportResearchData({
+    const exported = await exportResearchData({
       databasePath: paths.study,
       outputDirectory: exportDirectory,
       exportedAtIso: '2026-08-24T13:00:00.000Z',
     });
-    expect(exported.manifest.schemaVersion).toBe('research-export-v8');
+    expect(exported.manifest.schemaVersion).toBe('research-export-v9');
     const exportedText = exported.files
+      .filter((file) => file !== 'study-export.xlsx')
       .map((file) => readFileSync(join(exportDirectory, file), 'utf8'))
       .join('\n');
     expect(exportedText).toContain(persisted.researchCode);
@@ -419,12 +417,7 @@ describe('Web resume and concurrency acceptance', () => {
     const server = createWebServer('forced-reference', paths.study, paths.recontact);
     const created = await createWebTestSession(server, 198, false);
     const preBlocks = mainInstrumentBlocks.filter((block) => block.instrumentId === 'pre-v1');
-    await submitWebInstrumentBlocks(
-      server,
-      created.cookie,
-      created.session.sessionId,
-      preBlocks,
-    );
+    await submitWebInstrumentBlocks(server, created.cookie, created.session.sessionId, preBlocks);
     await openWebArtifactInterval(
       server,
       created.cookie,
@@ -435,10 +428,12 @@ describe('Web resume and concurrency acceptance', () => {
 
     const database = new Database(paths.study, { readonly: true });
     expect(
-      database.prepare(
-        `SELECT progress_checkpoint AS progressCheckpoint
+      database
+        .prepare(
+          `SELECT progress_checkpoint AS progressCheckpoint
          FROM study_sessions WHERE session_id = ?`,
-      ).get(created.session.sessionId),
+        )
+        .get(created.session.sessionId),
     ).toEqual({ progressCheckpoint: 'reference:passwords' });
     database.close();
   });
@@ -447,32 +442,34 @@ describe('Web resume and concurrency acceptance', () => {
     const paths = temporaryDatabasePaths('passwo-data-complete-reconciliation-');
     const firstServer = createWebServer('forced-reference', paths.study, paths.recontact);
     const created = await createWebTestSession(firstServer, 199);
-    await completeWebTestStudy(
-      firstServer,
-      created,
-      '81000000-0000-4000-8000-000000000199',
-    );
+    await completeWebTestStudy(firstServer, created, '81000000-0000-4000-8000-000000000199');
     await resources.close(firstServer);
 
     const legacyStudyDatabase = new Database(paths.study);
-    legacyStudyDatabase.prepare(
-      `UPDATE study_sessions
+    legacyStudyDatabase
+      .prepare(
+        `UPDATE study_sessions
        SET completion_status = 'in-progress', completed_at_iso = NULL,
            progress_checkpoint = 'session-closure'
        WHERE session_id = ?`,
-    ).run(created.session.sessionId);
-    legacyStudyDatabase.prepare(
-      `UPDATE web_resume_tokens
+      )
+      .run(created.session.sessionId);
+    legacyStudyDatabase
+      .prepare(
+        `UPDATE web_resume_tokens
        SET invalidated_at_iso = NULL
        WHERE session_id = ?`,
-    ).run(created.session.sessionId);
+      )
+      .run(created.session.sessionId);
     legacyStudyDatabase.close();
     const legacyRecontactDatabase = new Database(paths.recontact);
-    legacyRecontactDatabase.prepare(
-      `UPDATE registrations
+    legacyRecontactDatabase
+      .prepare(
+        `UPDATE registrations
        SET first_invitation_at_iso = NULL, reminder_at_iso = NULL, closes_at_iso = NULL
        WHERE session_id = ?`,
-    ).run(created.session.sessionId);
+      )
+      .run(created.session.sessionId);
     legacyRecontactDatabase.close();
 
     const restartedServer = createWebServer(
@@ -486,12 +483,14 @@ describe('Web resume and concurrency acceptance', () => {
 
     const reconciledStudyDatabase = new Database(paths.study, { readonly: true });
     expect(
-      reconciledStudyDatabase.prepare(
-        `SELECT completion_status AS completionStatus,
+      reconciledStudyDatabase
+        .prepare(
+          `SELECT completion_status AS completionStatus,
                 progress_checkpoint AS progressCheckpoint,
                 completed_at_iso AS completedAtIso
          FROM study_sessions WHERE session_id = ?`,
-      ).get(created.session.sessionId),
+        )
+        .get(created.session.sessionId),
     ).toEqual({
       completionStatus: 'completed',
       progressCheckpoint: 'complete',
@@ -500,10 +499,12 @@ describe('Web resume and concurrency acceptance', () => {
     reconciledStudyDatabase.close();
     const reconciledRecontactDatabase = new Database(paths.recontact, { readonly: true });
     expect(
-      reconciledRecontactDatabase.prepare(
-        `SELECT first_invitation_at_iso AS firstInvitationAtIso
+      reconciledRecontactDatabase
+        .prepare(
+          `SELECT first_invitation_at_iso AS firstInvitationAtIso
          FROM registrations WHERE session_id = ?`,
-      ).get(created.session.sessionId),
+        )
+        .get(created.session.sessionId),
     ).toEqual({ firstInvitationAtIso: '2026-09-03T12:00:00.000Z' });
     reconciledRecontactDatabase.close();
   });
@@ -855,16 +856,14 @@ describe('Web resume and concurrency acceptance', () => {
     await resources.close(firstServer);
 
     const database = new Database(paths.study, { readonly: true });
-    const persistedState = z
-      .object({ encoded: z.string() })
-      .parse(
-        database
-          .prepare(
-            `SELECT supportive_s08_resume_state_json AS encoded
+    const persistedState = z.object({ encoded: z.string() }).parse(
+      database
+        .prepare(
+          `SELECT supportive_s08_resume_state_json AS encoded
              FROM study_sessions WHERE session_id = ?`,
-          )
-          .get(created.session.sessionId),
-      );
+        )
+        .get(created.session.sessionId),
+    );
     const decodedState = supportiveS08ResumeStateSchema.parse(JSON.parse(persistedState.encoded));
     expect(decodedState).toEqual(supportiveS08ResumeStateFixture);
     expect(Object.keys(decodedState)).toEqual([
