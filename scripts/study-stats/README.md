@@ -1,9 +1,8 @@
 # Studienstatistik
 
 `pnpm study:stats` liest die Produktionsdatenbank per SSH und SQLite read-only. Der Standardmodus
-zeigt aggregierte Sessions, Completion, Trainingsdauer, Instrumentstatus, Rekrutierungsquellen und
-Konsistenzhinweise. Session-IDs, Forschungskennungen, Antworten und Kontaktdaten werden nicht
-ausgegeben.
+zeigt einen kompakten Studienüberblick, den Vergleich der Lernangebote und die Trainingsdauer.
+Session-IDs, Forschungskennungen, einzelne Antworten und Kontaktdaten werden nicht ausgegeben.
 
 ```bash
 pnpm study:stats
@@ -33,8 +32,13 @@ Alternativ gelten `PASSWO_STATS_HOST`, `PASSWO_STATS_DATABASE`,
 Repositorys.
 
 Die Trainingsdauer summiert bestätigte Intervalle abgeschlossener Lernangebote; Offline-Zeit
-zählt nicht mit. `completed` bedeutet, dass Artefakt sowie alle erforderlichen Instrumentblöcke
-gespeichert sind. Der letzte Checkpoint ist Wiederaufnahmezustand, keine Live-Anzeige.
+zählt nicht mit. Der angezeigte Durchschnitt schließt je Lernangebot Werte außerhalb der
+1,5-IQR-Grenzen aus und nennt die Zahl der entfernten Werte. Bei weniger als vier Abschlüssen
+wird nichts ausgeschlossen; die gespeicherten Daten bleiben immer unverändert. Die Dauerpassung
+gibt unabhängig davon die tatsächlichen Anteile der Antworten `genau richtig`, `zu kurz`
+(Skalenwerte 1–3) und `zu lang` (Skalenwerte 5–7) wieder. Ein gerundeter Mittelwert wird nicht als
+Antworttext ausgegeben, weil sich gegensätzliche Urteile darin gegenseitig aufheben könnten.
+`completed` bedeutet, dass Artefakt sowie alle erforderlichen Instrumentblöcke gespeichert sind.
 
 Voraussetzungen sind lokaler OpenSSH-Zugriff und `sqlite3` auf dem Zielhost. Das Skript verändert
 keine Produktivdaten.
