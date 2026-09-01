@@ -63,8 +63,8 @@ nicht als Forschungsdaten übertragen oder persistiert. Die begrenzte Reload-Aus
 ```bash
 pnpm deploy:web
 pnpm study:stats
-pnpm study:export -- --profile audit --output ./study-audit-export
-pnpm study:export -- --profile analysis --output ./study-analysis-export
+pnpm study:export:server -- --profile audit --output ./study-audit-export
+pnpm study:export:server -- --profile analysis --output ./study-analysis-export
 pnpm study:delete
 pnpm followup:run-scheduler
 pnpm followup:export-schedule -- --output ./followup-schedule.json \
@@ -74,12 +74,21 @@ pnpm followup:delete-contacts
 ```
 
 Schreibende Lösch- und Versandbestätigungen verlangen jeweils den dokumentierten `--confirm`-
-Aufruf. `study:export` erzeugt die Einzeltabellen als CSV und JSON sowie eine formatierte
+Aufruf. `study:export:server` öffnet über das lokale OpenSSH die bestehende Serververbindung,
+erzeugt den gefilterten Export direkt neben der produktiven SQLite-Datei und überträgt nur die
+Exportdateien. Ein SSH-Passwort oder die Passphrase eines SSH-Schlüssels verarbeitet ausschließlich
+OpenSSH; das Repository liest oder speichert sie nicht. Die rohe Datenbank wird nicht kopiert.
+Der im Deployment-Runbook dokumentierte Host-Key muss vorher bestätigt in `known_hosts` liegen;
+unbekannte oder geänderte Host-Keys weist der Exportbefehl zurück.
+
+Der Befehl erzeugt die Einzeltabellen als CSV und JSON sowie eine formatierte
 `study-export.xlsx`. `export-guide.*` erklärt Tabellen, Verknüpfungen und Analysegrenzen;
 `data-dictionary.*` ist das Variablen-Cookbook mit Itemwortlaut, Gruppen, Skalenankern,
-Optionscodes, Missing-Regeln und zulässiger Aggregation. Das Zielverzeichnis muss für diese
-Dateinamen leer sein und wird nicht überschrieben. Audit- und Analyseexport sind
-pseudonymisierte Arbeitsdaten, nicht der anonyme Archivdatensatz. Verbindlich sind
+Optionscodes, Missing-Regeln und zulässiger Aggregation. Manifest und SHA-256-Prüfsummen werden vor
+der atomaren Ablage im lokalen Zielverzeichnis geprüft. Das Ziel darf noch nicht existieren.
+Audit- und Analyseexport sind pseudonymisierte Arbeitsdaten, nicht der anonyme Archivdatensatz.
+Der interne Direktbefehl `study:export` verlangt immer einen expliziten `--database`-Pfad und dient
+nur dem kontrollierten Betrieb auf dem Host. Verbindlich sind
 [DATA-CONTRACT.md](docs/research/DATA-CONTRACT.md) und
 [STUDY-RUNTIME.md](docs/research/STUDY-RUNTIME.md).
 

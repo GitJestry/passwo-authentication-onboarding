@@ -29,7 +29,6 @@ import {
 } from 'react';
 import { assign, setup } from 'xstate';
 import { ReactFlowNetworkAdapter } from '../../../../adapters/network/ReactFlowNetworkAdapter.js';
-import { useInitialFocus } from '../../../../app/useInitialFocus.js';
 import blueShieldAsset from '../../../../assets/s05/password-factor-shield.webp';
 import greenShieldAsset from '../../../../assets/s06/comparison-path-shield.webp';
 import { CelebrationConfetti } from '../../CelebrationConfetti.js';
@@ -755,7 +754,6 @@ export function S08NetworkRewindStage({
   onSegmentCheckpoint,
   onComplete,
 }: S08NetworkRewindStageProps) {
-  const initialActionRef = useInitialFocus<HTMLButtonElement>();
   const networkHostRef = useRef<HTMLDivElement | null>(null);
   const [celebratingNodeId, setCelebratingNodeId] = useState<S08ChangeableAccountId | null>(null);
   const [browserHighlighted, setBrowserHighlighted] = useState(false);
@@ -1857,7 +1855,7 @@ export function S08NetworkRewindStage({
             type="button"
             className={styles.trainingCompletionAction}
             data-passwo-speech-obstacle
-            ref={initialActionRef}
+            autoFocus
             onClick={() => send({ type: 'S17_FINISH' })}
           >
             {s15ToS17MfaConclusionContent.guide.completeAction}
@@ -1867,7 +1865,7 @@ export function S08NetworkRewindStage({
           <button
             type="button"
             className={styles.replayAction}
-            ref={initialActionRef}
+            autoFocus
             onClick={() => {
               setCelebratingNodeId(null);
               send({ type: 'NEXT' });
@@ -1879,7 +1877,7 @@ export function S08NetworkRewindStage({
           <button
             type="button"
             className={styles.replayAction}
-            ref={initialActionRef}
+            autoFocus
             onClick={() => send({ type: 'NEXT' })}
           >
             {s08NetworkReplayContent.replayActions.finish}
@@ -1941,7 +1939,7 @@ export function S08NetworkRewindStage({
               <button
                 type="button"
                 className={styles.summaryAction}
-                ref={initialActionRef}
+                autoFocus
                 onClick={() => send({ type: 'NEXT' })}
               >
                 {s09PasswordSummaryContent.finishAction}
@@ -2054,7 +2052,7 @@ export function S08NetworkRewindStage({
               <button
                 type="button"
                 className={styles.passwordManagerAction}
-                ref={initialActionRef}
+                autoFocus
                 aria-label={s09PasswordSummaryContent.passwordManagerAction.ariaLabel}
                 onClick={() => send({ type: 'NEXT' })}
               >
@@ -2068,7 +2066,7 @@ export function S08NetworkRewindStage({
           <button
             type="button"
             className={styles.repairAllAction}
-            ref={initialActionRef}
+            autoFocus
             onClick={() => send({ type: 'S13_REPAIR_ALL_PASSWORDS' })}
           >
             {s13PasswordManagerPracticeContent.conclusion.network.repairAction}

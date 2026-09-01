@@ -32,7 +32,6 @@ import {
 import { BrowserSegmentTimingAdapter } from '../../adapters/timing/BrowserSegmentTimingAdapter.js';
 import { createStudyApi, type StudyApi } from '../../api/study-api.js';
 import { scheduleIdleWork } from '../../app/idle-prefetch.js';
-import { useInitialFocus } from '../../app/useInitialFocus.js';
 import {
   loadReferenceArtifactRenderer,
   loadSupportiveArtifactRenderer,
@@ -252,7 +251,6 @@ function ParticipantInformationAccess({
 }
 
 function Consent({ onAccept }: { readonly onAccept: (decision: ConsentDecision) => void }) {
-  const initialHeadingRef = useInitialFocus<HTMLHeadingElement>();
   const eligibilityItems = instrumentRuntimeManifest.procedures.eligibility.items;
   const [eligibilityDraft, setEligibilityDraft] = useState<Readonly<Record<string, boolean>>>({});
   const [accepted, setAccepted] = useState(false);
@@ -270,7 +268,7 @@ function Consent({ onAccept }: { readonly onAccept: (decision: ConsentDecision) 
     return (
       <section className={styles.declineNotice} aria-labelledby="declined-title" role="status">
         <p className={styles.eyebrow}>{participantInformation.eyebrow}</p>
-        <h1 id="declined-title" ref={initialHeadingRef} tabIndex={-1}>
+        <h1 id="declined-title" tabIndex={-1} autoFocus>
           {participantInformation.actions.declineHeading}
         </h1>
         <p>{participantInformation.actions.declineBody}</p>
@@ -281,7 +279,7 @@ function Consent({ onAccept }: { readonly onAccept: (decision: ConsentDecision) 
   return (
     <section className={styles.consentPage} aria-labelledby="consent-title">
       <header className={styles.welcomeHeader}>
-        <h1 id="consent-title" ref={initialHeadingRef} tabIndex={-1}>
+        <h1 id="consent-title" tabIndex={-1} autoFocus>
           {participantInformation.welcomeHeading}
         </h1>
         {participantInformation.welcomeParagraphs.map((paragraph) => (
@@ -444,11 +442,9 @@ function RecontactError({
   readonly onRetry: () => void;
   readonly onContinueWithoutFollowUp: () => void;
 }) {
-  const initialHeadingRef = useInitialFocus<HTMLHeadingElement>();
-
   return (
     <section aria-labelledby="recontact-error-title" role="alert">
-      <h1 id="recontact-error-title" ref={initialHeadingRef} tabIndex={-1}>
+      <h1 id="recontact-error-title" tabIndex={-1} autoFocus>
         Registrierung nicht möglich
       </h1>
       <p>
@@ -519,12 +515,10 @@ function SupportiveArtifact({
 }
 
 function ArtifactPreparation({ onStart }: { readonly onStart: () => void }) {
-  const initialHeadingRef = useInitialFocus<HTMLHeadingElement>();
-
   return (
     <section className={styles.artifactPreparation} aria-labelledby="artifact-preparation-title">
       <header className={styles.artifactPreparationHeader}>
-        <h1 id="artifact-preparation-title" ref={initialHeadingRef} tabIndex={-1}>
+        <h1 id="artifact-preparation-title" tabIndex={-1} autoFocus>
           Das Lernangebot beginnt gleich
         </h1>
       </header>
@@ -558,11 +552,9 @@ function ResearchDataError({
   readonly errorCode: string | null;
   readonly onRetry: () => void;
 }) {
-  const initialHeadingRef = useInitialFocus<HTMLHeadingElement>();
-
   return (
     <section aria-labelledby={titleId} role="alert">
-      <h1 id={titleId} ref={initialHeadingRef} tabIndex={-1}>
+      <h1 id={titleId} tabIndex={-1} autoFocus>
         Speichern nicht möglich
       </h1>
       <div className={styles.notice}>
@@ -578,11 +570,9 @@ function ResearchDataError({
 }
 
 function ConfigurationError({ errorCode }: { readonly errorCode: string }) {
-  const initialHeadingRef = useInitialFocus<HTMLHeadingElement>();
-
   return (
     <section aria-labelledby="configuration-error-title" role="alert">
-      <h1 id="configuration-error-title" ref={initialHeadingRef} tabIndex={-1}>
+      <h1 id="configuration-error-title" tabIndex={-1} autoFocus>
         Dieser Studienteil ist nicht verfügbar
       </h1>
       <p className={styles.errorCode}>Fehlercode: {errorCode}</p>
@@ -597,7 +587,6 @@ function HydratedStudyFlow({
   readonly api: StudyApi;
   readonly resumeSession: WebResumeSession | null;
 }) {
-  const initialHeadingRef = useInitialFocus<HTMLHeadingElement>();
   const machine = useMemo(() => createStudyMachine(api, resumeSession), [api, resumeSession]);
   const [snapshot, send] = useMachine(machine);
   const [supportiveCompletionError, setSupportiveCompletionError] = useState<string | null>(null);
@@ -986,7 +975,7 @@ function HydratedStudyFlow({
         <span className={styles.sessionClosureEmoji} aria-hidden="true">
           🎉
         </span>
-        <h1 id="session-closure-title" ref={initialHeadingRef} tabIndex={-1}>
+        <h1 id="session-closure-title" tabIndex={-1} autoFocus>
           {closureContent.heading}
         </h1>
         {closureContent.paragraphs.map((paragraph) => (
@@ -1007,7 +996,7 @@ function HydratedStudyFlow({
   } else if (snapshot.matches('fatalError')) {
     content = (
       <section aria-labelledby="fatal-title" role="alert">
-        <h1 id="fatal-title" ref={initialHeadingRef} tabIndex={-1}>
+        <h1 id="fatal-title" tabIndex={-1} autoFocus>
           Die Sitzung kann nicht fortgesetzt werden
         </h1>
         <p className={styles.errorCode}>Fehlercode: {context.fatalErrorCode}</p>

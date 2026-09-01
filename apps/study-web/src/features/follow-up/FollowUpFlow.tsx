@@ -6,8 +6,7 @@ import {
   type FollowUpItem,
   type FollowUpSubmissionRequest,
 } from '@passwo/contracts/follow-up';
-import { type FormEvent, type ReactNode, useEffect, useMemo, useState } from 'react';
-import { useInitialFocus } from '../../app/useInitialFocus.js';
+import { type FormEvent, useEffect, useMemo, useState } from 'react';
 import { loadFollowUpAccess, submitFollowUp } from './follow-up-api.js';
 import styles from './FollowUpFlow.module.css';
 
@@ -22,16 +21,6 @@ type PageState =
   | { readonly status: 'resolved'; readonly access: FollowUpAccessResponse };
 
 const content = followUpInstrument;
-
-function FocusedHeading({ id, children }: { readonly id?: string; readonly children: ReactNode }) {
-  const headingRef = useInitialFocus<HTMLHeadingElement>();
-
-  return (
-    <h1 id={id} ref={headingRef} tabIndex={-1}>
-      {children}
-    </h1>
-  );
-}
 
 function initialDraft(): Draft {
   return Object.fromEntries(content.questionnaire.items.map((item) => [item.id, null]));
@@ -69,7 +58,9 @@ function StatusPage({ heading, body }: { readonly heading: string; readonly body
   return (
     <main className={styles.page}>
       <section className={styles.statusCard} aria-labelledby="follow-up-status-heading">
-        <FocusedHeading id="follow-up-status-heading">{heading}</FocusedHeading>
+        <h1 id="follow-up-status-heading" tabIndex={-1} autoFocus>
+          {heading}
+        </h1>
         <p>{body}</p>
       </section>
     </main>
@@ -226,7 +217,9 @@ export function FollowUpFlow({
       <main className={styles.page}>
         <section className={styles.card} aria-labelledby="follow-up-heading">
           <header className={styles.header}>
-            <FocusedHeading id="follow-up-heading">{content.landingPage.title}</FocusedHeading>
+            <h1 id="follow-up-heading" tabIndex={-1} autoFocus>
+              {content.landingPage.title}
+            </h1>
           </header>
           <p className={styles.disclosure}>{content.landingPage.disclosure}</p>
           <label className={styles.confirmation}>
@@ -251,7 +244,9 @@ export function FollowUpFlow({
     <main className={styles.page}>
       <form className={styles.card} onSubmit={(event) => void handleSubmit(event)}>
         <header className={styles.header}>
-          <FocusedHeading>{content.questionnaire.title}</FocusedHeading>
+          <h1 tabIndex={-1} autoFocus>
+            {content.questionnaire.title}
+          </h1>
           <p>{content.questionnaire.reportingInstruction}</p>
           <p>{content.questionnaire.accountScopeInstruction}</p>
         </header>

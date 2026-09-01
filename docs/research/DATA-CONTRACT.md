@@ -225,6 +225,12 @@ Alle Dateien einschließlich der Excel-Arbeitsmappe stehen mit SHA-256-Prüfsumm
 Exporter überschreibt keine vorhandene gleichnamige Datei. CSV, JSON und Excel enthalten dieselbe
 profilabhängige Fallauswahl; das Dateiformat verändert weder Einschluss noch Datengrenze.
 
+Der operative Remote-Befehl führt diesen Export read-only auf dem Studienserver aus und überträgt
+erst nach erfolgreicher Erzeugung ausschließlich das manifestierte Dateiset in ein neues lokales
+Zielverzeichnis. Die rohe `study.sqlite`, Resume-Zuordnungen und andere nicht exportierte operative
+Daten werden weder kopiert noch über SSH gestreamt. Nach lokaler SHA-256-Prüfung wird das exakt für
+den Transfer erzeugte temporäre Serververzeichnis entfernt.
+
 Keines der beiden regulären Exportprofile ist allein durch seinen Dateinamen anonym.
 Der temporäre S08-Simulationsresume-Zustand gehört zu keinem Exportprofil.
 

@@ -1,5 +1,4 @@
 import { s13PasswordManagerPracticeContent } from '@passwo/training-content';
-import { useInitialFocus } from '../../../../app/useInitialFocus.js';
 import { PassWoGuide } from '../../PassWoGuide.js';
 import { passWoSpeechEmphasisFor } from '../../PassWoSpeechEmphasis.js';
 import recoveryPathAsset from '../../../../assets/s13/wiederherstellung.png';
@@ -104,7 +103,6 @@ export function S13PasswordManagerConclusion({
   readonly onNext: () => void;
   readonly onVariantSelect: (variant: S13PasswordManagerVariant) => void;
 }) {
-  const initialActionRef = useInitialFocus<HTMLButtonElement>();
   const conclusion = s13PasswordManagerPracticeContent.conclusion;
   const recoveryPhaseIndex = phase === 'recovery-lost' ? 0 : phase === 'recovery-path' ? 1 : 2;
   const recoveryVisible = phase.startsWith('recovery-');
@@ -149,7 +147,7 @@ export function S13PasswordManagerConclusion({
           <div>
             <button
               type="button"
-              ref={initialActionRef}
+              autoFocus
               onClick={() => onVariantSelect('integrated')}
             >
               {conclusion.variants.options.integrated}
@@ -191,13 +189,12 @@ export function S13PasswordManagerConclusion({
 }
 
 export function S13MfaTransition({ onAction }: { readonly onAction: () => void }) {
-  const initialActionRef = useInitialFocus<HTMLButtonElement>();
   const transition = s13PasswordManagerPracticeContent.conclusion.mfa.transition;
   return (
     <section className={styles.mfaTransition}>
       <button
         type="button"
-        ref={initialActionRef}
+        autoFocus
         aria-label={transition.ariaLabel}
         onClick={onAction}
       >

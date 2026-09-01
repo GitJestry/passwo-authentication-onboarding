@@ -11,7 +11,7 @@
 - Getrennte XState-5-Maschinen für Studie und Training.
 - Motion und React Flow ausschließlich als Renderer-Adapter.
 - Fastify + better-sqlite3 für API und lokale Persistenz.
-- ExcelJS ausschließlich für den kontrollierten lokalen XLSX-Forschungsdatenexport; keine
+- ExcelJS ausschließlich für den kontrollierten XLSX-Forschungsdatenexport; keine
   Einbindung in Study-Web oder Teilnehmer-Runtime.
 - CSS Modules und CSS Custom Properties statt zusätzlichem Styling-Framework.
 - Biome, Vitest, Playwright und axe für die vorhandenen Qualitätsgrenzen.

@@ -12,7 +12,6 @@ import {
 import { useMachine } from '@xstate/react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { NetworkSymbol } from '../../../../adapters/network/NetworkSymbolRegistry.js';
-import { useInitialFocus } from '../../../../app/useInitialFocus.js';
 import myShopSummerSaleAsset from '../../../../assets/s13/my-shop-summer-sale.png';
 import { AccountSuccessOverlay } from '../../AccountSuccessOverlay.js';
 import { PassWoGuide } from '../../PassWoGuide.js';
@@ -427,7 +426,6 @@ function PasswordSavePrompt({
   readonly onDismiss: () => void;
   readonly onPasswordVisibilityToggle: () => void;
 }) {
-  const initialActionRef = useInitialFocus<HTMLButtonElement>();
   const content = s13PasswordManagerPracticeContent;
   return (
     <section className={styles.savePrompt} role="dialog" aria-labelledby="s13-save-title">
@@ -465,7 +463,7 @@ function PasswordSavePrompt({
         <button type="button" className={styles.savePromptDismiss} onClick={onDismiss}>
           {content.passwordManager.dismissSaveAction}
         </button>
-        <button type="button" ref={initialActionRef} onClick={onSave}>
+        <button type="button" autoFocus onClick={onSave}>
           {content.passwordManager.saveAction}
         </button>
       </div>

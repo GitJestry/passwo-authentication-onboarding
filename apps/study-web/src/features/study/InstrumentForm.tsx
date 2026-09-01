@@ -10,7 +10,6 @@ import {
   type InstrumentSubmissionRequest,
 } from '@passwo/contracts';
 import { type FormEvent, type ReactNode, useEffect, useRef, useState } from 'react';
-import { useInitialFocus } from '../../app/useInitialFocus.js';
 import styles from './StudyFlow.module.css';
 
 type QuestionnaireSection = InstrumentRuntimeManifest['instruments']['pre-v1']['sections'][number];
@@ -113,7 +112,6 @@ function InstrumentHeader({
   readonly currentPage?: number;
   readonly progressCurrent?: number;
 }) {
-  const initialHeadingRef = useInitialFocus<HTMLHeadingElement>();
   const resolvedTotal = progressSteps?.length ?? totalSteps;
   const resolvedCurrent = progressCurrent ?? currentStep;
   const showProgress =
@@ -122,7 +120,7 @@ function InstrumentHeader({
   if (!showProgress) {
     return (
       <header className={styles.instrumentHeader}>
-        <h1 id={headingId} ref={initialHeadingRef} tabIndex={-1}>
+        <h1 id={headingId} tabIndex={-1} autoFocus>
           {title}
         </h1>
       </header>
@@ -153,7 +151,7 @@ function InstrumentHeader({
 
   return (
     <header className={styles.instrumentHeader}>
-      <h1 id={headingId} ref={initialHeadingRef} tabIndex={-1}>
+      <h1 id={headingId} tabIndex={-1} autoFocus>
         {title}
       </h1>
       <ol
@@ -1256,7 +1254,6 @@ export function GuardrailBlockForm({
   readonly footer?: ReactNode;
   readonly onSubmit: (submission: InstrumentSubmissionFor<'guardrail-v2'>) => void;
 }) {
-  const initialHeadingRef = useInitialFocus<HTMLHeadingElement>();
   const [draft, setDraft] = useState<Draft>({});
   const [invalidItemIds, setInvalidItemIds] = useState<ReadonlySet<string>>(new Set<string>());
   const formRef = useRef<HTMLFormElement>(null);
@@ -1271,7 +1268,7 @@ export function GuardrailBlockForm({
     if (item === undefined || options === null) {
       return (
         <section aria-labelledby="guardrail-configuration-error-title" role="alert">
-          <h1 id="guardrail-configuration-error-title" ref={initialHeadingRef} tabIndex={-1}>
+          <h1 id="guardrail-configuration-error-title" tabIndex={-1} autoFocus>
             Abschlussfragen nicht verfügbar
           </h1>
           <p className={styles.errorCode}>Fehlercode: guardrail-presentation-invalid</p>
@@ -1284,7 +1281,7 @@ export function GuardrailBlockForm({
   if (presentedItems.length !== block.items.length) {
     return (
       <section aria-labelledby="guardrail-configuration-error-title" role="alert">
-        <h1 id="guardrail-configuration-error-title" ref={initialHeadingRef} tabIndex={-1}>
+        <h1 id="guardrail-configuration-error-title" tabIndex={-1} autoFocus>
           Abschlussfragen nicht verfügbar
         </h1>
         <p className={styles.errorCode}>Fehlercode: guardrail-question-order-invalid</p>

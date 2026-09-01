@@ -1,5 +1,4 @@
 import { existsSync } from 'node:fs';
-import { homedir } from 'node:os';
 import { resolve } from 'node:path';
 import { type ResearchExportProfile, researchExportProfileSchema } from '@passwo/contracts';
 import { exportResearchData } from '../apps/study-server/src/research-export.js';
@@ -12,13 +11,13 @@ interface ExportCommandOptions {
 
 function usage(): string {
   return (
-    'Usage: pnpm study:export -- --output <directory> ' +
-    '[--database <study.sqlite>] [--profile audit|analysis]\n'
+    'Usage: pnpm study:export -- --database <study.sqlite> --output <directory> ' +
+    '[--profile audit|analysis]\n'
   );
 }
 
 function parseExportOptions(argumentsList: readonly string[]): ExportCommandOptions | null {
-  let databasePath = resolve(homedir(), '.passwo-study', 'study.sqlite');
+  let databasePath: string | null = null;
   let outputDirectory: string | null = null;
   let profile: ResearchExportProfile = 'audit';
 
@@ -47,10 +46,15 @@ function parseExportOptions(argumentsList: readonly string[]): ExportCommandOpti
     }
   }
 
-  return outputDirectory === null ? null : { databasePath, outputDirectory, profile };
+  return databasePath === null || outputDirectory === null
+    ? null
+    : { databasePath, outputDirectory, profile };
 }
 
-const options = parseExportOptions(process.argv.slice(2));
+const commandArguments = process.argv.slice(2);
+const options = parseExportOptions(
+  commandArguments[0] === '--' ? commandArguments.slice(1) : commandArguments,
+);
 if (options === null) {
   process.stderr.write(usage());
   process.exitCode = 1;

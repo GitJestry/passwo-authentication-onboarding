@@ -142,6 +142,26 @@ curl -fsS http://127.0.0.1:3102/api/health
 Aggregierte Studienzahlen werden vom Entwicklungsrechner mit `pnpm study:stats` read-only
 abgerufen.
 
+Der kontrollierte Forschungsdatenexport wird ebenfalls vom Entwicklungsrechner gestartet. Der
+Befehl verwendet OpenSSH für die interaktive Authentifizierung, führt den read-only Export als
+Servicekonto auf dem Server aus und überträgt ausschließlich CSV, JSON, XLSX, Cookbook, Guide und
+Manifest. Die rohe SQLite-Datei verlässt den Server nicht:
+
+```bash
+pnpm study:export:server -- \
+  --profile analysis \
+  --output ./study-analysis-export
+```
+
+Für die geschützte Auditfassung wird `--profile audit` verwendet. Das lokale Ziel darf noch nicht
+existieren. Vor der Ablage prüft der Befehl das erwartete Dateiset und alle im Manifest enthaltenen
+SHA-256-Prüfsummen; danach entfernt er den temporären Export auf dem Server. Die SSH-Verbindung
+verwendet standardmäßig `root@193.23.254.118`, `/opt/passwo-study/current` und
+`/var/lib/passwo-study`. Der unter „Einmalige Hosteinrichtung“ dokumentierte Host-Key muss bereits
+bestätigt in `known_hosts` liegen; unbekannte oder geänderte Host-Keys werden abgewiesen.
+Abweichende freigegebene Umgebungen können ausschließlich über
+`PASSWO_EXPORT_HOST`, `PASSWO_EXPORT_ROOT` und `PASSWO_EXPORT_DATA_DIR` gesetzt werden.
+
 Bei Fehlern:
 
 ```bash

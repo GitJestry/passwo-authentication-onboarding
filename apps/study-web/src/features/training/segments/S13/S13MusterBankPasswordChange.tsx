@@ -15,7 +15,6 @@ import {
   useState,
 } from 'react';
 import { NetworkSymbol } from '../../../../adapters/network/NetworkSymbolRegistry.js';
-import { useInitialFocus } from '../../../../app/useInitialFocus.js';
 import { AccountSuccessOverlay } from '../../AccountSuccessOverlay.js';
 import { PassWoGuide } from '../../PassWoGuide.js';
 import { passWoSpeechEmphasisFor } from '../../PassWoSpeechEmphasis.js';
@@ -858,7 +857,6 @@ function LogoutConfirmationPrompt({
   readonly onConfirm: () => void;
   readonly onCancel: () => void;
 }) {
-  const initialActionRef = useInitialFocus<HTMLButtonElement>();
   const content = s13PasswordManagerPracticeContent.bank.website.logoutConfirmation;
   return (
     <section
@@ -871,9 +869,7 @@ function LogoutConfirmationPrompt({
       <p>{content.detail}</p>
       <div>
         <button type="button" onClick={onCancel}>{content.cancelAction}</button>
-        <button type="button" ref={initialActionRef} onClick={onConfirm}>
-          {content.confirmAction}
-        </button>
+        <button type="button" autoFocus onClick={onConfirm}>{content.confirmAction}</button>
       </div>
     </section>
   );
@@ -904,7 +900,6 @@ function PasswordUpdatePrompt({
   readonly onUpdate: () => void;
   readonly onDismiss: () => void;
 }) {
-  const initialActionRef = useInitialFocus<HTMLButtonElement>();
   const content = s13PasswordManagerPracticeContent.bank.passwordManager;
   return (
     <section
@@ -960,7 +955,7 @@ function PasswordUpdatePrompt({
         >
           {content.dismissUpdateAction}
         </button>
-        <button type="button" ref={initialActionRef} onClick={onUpdate}>
+        <button type="button" autoFocus onClick={onUpdate}>
           {content.updateAction}
         </button>
       </div>

@@ -32,6 +32,7 @@
     "dev:secaware": "STUDY_ASSIGNMENT_MODE=forced-reference pnpm dev",
     "desktop:package": "node ./scripts/build-reference-artifact.mjs && node ./scripts/verify-reference-artifact.mjs && pnpm build && pnpm --filter @passwo/study-desktop run package",
     "study:export": "tsx ./scripts/export-study.ts",
+    "study:export:server": "bash ./scripts/export-study-server.sh",
     "study:delete": "tsx ./scripts/delete-study-data.ts",
     "study:web:start": "pnpm --filter @passwo/study-server start:production",
     "followup:export-schedule": "tsx ./scripts/export-followup-schedule.ts",
