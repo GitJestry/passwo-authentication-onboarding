@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 set -euo pipefail
+umask 077
 
 usage() {
   cat >&2 <<'USAGE'
@@ -204,7 +205,7 @@ if ! valid_remote_output_directory; then
 fi
 
 echo "Übertrage den gefilterten Export (${profile}) ..."
-rsync -rt --no-owner --no-group --chmod=F600,D700 \
+rsync -rt --no-owner --no-group \
   -e "ssh -S ${ssh_control_path}" \
   "${remote_host}:${remote_output_directory}/" \
   "${local_staging_directory}/"

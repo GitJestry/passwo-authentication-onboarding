@@ -175,6 +175,15 @@ FROM metrics
 ORDER BY sort_order;
 
 .print ''
+.print 'REKRUTIERUNGSQUELLEN'
+SELECT
+  recruitment_source AS Quelle,
+  COUNT(*) AS Sessions
+FROM study_sessions
+GROUP BY recruitment_source
+ORDER BY Sessions DESC, recruitment_source;
+
+.print ''
 .print 'BEDINGUNGEN'
 SELECT
   CASE condition

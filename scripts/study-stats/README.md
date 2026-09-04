@@ -1,8 +1,9 @@
 # Studienstatistik
 
 `pnpm study:stats` liest die Produktionsdatenbank per SSH und SQLite read-only. Der Standardmodus
-zeigt einen kompakten Studienüberblick, den Vergleich der Lernangebote und die Trainingsdauer.
-Session-IDs, Forschungskennungen, einzelne Antworten und Kontaktdaten werden nicht ausgegeben.
+zeigt einen kompakten Studienüberblick, die Rekrutierungsquellen mit ihrer jeweiligen
+Session-Anzahl, den Vergleich der Lernangebote und die Trainingsdauer. Session-IDs,
+Forschungskennungen, einzelne Antworten und Kontaktdaten werden nicht ausgegeben.
 
 ```bash
 pnpm study:stats
