@@ -343,7 +343,7 @@ for (const assignmentMode of ['forced-supportive', 'forced-reference'] as const)
       outputDirectory: exportDirectory,
       exportedAtIso: '2026-08-24T13:00:00.000Z',
     });
-    expect(exported.manifest.schemaVersion).toBe('research-export-v9');
+    expect(exported.manifest.schemaVersion).toBe('research-export-v10');
     const exportedText = exported.files
       .filter((file) => file !== 'study-export.xlsx')
       .map((file) => readFileSync(join(exportDirectory, file), 'utf8'))

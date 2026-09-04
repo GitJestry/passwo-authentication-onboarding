@@ -62,9 +62,9 @@ Browser-Schließen, Reload und Verbindungsverlust sind technische Unterbrechunge
 - Offline-Zeit wird nicht mitgezählt;
 - die completed Sitzung erhält ein Unterbrechungsflag.
 
-Das Unterbrechungsflag wird in der Daueranalyse transparent berichtet und in einer
-Sensitivitätsprüfung berücksichtigt. Es schließt nicht pauschal PANAS-, UX-,
-design-diagnostische oder Guardrail-Outcomes eines regulär abgeschlossenen Runs aus.
+Die Unterbrechungszahl bleibt als technische Metainformation verfügbar. Sie belegt weder
+Aufmerksamkeit noch gewissenhafte Teilnahme und löst keinen automatischen Ausschluss aus.
+Der Analyseexport enthält die Gesamtzeit, keine zusätzlichen Intervall- oder Ereignistabellen.
 
 ## Grenzen
 
@@ -80,8 +80,9 @@ design-diagnostische oder Guardrail-Outcomes eines regulär abgeschlossenen Runs
 
 - Ein fehlgeschlagener methodisch relevanter Timing-Write blockiert den betreffenden Übergang und
   erlaubt denselben idempotenten Retry.
-- Negative oder unplausible Intervallwerte werden beim Export als Qualitätsflag markiert und nicht
-  still korrigiert.
+- Der Export übernimmt die bestätigte Gesamtdauer ohne Plausibilitätsflags, Korrektur oder
+  automatische Aussonderung kurzer oder langer Bearbeitungen. Die technische Validierung
+  endlicher, nicht negativer Dauern bleibt bestehen.
 - Geht der Rückkehrschlüssel verloren, wird keine Offline-Zeit geschätzt und keine alte Sitzung über
   E-Mail oder Antworten gesucht.
 - Lokale historische Sitzungen mit `incomplete-reload` bleiben lesbar, werden aber nicht nachträglich

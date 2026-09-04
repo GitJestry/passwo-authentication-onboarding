@@ -22,9 +22,33 @@ export const researchResponseInstrumentIdSchema = z.union([
 export const researchIdSchema = researchCodeSchema;
 export const researchExportProfileSchema = z.enum(['audit', 'analysis']);
 export type ResearchExportProfile = z.infer<typeof researchExportProfileSchema>;
+const sharedExportFileNames = [
+  'sessions.csv',
+  'responses.csv',
+  'data-dictionary.csv',
+  'export-guide.csv',
+  'sessions.json',
+  'responses.json',
+  'data-dictionary.json',
+  'export-guide.json',
+  'study-export.xlsx',
+] as const;
+
+export function researchExportFileNames(profile: ResearchExportProfile) {
+  return profile === 'analysis'
+    ? sharedExportFileNames
+    : ([
+        ...sharedExportFileNames,
+        'timing.csv',
+        'timing.json',
+        'response-presentations.csv',
+        'response-presentations.json',
+      ] as const);
+}
+
 export const researchExportSchemaProfileVersionSchema = z.enum([
-  'research-audit-v4',
-  'research-analysis-v4',
+  'research-audit-v5',
+  'research-analysis-v5',
 ]);
 
 export const researchExportSessionRecordSchema = z
@@ -64,13 +88,6 @@ export const researchExportTimingRecordSchema = timingEventSchema
   .strict();
 export type ResearchExportTimingRecord = z.infer<typeof researchExportTimingRecordSchema>;
 
-export const researchAnalysisTimingRecordSchema = researchExportTimingRecordSchema.omit({
-  clientMonotonicMs: true,
-  clientWallClockIso: true,
-  serverReceivedAtIso: true,
-});
-export type ResearchAnalysisTimingRecord = z.infer<typeof researchAnalysisTimingRecordSchema>;
-
 export const researchExportResponseRecordSchema = z
   .object({
     researchId: researchIdSchema,
@@ -104,26 +121,6 @@ export const researchExportPresentationRecordSchema = z
 export type ResearchExportPresentationRecord = z.infer<
   typeof researchExportPresentationRecordSchema
 >;
-
-export const researchAnalysisPresentationRecordSchema = researchExportPresentationRecordSchema.omit(
-  { createdAtIso: true },
-);
-export type ResearchAnalysisPresentationRecord = z.infer<
-  typeof researchAnalysisPresentationRecordSchema
->;
-
-export const researchFreeTextReviewRecordSchema = z
-  .object({
-    researchId: researchIdSchema,
-    instrumentId: mainInstrumentIdSchema,
-    instrumentVersion: versionIdSchema,
-    sectionId: instrumentSectionIdSchema,
-    itemId: z.string().trim().min(1).max(80),
-    value: z.string().max(500),
-    reviewStatus: z.literal('pending-review'),
-  })
-  .strict();
-export type ResearchFreeTextReviewRecord = z.infer<typeof researchFreeTextReviewRecordSchema>;
 
 export const researchExportDataDictionaryRecordSchema = z
   .object({
@@ -207,7 +204,7 @@ export type ResearchExportSessionCount = z.infer<typeof researchExportSessionCou
 
 export const researchExportManifestSchema = z
   .object({
-    schemaVersion: z.literal('research-export-v9'),
+    schemaVersion: z.literal('research-export-v10'),
     profile: researchExportProfileSchema,
     schemaProfileVersion: researchExportSchemaProfileVersionSchema,
     exportedAtIso: z.iso.datetime(),
@@ -224,18 +221,12 @@ export const researchExportManifestSchema = z
       })
       .strict(),
     sessionCounts: z.array(researchExportSessionCountSchema),
-    freeTextReview: z
-      .object({
-        recordCount: z.number().int().nonnegative(),
-        status: z.enum(['included-in-audit', 'pending-review']),
-      })
-      .strict(),
     files: z.array(researchExportFileManifestSchema),
   })
   .strict()
   .superRefine((manifest, context) => {
     const expectedVersion =
-      manifest.profile === 'audit' ? 'research-audit-v4' : 'research-analysis-v4';
+      manifest.profile === 'audit' ? 'research-audit-v5' : 'research-analysis-v5';
     if (manifest.schemaProfileVersion !== expectedVersion) {
       context.addIssue({
         code: 'custom',

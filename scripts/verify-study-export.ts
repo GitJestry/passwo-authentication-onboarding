@@ -1,8 +1,9 @@
 import { createHash } from 'node:crypto';
-import { readFileSync, readdirSync } from 'node:fs';
+import { readdirSync, readFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import {
   type ResearchExportProfile,
+  researchExportFileNames,
   researchExportManifestSchema,
   researchExportProfileSchema,
 } from '@passwo/contracts';
@@ -11,22 +12,6 @@ interface VerificationOptions {
   readonly directory: string;
   readonly profile: ResearchExportProfile;
 }
-
-const sharedFileNames = [
-  'sessions.csv',
-  'timing.csv',
-  'responses.csv',
-  'response-presentations.csv',
-  'data-dictionary.csv',
-  'export-guide.csv',
-  'sessions.json',
-  'timing.json',
-  'responses.json',
-  'response-presentations.json',
-  'data-dictionary.json',
-  'export-guide.json',
-  'study-export.xlsx',
-] as const;
 
 function usage(): string {
   return 'Verwendung: tsx scripts/verify-study-export.ts --directory <pfad> --profile audit|analysis\n';
@@ -58,21 +43,12 @@ function parseOptions(argumentsList: readonly string[]): VerificationOptions | n
   return directory === null || profile === null ? null : { directory, profile };
 }
 
-function expectedFileNames(profile: ResearchExportProfile): ReadonlySet<string> {
-  return new Set([
-    ...sharedFileNames,
-    ...(profile === 'analysis' ? ['free-text-review.csv', 'free-text-review.json'] : []),
-  ]);
-}
-
 function sha256(path: string): string {
   return createHash('sha256').update(readFileSync(path)).digest('hex');
 }
 
 function verifyExport({ directory, profile }: VerificationOptions): number {
-  const manifestValue: unknown = JSON.parse(
-    readFileSync(join(directory, 'manifest.json'), 'utf8'),
-  );
+  const manifestValue: unknown = JSON.parse(readFileSync(join(directory, 'manifest.json'), 'utf8'));
   const manifest = researchExportManifestSchema.parse(manifestValue);
   if (manifest.profile !== profile) {
     throw new Error(`study-export-profile-mismatch-${manifest.profile}`);
@@ -84,7 +60,7 @@ function verifyExport({ directory, profile }: VerificationOptions): number {
     throw new Error('study-export-manifest-contains-duplicate-files');
   }
 
-  const expected = expectedFileNames(profile);
+  const expected = new Set<string>(researchExportFileNames(profile));
   if (
     uniqueDeclaredFileNames.size !== expected.size ||
     [...expected].some((fileName) => !uniqueDeclaredFileNames.has(fileName))
@@ -96,9 +72,7 @@ function verifyExport({ directory, profile }: VerificationOptions): number {
   const expectedDirectoryEntries = new Set([...expected, 'manifest.json']);
   if (
     directoryEntries.length !== expectedDirectoryEntries.size ||
-    directoryEntries.some(
-      (entry) => !entry.isFile() || !expectedDirectoryEntries.has(entry.name),
-    )
+    directoryEntries.some((entry) => !entry.isFile() || !expectedDirectoryEntries.has(entry.name))
   ) {
     throw new Error('study-export-directory-file-set-mismatch');
   }

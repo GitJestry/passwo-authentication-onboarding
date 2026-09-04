@@ -212,7 +212,25 @@ individuell gelöscht werden könnte.
   Zuordnungsmittel, vergröberte Hintergrunddaten und keine Arbeitskopien.
 
 Der kontrollierte Arbeits-Export schreibt jede Datentabelle als CSV und JSON sowie dieselben
-Tabellen in eine formatierte Excel-Arbeitsmappe. `export-guide` beschreibt das Zeilenkorn, die
+Tabellen in eine formatierte Excel-Arbeitsmappe. Ab `research-export-v10` enthalten beide Profile
+Sitzungen, Antworten, Variablen-Cookbook und Exporthinweise. Nur das Auditprofil enthält zusätzlich
+Legacy-Timingereignisse und die tatsächlichen Guardrail-Präsentationen. Webintervall-, Segment-
+und Sichtbarkeitstabellen werden nicht zusätzlich exportiert; `artifactSessionElapsedMs` bleibt
+die primäre Gesamtdauer. Es gibt keine Plausibilitätsfilter oder automatischen Ausschlüsse anhand
+der Dauer. Unterbrechungszahlen sind technische Metadaten, kein Nachweis für die Sorgfalt einer
+Teilnahme.
+
+Die Profile `research-audit-v5` und `research-analysis-v5` bewahren Zahlen in Excel und JSON als
+Zahlen. CSV und Excel enthalten einzelne Optionscodes als normale Strings, nur Mehrfachauswahlen
+als JSON-Array-Text. Fehlende Werte sind leere CSV-/Excel-Zellen beziehungsweise JSON-null.
+Historische leere Freitextstrings bleiben im Audit-JSON von null unterscheidbar.
+Das aktuelle Instrument enthält keine Freitextitems; leere Freitextprüfdateien und ein pauschaler
+`pending-review`-Status entfallen. Nicht im aktuellen Cookbook definierte Items oder Freitextitems
+führen im Analyseprofil vor dem Schreiben zum Fehler `analysis-export-unsupported-item-use-audit`.
+Ihre Originalwerte bleiben über das geschützte Auditprofil für eine manuelle historische
+Auswertung verfügbar; der Exporter verwirft sie nicht stillschweigend.
+
+`export-guide` beschreibt das Zeilenkorn, die
 Verknüpfungsschlüssel und die profilabhängigen Analysegrenzen. `data-dictionary` ist das
 Variablen-Cookbook: Für jedes Item und jeden Optionscode enthält es Wortlaut, Variablengruppe,
 Messniveau, Skala und Anker, Missing- und Verzweigungsregel, inhaltliche Einordnung sowie die
@@ -221,9 +239,16 @@ dem akzeptierten Content-Audit als `appropriate`, `incomplete-or-unsafe` oder `u
 klassifiziert; diese Klassifikation wird nicht an Teilnehmende ausgeliefert und begründet weder
 Pass/Fail noch einen Gesamtscore.
 
+Das Cookbook hat eine Zeile pro Item und Option. Optionszuordnungen verwenden zusätzlich zu
+Instrument, Abschnitt und Item den gewählten Optionscode. Für Itemmetadaten wird das Cookbook
+vor dem Join auf eine Zeile pro Item reduziert; Mehrfachauswahlen werden für Optionszuordnungen
+zunächst in einzelne Codes aufgelöst.
+
 Alle Dateien einschließlich der Excel-Arbeitsmappe stehen mit SHA-256-Prüfsumme im Manifest. Der
 Exporter überschreibt keine vorhandene gleichnamige Datei. CSV, JSON und Excel enthalten dieselbe
 profilabhängige Fallauswahl; das Dateiformat verändert weder Einschluss noch Datengrenze.
+Alle Tabellen werden innerhalb einer gemeinsamen read-only SQLite-Transaktion gelesen, bevor
+Dateien erzeugt werden. Gleichzeitige Submissions oder Löschungen verändern diesen Snapshot nicht.
 
 Der operative Remote-Befehl führt diesen Export read-only auf dem Studienserver aus und überträgt
 erst nach erfolgreicher Erzeugung ausschließlich das manifestierte Dateiset in ein neues lokales

@@ -352,14 +352,12 @@ function itemInterpretation(item: DictionaryItem): string {
     return 'Ungeordnete Mehrfachauswahl als JSON-Array von optionId-Werten; exklusive Optionen bleiben eigenständige Kategorien.';
   }
   if (item.type === 'text') {
-    return 'Optionaler Freitext; im Analyseprofil nicht aktiv enthalten, sondern ausschließlich in der getrennten Freitextprüfung.';
+    return 'Optionaler historischer Freitext; ausschließlich im geschützten Auditprofil verfügbar und vor Verwendung manuell zu prüfen.';
   }
   return 'Nominal codierte Kategorie anhand optionId und optionLabel; „Unsicher“ oder „Keine Angabe“ sind explizite Kategorien und keine fehlenden Werte.';
 }
 
-function measurementLevel(
-  item: DictionaryItem,
-): 'nominal' | 'ordinal' | 'free-text' {
+function measurementLevel(item: DictionaryItem): 'nominal' | 'ordinal' | 'free-text' {
   if (item.type === 'text') return 'free-text';
   if (
     item.id === 'PRE_AGE' ||
@@ -471,7 +469,7 @@ export function createResearchExportGuide(
   const profileNote =
     profile === 'audit'
       ? 'Auditprofil: enthält alle exportierbaren Sitzungen, technische Kalenderzeitpunkte und zulässige Freitexte zur geschützten Datenprüfung.'
-      : 'Analyseprofil: enthält ausschließlich completed Runs, entfernt exakte Kalenderzeitpunkte aus den Analysedateien und lagert vorhandene Freitexte in die Freitextprüfung aus.';
+      : 'Analyseprofil: enthält ausschließlich completed Runs ohne exakte Kalenderzeitpunkte, Timingereignistabellen oder separate Guardrail-Präsentationen. Das aktuelle Instrument enthält keine Freitextitems; historische unbekannte Items erfordern einen Auditexport.';
   const records = [
     {
       entryType: 'overview',
@@ -500,11 +498,11 @@ export function createResearchExportGuide(
       title: 'Timingereignisse',
       relatedFile: 'timing.csv; timing.json; Excel-Blatt „Timing“',
       recordDefinition:
-        'Eine Zeile pro bestätigtem Timingereignis; sequence ist innerhalb eines Falls streng steigend.',
+        'Eine Zeile pro bestätigtem Legacy-Timingereignis; Webereignisse sind hier nicht enthalten. sequence ist innerhalb eines Falls streng steigend.',
       joinRule:
         'Über researchId an Sitzungen anbinden; Ereignisse innerhalb eines Falls nach sequence ordnen.',
       analysisNote:
-        'Primäre Artefaktdauer ist artifactSessionElapsedMs aus Sitzungen. Einzelereignisse dienen Rekonstruktion und Qualitätsdiagnostik; Offline-Zeit wird nicht geschätzt.',
+        'Nur im Auditprofil für historische lokale Sitzungen. Primäre Web-Artefaktdauer ist artifactSessionElapsedMs aus Sitzungen; dieser Export ergänzt keine Webintervalle.',
     },
     {
       entryType: 'dataset',
@@ -513,9 +511,9 @@ export function createResearchExportGuide(
       relatedFile: 'responses.csv; responses.json; Excel-Blatt „Antworten“',
       recordDefinition: 'Long-Format: eine Zeile pro Fall, Instrument, Abschnitt und Item.',
       joinRule:
-        'Über researchId an Sitzungen anbinden; instrumentId + sectionId + itemId verknüpfen jede Antwort eindeutig mit dem Variablen-Cookbook.',
+        'Über researchId an Sitzungen anbinden. Im Cookbook identifizieren instrumentId + sectionId + itemId ein Item, aber keine eindeutige Zeile bei mehreren Optionen. Für Einzeloptionen zusätzlich value = optionId verbinden; Mehrfachauswahlen vorher in einzelne Optionscodes auflösen.',
       analysisNote:
-        'value enthält den Rohwert beziehungsweise Optionscode; Mehrfachauswahlen sind JSON-Arrays. Missing-Regeln, Skalenanker und zulässige Aggregation stehen im Cookbook.',
+        'Excel und JSON bewahren numerische Werte als Zahlen. CSV/Excel enthalten einzelne Optionscodes ohne zusätzliche JSON-Anführungszeichen; nur Mehrfachauswahlen sind dort JSON-Arrays als Text. Missing ist eine leere CSV-/Excel-Zelle beziehungsweise JSON-null. Historische leere Freitexte bei Bedarf im Audit-JSON unterscheiden.',
     },
     {
       entryType: 'dataset',
@@ -537,7 +535,7 @@ export function createResearchExportGuide(
       recordDefinition:
         'Eine Zeile pro Item und Optionscode; Items ohne diskrete Optionen besitzen genau eine Zeile.',
       joinRule:
-        'instrumentId + sectionId + itemId mit Antworten verbinden; optionId ordnet kategoriale Werte ein.',
+        'Für Optionslabels und Klassifikation über instrumentId + sectionId + itemId + optionId verbinden. Für reine Itemmetadaten zunächst auf eine Zeile je instrumentId + sectionId + itemId reduzieren; sonst vervielfacht ein Join die Antworten.',
       analysisNote:
         'Enthält Wortlaut, Gruppe, Messniveau, Skalenanker, Missing-Regel, Optionsklassifikation sowie Item- und Gruppeninterpretation. Wiederholte Gruppenhinweise sind bewusst zeilenlokal.',
     },
@@ -564,19 +562,11 @@ export function createResearchExportGuide(
         'Explizite Optionen wie unsure oder no_answer bleiben beobachtete Kategorien. Follow-up-Nonresponse wird nicht als Nein oder Inaktivität codiert.',
     },
   ];
-  if (profile === 'analysis') {
-    records.push({
-      entryType: 'dataset',
-      entryId: 'free-text-review',
-      title: 'Freitextprüfung',
-      relatedFile: 'free-text-review.csv; free-text-review.json; Excel-Blatt „Freitextprüfung“',
-      recordDefinition:
-        'Eine Zeile pro vorhandenem optionalem Freitext, getrennt von den aktiven Analyseantworten.',
-      joinRule:
-        'Nur kontrolliert über researchId und Itemschlüssel prüfen; nicht ungeprüft in Analysen übernehmen.',
-      analysisNote:
-        'Alle Einträge tragen pending-review. Freitext wird nicht in den anonymen Archivdatensatz übernommen.',
-    });
-  }
-  return records.map((record) => researchExportGuideRecordSchema.parse(record));
+  return records
+    .filter(
+      (record) =>
+        profile === 'audit' ||
+        (record.entryId !== 'timing' && record.entryId !== 'response-presentations'),
+    )
+    .map((record) => researchExportGuideRecordSchema.parse(record));
 }

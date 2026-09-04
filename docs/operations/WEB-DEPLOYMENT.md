@@ -162,6 +162,12 @@ bestätigt in `known_hosts` liegen; unbekannte oder geänderte Host-Keys werden 
 Abweichende freigegebene Umgebungen können ausschließlich über
 `PASSWO_EXPORT_HOST`, `PASSWO_EXPORT_ROOT` und `PASSWO_EXPORT_DATA_DIR` gesetzt werden.
 
+Ab Exportversion `research-export-v10` enthält das Analyseprofil nur Sitzungen, Antworten,
+Cookbook und Hinweise in CSV/JSON sowie Excel und Manifest. Legacy-Timing und
+Guardrail-Präsentationen gehören ausschließlich zum Auditprofil; leere Freitextprüfdateien
+entfallen. Exporter und lokaler Transfer-Verifier müssen dieselbe Exportversion unterstützen.
+Vorhandene ältere Exporte werden weder überschrieben noch automatisch konvertiert.
+
 Bei Fehlern:
 
 ```bash

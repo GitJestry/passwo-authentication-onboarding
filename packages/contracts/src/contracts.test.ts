@@ -28,10 +28,8 @@ import {
   type RuntimeStructureFinding,
   recruitmentSourceSchema,
   registerRecontactRequestSchema,
-  researchAnalysisPresentationRecordSchema,
   researchAnalysisResponseRecordSchema,
   researchAnalysisSessionRecordSchema,
-  researchAnalysisTimingRecordSchema,
   researchExportDataDictionaryRecordSchema,
   researchExportGuideRecordSchema,
   researchExportManifestSchema,
@@ -782,9 +780,9 @@ describe('research-safe contracts', () => {
 
   it('keeps researcher exports inside the approved data boundary', () => {
     const manifest = {
-      schemaVersion: 'research-export-v9',
+      schemaVersion: 'research-export-v10',
       profile: 'audit',
-      schemaProfileVersion: 'research-audit-v4',
+      schemaProfileVersion: 'research-audit-v5',
       exportedAtIso: '2026-07-24T12:00:00.000Z',
       runtimeManifestVersion: instrumentRuntimeManifest.runtimeManifestVersion,
       versions: {
@@ -797,7 +795,6 @@ describe('research-safe contracts', () => {
         referenceArtifact: [REFERENCE_ARTIFACT_VERSION],
       },
       sessionCounts: [{ condition: 'supportive', completionStatus: 'completed', count: 1 }],
-      freeTextReview: { recordCount: 0, status: 'included-in-audit' },
       files: [
         { fileName: 'sessions.csv', sha256: 'f'.repeat(64) },
         { fileName: 'study-export.xlsx', sha256: 'e'.repeat(64) },
@@ -867,13 +864,7 @@ describe('research-safe contracts', () => {
     expect(Object.keys(researchAnalysisSessionRecordSchema.shape)).not.toEqual(
       expect.arrayContaining(['createdAtIso', 'completedAtIso']),
     );
-    expect(Object.keys(researchAnalysisTimingRecordSchema.shape)).not.toEqual(
-      expect.arrayContaining(['clientMonotonicMs', 'clientWallClockIso', 'serverReceivedAtIso']),
-    );
     expect(Object.keys(researchAnalysisResponseRecordSchema.shape)).not.toContain('createdAtIso');
-    expect(Object.keys(researchAnalysisPresentationRecordSchema.shape)).not.toContain(
-      'createdAtIso',
-    );
     expect(
       researchExportManifestSchema.safeParse({
         ...manifest,

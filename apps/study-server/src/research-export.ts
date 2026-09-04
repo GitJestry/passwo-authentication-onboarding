@@ -4,26 +4,21 @@ import { join } from 'node:path';
 import {
   completionStatusSchema,
   instrumentRuntimeManifest,
-  type ResearchAnalysisPresentationRecord,
   type ResearchAnalysisResponseRecord,
   type ResearchAnalysisSessionRecord,
-  type ResearchAnalysisTimingRecord,
   type ResearchExportManifest,
   type ResearchExportPresentationRecord,
   type ResearchExportProfile,
   type ResearchExportResponseRecord,
   type ResearchExportSessionRecord,
-  type ResearchFreeTextReviewRecord,
-  researchAnalysisPresentationRecordSchema,
   researchAnalysisResponseRecordSchema,
   researchAnalysisSessionRecordSchema,
-  researchAnalysisTimingRecordSchema,
+  researchExportFileNames,
   researchExportManifestSchema,
   researchExportPresentationRecordSchema,
   researchExportResponseRecordSchema,
   researchExportSessionRecordSchema,
   researchExportTimingRecordSchema,
-  researchFreeTextReviewRecordSchema,
   studyConditionSchema,
 } from '@passwo/contracts';
 import Database from 'better-sqlite3';
@@ -39,26 +34,7 @@ import {
 } from './research-export-workbook.js';
 import { mapSessionRow, sessionRowSelection } from './session-row.js';
 
-const sharedExportFileNames = [
-  'sessions.csv',
-  'timing.csv',
-  'responses.csv',
-  'response-presentations.csv',
-  'data-dictionary.csv',
-  'export-guide.csv',
-  'sessions.json',
-  'timing.json',
-  'responses.json',
-  'response-presentations.json',
-  'data-dictionary.json',
-  'export-guide.json',
-  'study-export.xlsx',
-] as const;
-
-const freeTextReviewFileNames = ['free-text-review.csv', 'free-text-review.json'] as const;
-type ExportFileName =
-  | (typeof sharedExportFileNames)[number]
-  | (typeof freeTextReviewFileNames)[number];
+type ExportFileName = ReturnType<typeof researchExportFileNames>[number];
 
 const databaseResponseRowSchema = z.object({
   researchId: z.string(),
@@ -146,30 +122,12 @@ function toAnalysisSession(session: ResearchExportSessionRecord): ResearchAnalys
   return researchAnalysisSessionRecordSchema.parse(analysisSession);
 }
 
-function toAnalysisTiming(
-  event: z.infer<typeof researchExportTimingRecordSchema>,
-): ResearchAnalysisTimingRecord {
-  const { clientMonotonicMs, clientWallClockIso, serverReceivedAtIso, ...analysisEvent } = event;
-  void clientMonotonicMs;
-  void clientWallClockIso;
-  void serverReceivedAtIso;
-  return researchAnalysisTimingRecordSchema.parse(analysisEvent);
-}
-
 function toAnalysisResponse(
   response: ResearchExportResponseRecord,
 ): ResearchAnalysisResponseRecord {
   const { createdAtIso, ...analysisResponse } = response;
   void createdAtIso;
   return researchAnalysisResponseRecordSchema.parse(analysisResponse);
-}
-
-function toAnalysisPresentation(
-  presentation: ResearchExportPresentationRecord,
-): ResearchAnalysisPresentationRecord {
-  const { createdAtIso, ...analysisPresentation } = presentation;
-  void createdAtIso;
-  return researchAnalysisPresentationRecordSchema.parse(analysisPresentation);
 }
 
 function stableJson(value: unknown): string {
@@ -180,6 +138,10 @@ function compactJson(value: unknown): string {
   const serialized = JSON.stringify(value);
   if (serialized === undefined) throw new Error('research-export-json-serialization-failed');
   return serialized;
+}
+
+function responseCell(value: ResearchExportResponseRecord['value']): ResearchWorkbookCell {
+  return Array.isArray(value) ? compactJson(value) : value;
 }
 
 function csvCell(value: ResearchWorkbookCell): string {
@@ -235,20 +197,22 @@ export async function exportResearchData({
   exportedAtIso = new Date().toISOString(),
   profile = 'audit',
 }: ResearchExportOptions): Promise<ResearchExportResult> {
-  const database = new Database(databasePath, { readonly: true });
+  const database = new Database(databasePath, { readonly: true, fileMustExist: true });
   try {
-    const allSessions = database
-      .prepare(`${sessionRowSelection} ORDER BY research_code`)
-      .all()
-      .map(toSessionRecord);
-    const sessions =
-      profile === 'analysis'
-        ? allSessions.filter((session) => session.completionStatus === 'completed')
-        : allSessions;
-    const includedResearchIds = new Set(sessions.map((session) => session.researchId));
-    const timing = database
-      .prepare(
-        `SELECT
+    // All tables must describe the same snapshot, including during concurrent deletion.
+    const { sessions, timing, responses, presentations } = database.transaction(() => {
+      const sessions = database
+        .prepare(`${sessionRowSelection}
+        ${profile === 'analysis' ? "WHERE completion_status = 'completed'" : ''}
+        ORDER BY research_code`)
+        .all()
+        .map(toSessionRecord);
+      const timing =
+        profile === 'analysis'
+          ? []
+          : database
+              .prepare(
+                `SELECT
           session.research_code AS researchId,
           timing.sequence,
           timing.phase,
@@ -263,13 +227,12 @@ export async function exportResearchData({
          FROM timing_events AS timing
          INNER JOIN study_sessions AS session ON session.session_id = timing.session_id
          ORDER BY session.research_code, timing.sequence`,
-      )
-      .all()
-      .map((row) => researchExportTimingRecordSchema.parse(row))
-      .filter((event) => includedResearchIds.has(event.researchId));
-    const responses = database
-      .prepare(
-        `SELECT
+              )
+              .all()
+              .map((row) => researchExportTimingRecordSchema.parse(row));
+      const responses = database
+        .prepare(
+          `SELECT
           session.research_code AS researchId,
           response.instrument_id AS instrumentId,
           response.instrument_version AS instrumentVersion,
@@ -286,18 +249,21 @@ export async function exportResearchData({
              AND submission.instrument_id = response.instrument_id
              AND submission.section_id = response.section_id
          )
+         AND (? = 'audit' OR session.completion_status = 'completed')
          ORDER BY
            session.research_code,
            response.instrument_id,
            response.section_id,
            response.item_id`,
-      )
-      .all()
-      .map(toResponseRecord)
-      .filter((response) => includedResearchIds.has(response.researchId));
-    const presentations = database
-      .prepare(
-        `SELECT
+        )
+        .all(profile)
+        .map(toResponseRecord);
+      const presentations =
+        profile === 'analysis'
+          ? []
+          : database
+              .prepare(
+                `SELECT
           session.research_code AS researchId,
           presentation.instrument_id AS instrumentId,
           presentation.instrument_version AS instrumentVersion,
@@ -313,42 +279,33 @@ export async function exportResearchData({
            presentation.instrument_id,
            presentation.section_id,
            presentation.item_id`,
-      )
-      .all()
-      .map(toPresentationRecord)
-      .filter((presentation) => includedResearchIds.has(presentation.researchId));
+              )
+              .all()
+              .map(toPresentationRecord);
+      return { sessions, timing, responses, presentations };
+    })();
     const dictionary = createResearchDataDictionary();
     const guide = createResearchExportGuide(profile);
-    const textResponseKeys = new Set(
+    const analysisResponseKeys = new Set(
       dictionary
-        .filter((entry) => entry.responseType === 'text')
+        .filter((entry) => entry.responseType !== 'text')
         .map((entry) => `${entry.instrumentId}\u0000${entry.sectionId}\u0000${entry.itemId}`),
     );
-    const isTextResponse = (response: ResearchExportResponseRecord): boolean =>
-      textResponseKeys.has(
-        `${response.instrumentId}\u0000${response.sectionId}\u0000${response.itemId}`,
-      );
-    const freeTextReview = responses.flatMap<ResearchFreeTextReviewRecord>((response) => {
-      if (!isTextResponse(response) || typeof response.value !== 'string') return [];
-      return [
-        researchFreeTextReviewRecordSchema.parse({
-          researchId: response.researchId,
-          instrumentId: response.instrumentId,
-          instrumentVersion: response.instrumentVersion,
-          sectionId: response.sectionId,
-          itemId: response.itemId,
-          value: response.value,
-          reviewStatus: 'pending-review',
-        }),
-      ];
-    });
+    if (
+      profile === 'analysis' &&
+      responses.some(
+        (response) =>
+          !analysisResponseKeys.has(
+            `${response.instrumentId}\u0000${response.sectionId}\u0000${response.itemId}`,
+          ),
+      )
+    ) {
+      // Historical free text stays available in the protected audit export, never silently lost.
+      throw new Error('analysis-export-unsupported-item-use-audit');
+    }
 
     const analysisSessions = sessions.map(toAnalysisSession);
-    const analysisTiming = timing.map(toAnalysisTiming);
-    const analysisResponses = responses
-      .filter((response) => !isTextResponse(response) || response.value === null)
-      .map(toAnalysisResponse);
-    const analysisPresentations = presentations.map(toAnalysisPresentation);
+    const analysisResponses = responses.map(toAnalysisResponse);
     const dictionaryTable: ExportTable = {
       fileName: 'data-dictionary.csv',
       name: 'Variablen',
@@ -529,7 +486,7 @@ export async function exportResearchData({
           response.instrumentVersion,
           response.sectionId,
           response.itemId,
-          compactJson(response.value),
+          responseCell(response.value),
           response.createdAtIso,
         ]),
       },
@@ -558,159 +515,25 @@ export async function exportResearchData({
         ]),
       },
     ];
-    const analysisTables: readonly ExportTable[] = [
-      {
-        fileName: 'sessions.csv',
-        name: 'Sitzungen',
-        columns: [
-          'researchId',
-          'recruitmentSource',
-          'condition',
-          'assignmentMode',
-          'studyVersion',
-          'contentVersion',
-          'questionnaireVersion',
-          'guardrailVersion',
-          'guardrailFormId',
-          'consentVersion',
-          'referenceArtifactVersion',
-          'consentAccepted',
-          'followUpConsent',
-          'followUpVersion',
-          'completionStatus',
-          'technicalErrorCode',
-          'artifactSessionElapsedMs',
-          'webInterruptionCount',
-        ],
-        rows: analysisSessions.map((session) => [
-          session.researchId,
-          session.recruitmentSource,
-          session.condition,
-          session.assignmentMode,
-          session.studyVersion,
-          session.contentVersion,
-          session.questionnaireVersion,
-          session.guardrailVersion,
-          session.guardrailFormId,
-          session.consentVersion,
-          session.referenceArtifactVersion,
-          session.consentAccepted,
-          session.followUpConsent,
-          session.followUpVersion,
-          session.completionStatus,
-          session.technicalErrorCode,
-          session.artifactSessionElapsedMs,
-          session.webInterruptionCount,
-        ]),
-      },
-      {
-        fileName: 'timing.csv',
-        name: 'Timing',
-        columns: [
-          'researchId',
-          'sequence',
-          'phase',
-          'sectionId',
-          'segmentId',
-          'eventType',
-          'elapsedMs',
-          'reasonCode',
-        ],
-        rows: analysisTiming.map((event) => [
-          event.researchId,
-          event.sequence,
-          event.phase,
-          event.sectionId,
-          event.segmentId,
-          event.eventType,
-          event.elapsedMs,
-          event.reasonCode,
-        ]),
-      },
-      {
-        fileName: 'responses.csv',
-        name: 'Antworten',
-        columns: [
-          'researchId',
-          'instrumentId',
-          'instrumentVersion',
-          'sectionId',
-          'itemId',
-          'value',
-        ],
-        rows: analysisResponses.map((response) => [
-          response.researchId,
-          response.instrumentId,
-          response.instrumentVersion,
-          response.sectionId,
-          response.itemId,
-          compactJson(response.value),
-        ]),
-      },
-      {
-        fileName: 'response-presentations.csv',
-        name: 'Präsentationen',
-        columns: [
-          'researchId',
-          'instrumentId',
-          'instrumentVersion',
-          'sectionId',
-          'itemId',
-          'formId',
-          'displayedOptionIds',
-        ],
-        rows: analysisPresentations.map((presentation) => [
-          presentation.researchId,
-          presentation.instrumentId,
-          presentation.instrumentVersion,
-          presentation.sectionId,
-          presentation.itemId,
-          presentation.formId,
-          compactJson(presentation.displayedOptionIds),
-        ]),
-      },
-      {
-        fileName: 'free-text-review.csv',
-        name: 'Freitextprüfung',
-        columns: [
-          'researchId',
-          'instrumentId',
-          'instrumentVersion',
-          'sectionId',
-          'itemId',
-          'value',
-          'reviewStatus',
-        ],
-        rows: freeTextReview.map((review) => [
-          review.researchId,
-          review.instrumentId,
-          review.instrumentVersion,
-          review.sectionId,
-          review.itemId,
-          review.value,
-          review.reviewStatus,
-        ]),
-      },
-    ];
-    const dataTables = profile === 'audit' ? auditTables : analysisTables;
+    const dataTables =
+      profile === 'audit'
+        ? auditTables
+        : auditTables
+            .filter(
+              (table) => table.fileName === 'sessions.csv' || table.fileName === 'responses.csv',
+            )
+            .map((table) => {
+              const indices = table.columns.flatMap((column, index) =>
+                column === 'createdAtIso' || column === 'completedAtIso' ? [] : [index],
+              );
+              return {
+                ...table,
+                columns: table.columns.filter((_, index) => indices.includes(index)),
+                rows: table.rows.map((row) => row.filter((_, index) => indices.includes(index))),
+              };
+            });
     const tables = [guideTable, ...dataTables, dictionaryTable];
-    const targetFileNames: ExportFileName[] = [
-      ...dataTables.map((table) => table.fileName),
-      dictionaryTable.fileName,
-      guideTable.fileName,
-      'sessions.json',
-      'timing.json',
-      'responses.json',
-      'response-presentations.json',
-      'data-dictionary.json',
-      'export-guide.json',
-      'study-export.xlsx',
-      ...(profile === 'analysis'
-        ? freeTextReviewFileNames.filter((fileName) => fileName.endsWith('.json'))
-        : []),
-    ];
-
-    assertEmptyExportTarget(outputDirectory, targetFileNames);
+    assertEmptyExportTarget(outputDirectory, researchExportFileNames(profile));
     const workbook = await createResearchWorkbook({ exportedAtIso, sheets: tables });
     const tabularFiles: ExportFile[] = dataTables.map((table) => ({
       fileName: table.fileName,
@@ -727,36 +550,33 @@ export async function exportResearchData({
       },
     );
     const exportedSessions = profile === 'audit' ? sessions : analysisSessions;
-    const exportedTiming = profile === 'audit' ? timing : analysisTiming;
     const exportedResponses = profile === 'audit' ? responses : analysisResponses;
-    const exportedPresentations = profile === 'audit' ? presentations : analysisPresentations;
     const files: ExportFile[] = [
       ...tabularFiles,
       { fileName: 'sessions.json', content: stableJson(exportedSessions) },
-      { fileName: 'timing.json', content: stableJson(exportedTiming) },
       { fileName: 'responses.json', content: stableJson(exportedResponses) },
-      {
-        fileName: 'response-presentations.json',
-        content: stableJson(exportedPresentations),
-      },
+      ...(profile === 'audit'
+        ? ([
+            { fileName: 'timing.json', content: stableJson(timing) },
+            { fileName: 'response-presentations.json', content: stableJson(presentations) },
+          ] satisfies ExportFile[])
+        : []),
       { fileName: 'data-dictionary.json', content: stableJson(dictionary) },
       { fileName: 'export-guide.json', content: stableJson(guide) },
-      ...(profile === 'analysis'
-        ? ([
-            { fileName: 'free-text-review.json', content: stableJson(freeTextReview) },
-          ] satisfies readonly ExportFile[])
-        : []),
       { fileName: 'study-export.xlsx', content: workbook },
     ];
 
     for (const file of files) {
-      writeFileSync(join(outputDirectory, file.fileName), file.content, { mode: 0o600 });
+      writeFileSync(join(outputDirectory, file.fileName), file.content, {
+        mode: 0o600,
+        flag: 'wx',
+      });
     }
 
     const manifest = researchExportManifestSchema.parse({
-      schemaVersion: 'research-export-v9',
+      schemaVersion: 'research-export-v10',
       profile,
-      schemaProfileVersion: profile === 'audit' ? 'research-audit-v4' : 'research-analysis-v4',
+      schemaProfileVersion: profile === 'audit' ? 'research-audit-v5' : 'research-analysis-v5',
       exportedAtIso,
       runtimeManifestVersion: instrumentRuntimeManifest.runtimeManifestVersion,
       versions: {
@@ -771,13 +591,12 @@ export async function exportResearchData({
         ),
       },
       sessionCounts: sessionCounts(sessions),
-      freeTextReview: {
-        recordCount: freeTextReview.length,
-        status: profile === 'audit' ? 'included-in-audit' : 'pending-review',
-      },
       files: files.map((file) => ({ fileName: file.fileName, sha256: sha256(file.content) })),
     });
-    writeFileSync(join(outputDirectory, 'manifest.json'), stableJson(manifest), { mode: 0o600 });
+    writeFileSync(join(outputDirectory, 'manifest.json'), stableJson(manifest), {
+      mode: 0o600,
+      flag: 'wx',
+    });
 
     return { files: [...files.map((file) => file.fileName), 'manifest.json'], manifest };
   } finally {
