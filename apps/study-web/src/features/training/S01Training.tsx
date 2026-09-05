@@ -11,7 +11,7 @@ import {
   type BrowserShellSnapshot,
   type DesktopPlatform,
 } from '@passwo/ui';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useId, useRef, useState } from 'react';
 import { NetworkSymbol } from '../../adapters/network/NetworkSymbolRegistry.js';
 import { AccountSuccessOverlay } from './AccountSuccessOverlay.js';
 import { CampusWebsiteBackdrop } from './CampusWebsiteBackdrop.js';
@@ -51,6 +51,7 @@ export function S01Training({
   onRetryExternalTiming,
   initialAuthenticationAccountId,
 }: S01TrainingProps) {
+  const entryId = useId();
   const [revealedAccountIds, setRevealedAccountIds] = useState<ReadonlySet<string>>(
     () => new Set(),
   );
@@ -320,14 +321,14 @@ export function S01Training({
                 <div className={styles.passwordFieldHeader}>
                   <label
                     className={styles.passwordLabel}
-                    htmlFor={`s01-simulated-entry-${account.id}`}
+                    htmlFor={entryId}
                   >
                     {s01Content.controls.passwordLabel}
                   </label>
                   {passwordInput.tooLong ? (
                     <p
                       className={styles.passwordLimitWarning}
-                      id={`fictional-password-limit-${account.id}`}
+                      id={`${entryId}-limit`}
                       role="alert"
                     >
                       {s01Content.controls.passwordTooLong}
@@ -343,14 +344,14 @@ export function S01Training({
                   }
                 >
                   <SimulatedPasswordInput
-                    id={`s01-simulated-entry-${account.id}`}
+                    id={entryId}
                     masked={!revealedAccountIds.has(account.id)}
                     maxLength={MAX_FICTIONAL_PASSWORD_LENGTH}
                     spellCheck={false}
                     disabled={!editing || interactionBlocked}
                     value={activeValue}
                     aria-describedby={
-                      passwordInput.tooLong ? `fictional-password-limit-${account.id}` : undefined
+                      passwordInput.tooLong ? `${entryId}-limit` : undefined
                     }
                     aria-invalid={passwordInput.tooLong || undefined}
                     onBeforeInput={passwordInput.onBeforeInput}

@@ -11,7 +11,7 @@ import {
   type DesktopPlatform,
 } from '@passwo/ui';
 import { useMachine } from '@xstate/react';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useId, useMemo, useState } from 'react';
 import { NetworkSymbol } from '../../../../adapters/network/NetworkSymbolRegistry.js';
 import myShopSummerSaleAsset from '../../../../assets/s13/my-shop-summer-sale.png';
 import { AccountSuccessOverlay } from '../../AccountSuccessOverlay.js';
@@ -292,6 +292,7 @@ function AuthBackdrop({
   readonly onStoredEntryDismiss: () => void;
   readonly onLogin: (password: string) => void;
 }) {
+  const entryId = useId();
   const content = s13PasswordManagerPracticeContent;
   const login = mode === 'login';
   const canSubmitLogin =
@@ -303,6 +304,8 @@ function AuthBackdrop({
         <MyShopBrand idSuffix={`auth-${mode}`} />
         <form
           className={styles.authCard}
+          autoComplete="off"
+          data-form-type="other"
           data-invalid={loginInvalid || undefined}
           data-invalid-animation={loginInvalid ? failedLoginAttempts % 2 : undefined}
           noValidate
@@ -314,7 +317,7 @@ function AuthBackdrop({
           }}
         >
           <h1>{login ? content.website.loginTitle : content.website.registrationTitle}</h1>
-          <label htmlFor={`s13-email-${mode}`}>{content.website.emailLabel}</label>
+          <label htmlFor={`${entryId}-account`}>{content.website.emailLabel}</label>
           <div
             className={styles.emailControl}
             onBlur={(event) => {
@@ -324,11 +327,19 @@ function AuthBackdrop({
             }}
           >
             <input
-              id={`s13-email-${mode}`}
+              id={`${entryId}-account`}
+              name="passwo-simulated-account"
               className={styles.emailField}
               type="text"
               inputMode="email"
               autoComplete="off"
+              autoCapitalize="none"
+              autoCorrect="off"
+              spellCheck={false}
+              data-form-type="other"
+              data-lpignore="true"
+              data-1p-ignore="true"
+              data-bwignore="true"
               readOnly={!login}
               value={emailValue}
               placeholder={content.website.emailPlaceholder}
@@ -355,9 +366,9 @@ function AuthBackdrop({
               else onPasswordSuggestionDismiss();
             }}
           >
-            <label htmlFor={`s13-password-${mode}`}>{content.website.passwordLabel}</label>
+            <label htmlFor={entryId}>{content.website.passwordLabel}</label>
             <PasswordField
-              id={`s13-password-${mode}`}
+              id={entryId}
               value={passwordValue}
               placeholder={content.website.passwordPlaceholder}
               assisted={login ? passwordAutofilled : passwordGenerated}

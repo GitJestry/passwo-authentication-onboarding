@@ -15,7 +15,7 @@ import {
   type BrowserShellSnapshot,
   type DesktopPlatform,
 } from '@passwo/ui';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useId, useRef, useState } from 'react';
 import { NetworkSymbol } from '../../../../adapters/network/NetworkSymbolRegistry.js';
 import { AccountSuccessOverlay } from '../../AccountSuccessOverlay.js';
 import { CampusWebsiteBackdrop } from '../../CampusWebsiteBackdrop.js';
@@ -180,6 +180,7 @@ export function S03RetrievalTraining({
   onRetryExternalTiming,
   initialLoginAccountId,
 }: S03RetrievalTrainingProps) {
+  const entryId = useId();
   const trainingRootRef = useRef<HTMLElement | null>(null);
   const loginTitleRef = useRef<HTMLHeadingElement | null>(null);
   const assistedLoginButtonRef = useRef<HTMLButtonElement | null>(null);
@@ -622,6 +623,8 @@ export function S03RetrievalTraining({
                   >
                     <form
                       className={styles.authCard}
+                      autoComplete="off"
+                      data-form-type="other"
                       data-assisted={autofillingActive || assistedLoginActive || undefined}
                       data-invalid={invalidLoginActive || undefined}
                       data-invalid-animation={
@@ -665,12 +668,12 @@ export function S03RetrievalTraining({
                     >
                       <label
                         className={styles.usernameLabel}
-                        htmlFor={`s03-username-${account.id}`}
+                        htmlFor={`${entryId}-account`}
                       >
                         {s03Content.controls.accountDataLabel}
                       </label>
                       <input
-                        id={`s03-username-${account.id}`}
+                        id={`${entryId}-account`}
                         className={styles.usernameInput}
                         name="passwo-account-label"
                         type="text"
@@ -682,14 +685,14 @@ export function S03RetrievalTraining({
                       <div className={styles.passwordFieldHeader}>
                         <label
                           className={styles.passwordLabel}
-                          htmlFor={`s03-password-${account.id}`}
+                          htmlFor={entryId}
                         >
                           {s03Content.controls.passwordLabel}
                         </label>
                         {passwordInput.tooLong ? (
                           <p
                             className={styles.passwordLimitWarning}
-                            id={`s03-password-limit-${account.id}`}
+                            id={`${entryId}-limit`}
                             role="alert"
                           >
                             {s03Content.controls.passwordTooLong}
@@ -708,7 +711,7 @@ export function S03RetrievalTraining({
                         }
                       >
                         <SimulatedPasswordInput
-                          id={`s03-password-${account.id}`}
+                          id={entryId}
                           masked={!revealedAccountIds.has(account.id)}
                           maxLength={MAX_FICTIONAL_PASSWORD_LENGTH}
                           spellCheck={false}
@@ -717,9 +720,9 @@ export function S03RetrievalTraining({
                           aria-readonly={autofillingActive || assistedLoginActive || undefined}
                           aria-invalid={invalidLoginActive || passwordInput.tooLong || undefined}
                           aria-describedby={[
-                            invalidLoginActive ? `s03-password-error-${account.id}` : undefined,
+                            invalidLoginActive ? `${entryId}-error` : undefined,
                             passwordInput.tooLong
-                              ? `s03-password-limit-${account.id}`
+                              ? `${entryId}-limit`
                               : undefined,
                           ]
                             .filter((descriptionId): descriptionId is string => descriptionId !== undefined)
@@ -769,7 +772,7 @@ export function S03RetrievalTraining({
                       </span>
                       {invalidLoginActive ? (
                         <p
-                          id={`s03-password-error-${account.id}`}
+                          id={`${entryId}-error`}
                           className={styles.loginError}
                           role="alert"
                         >

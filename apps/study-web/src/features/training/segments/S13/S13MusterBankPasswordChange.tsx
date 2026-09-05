@@ -11,6 +11,7 @@ import {
   type ReactNode,
   useCallback,
   useEffect,
+  useId,
   useMemo,
   useRef,
   useState,
@@ -271,6 +272,7 @@ function BankLogin({
   readonly onPasswordVisibilityToggle: () => void;
   readonly onLogin: () => void;
 }) {
+  const entryId = useId();
   const content = s13PasswordManagerPracticeContent.bank;
   return (
     <main className={styles.bankLoginPage}>
@@ -278,6 +280,8 @@ function BankLogin({
         <MusterBankBrand />
         <form
           className={styles.bankLoginCard}
+          autoComplete="off"
+          data-form-type="other"
           data-invalid={invalid || undefined}
           data-invalid-animation={invalid ? failedLoginAttempts % 2 : undefined}
           aria-label={content.website.loginTitle}
@@ -287,7 +291,7 @@ function BankLogin({
           }}
         >
           <h1>{content.website.loginTitle}</h1>
-          <label htmlFor="s13-bank-login-username">{content.website.usernameLabel}</label>
+          <label htmlFor={`${entryId}-account`}>{content.website.usernameLabel}</label>
           <div
             className={styles.bankLoginUsername}
             onBlur={(event) => {
@@ -297,9 +301,17 @@ function BankLogin({
             }}
           >
             <input
-              id="s13-bank-login-username"
+              id={`${entryId}-account`}
+              name="passwo-simulated-account"
               type="text"
               autoComplete="off"
+              autoCapitalize="none"
+              autoCorrect="off"
+              spellCheck={false}
+              data-form-type="other"
+              data-lpignore="true"
+              data-1p-ignore="true"
+              data-bwignore="true"
               value={username}
               readOnly={autofilling}
               data-assisted={username.length > 0 || undefined}
@@ -311,7 +323,7 @@ function BankLogin({
               <BankAutofillList entries={entries} onSelect={onStoredEntrySelect} />
             ) : null}
           </div>
-          <label htmlFor="s13-bank-login-password">{content.website.passwordLabel}</label>
+          <label htmlFor={entryId}>{content.website.passwordLabel}</label>
           <div
             className={styles.bankLoginPassword}
             onBlur={(event) => {
@@ -321,7 +333,7 @@ function BankLogin({
             }}
           >
             <PasswordControl
-              id="s13-bank-login-password"
+              id={entryId}
               value={password}
               label={content.website.passwordLabel}
               revealed={passwordRevealed}

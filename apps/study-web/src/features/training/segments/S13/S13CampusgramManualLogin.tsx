@@ -10,7 +10,7 @@ import {
   type DesktopPlatform,
 } from '@passwo/ui';
 import { useMachine } from '@xstate/react';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useId, useMemo, useRef, useState } from 'react';
 import { NetworkSymbol } from '../../../../adapters/network/NetworkSymbolRegistry.js';
 import { AccountSuccessOverlay } from '../../AccountSuccessOverlay.js';
 import { CampusWebsiteBackdrop } from '../../CampusWebsiteBackdrop.js';
@@ -476,6 +476,7 @@ function CampusgramLogin({
   readonly onPasswordVisibilityToggle: () => void;
 }) {
   const content = s13PasswordManagerPracticeContent.campusgram.website;
+  const entryId = useId();
   const passwordInputRef = useRef<HTMLInputElement | null>(null);
   return (
     <CampusWebsiteBackdrop
@@ -486,6 +487,8 @@ function CampusgramLogin({
     >
       <form
         className={styles.campusgramLoginCard}
+        autoComplete="off"
+        data-form-type="other"
         data-invalid={loginError !== null || undefined}
         data-invalid-animation={
           loginError === null ? undefined : failedLoginAttempts % 2
@@ -495,24 +498,32 @@ function CampusgramLogin({
           if (passwordValue.length > 0) onLogin();
         }}
       >
-        <label htmlFor="s13-campusgram-email">{content.emailLabel}</label>
+        <label htmlFor={`${entryId}-account`}>{content.emailLabel}</label>
         <input
-          id="s13-campusgram-email"
+          id={`${entryId}-account`}
+          name="passwo-simulated-account"
           type="text"
           autoComplete="off"
+          autoCapitalize="none"
+          autoCorrect="off"
+          spellCheck={false}
+          data-form-type="other"
+          data-lpignore="true"
+          data-1p-ignore="true"
+          data-bwignore="true"
           readOnly
           value={email}
         />
-        <label htmlFor="s13-campusgram-password">{content.passwordLabel}</label>
+        <label htmlFor={entryId}>{content.passwordLabel}</label>
         <span className={styles.campusgramPasswordControl}>
           <SimulatedPasswordInput
             ref={passwordInputRef}
-            id="s13-campusgram-password"
+            id={entryId}
             masked={!passwordRevealed}
             value={passwordValue}
             placeholder={content.passwordPlaceholder}
             aria-invalid={loginError !== null || undefined}
-            aria-describedby={loginError === null ? undefined : 's13-campusgram-password-error'}
+            aria-describedby={loginError === null ? undefined : `${entryId}-error`}
             onFocus={onPasswordFocus}
             onClick={onPasswordFocus}
             onChange={(event) => onPasswordChange(event.currentTarget.value)}
@@ -541,7 +552,7 @@ function CampusgramLogin({
           ) : null}
         </span>
         {loginError === null ? null : (
-          <p id="s13-campusgram-password-error" className={styles.loginError} role="alert">
+          <p id={`${entryId}-error`} className={styles.loginError} role="alert">
             <span aria-hidden="true">!</span>
             {loginError}
           </p>

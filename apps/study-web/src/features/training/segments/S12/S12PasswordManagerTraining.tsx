@@ -187,20 +187,21 @@ export function PasswordManagerVaultVisual({
         <span className={styles.vaultHinge} aria-hidden="true" />
         <span className={styles.vaultHinge} aria-hidden="true" />
         <div className={styles.vaultDoor} aria-hidden="true">
-          <span className={styles.vaultDoorEdge} />
-          <span className={styles.vaultDoorInset} />
-          <span className={styles.vaultWheel}>
-            <i />
-            <i />
-            <i />
-            <i />
-          </span>
-          <span className={styles.vaultLock}>
-            <i />
-          </span>
-          {!open && !compact && !hideCount ? (
-            <span className={styles.vaultCount}>{storedCount}</span>
-          ) : null}
+          <div className={styles.vaultDoorFront}>
+            <span className={styles.vaultDoorInset} />
+            <span className={styles.vaultWheel}>
+              <i />
+              <i />
+              <i />
+              <i />
+            </span>
+            <span className={styles.vaultLock}>
+              <i />
+            </span>
+            {!open && !compact && !hideCount ? (
+              <span className={styles.vaultCount}>{storedCount}</span>
+            ) : null}
+          </div>
         </div>
       </div>
       <span className={styles.vaultBase} aria-hidden="true" />
