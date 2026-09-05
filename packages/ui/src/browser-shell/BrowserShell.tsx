@@ -12,6 +12,7 @@ import {
   DesktopSurface,
   type DesktopPlatform,
 } from '../desktop-shell/DesktopSurface.js';
+import { focusButtonOnMouseDown } from '../focus-button-on-mouse-down.js';
 import styles from './BrowserShell.module.css';
 
 export interface BrowserTabModel {
@@ -622,6 +623,7 @@ export function BrowserShell({
                     aria-expanded={snapshot.menu.open === true}
                     data-highlighted={snapshot.menu.highlighted || undefined}
                     disabled={!menuInteractive}
+                    onMouseDown={focusButtonOnMouseDown}
                     onClick={() => onMenuOpenChange?.(snapshot.menu?.open !== true)}
                   >
                     <BrowserChromeIcon kind="menu" />
@@ -651,6 +653,7 @@ export function BrowserShell({
                             role="menuitem"
                             className={styles.browserMenuItem}
                             data-separator-after={item.separatorAfter || undefined}
+                            onMouseDown={focusButtonOnMouseDown}
                             onClick={() => onMenuItemSelect?.(item.id)}
                           >
                             {itemContent}

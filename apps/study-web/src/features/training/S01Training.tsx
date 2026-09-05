@@ -310,6 +310,8 @@ export function S01Training({
               </dl>
               <form
                 className={styles.passwordForm}
+                autoComplete="off"
+                data-form-type="other"
                 onSubmit={(event) => {
                   event.preventDefault();
                   if (canConfigure) controller.configureAccount(account.id);
@@ -318,7 +320,7 @@ export function S01Training({
                 <div className={styles.passwordFieldHeader}>
                   <label
                     className={styles.passwordLabel}
-                    htmlFor={`fictional-password-${account.id}`}
+                    htmlFor={`s01-simulated-entry-${account.id}`}
                   >
                     {s01Content.controls.passwordLabel}
                   </label>
@@ -341,7 +343,7 @@ export function S01Training({
                   }
                 >
                   <SimulatedPasswordInput
-                    id={`fictional-password-${account.id}`}
+                    id={`s01-simulated-entry-${account.id}`}
                     masked={!revealedAccountIds.has(account.id)}
                     maxLength={MAX_FICTIONAL_PASSWORD_LENGTH}
                     spellCheck={false}

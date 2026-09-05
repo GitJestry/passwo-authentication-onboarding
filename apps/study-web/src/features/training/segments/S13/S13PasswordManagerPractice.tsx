@@ -6,6 +6,7 @@ import {
 import { deriveCampusIdentity } from '@passwo/training-engine';
 import {
   BrowserShell,
+  focusButtonOnMouseDown,
   type BrowserShellSnapshot,
   type DesktopPlatform,
 } from '@passwo/ui';
@@ -175,6 +176,7 @@ function PasswordField({
           revealed ? content.website.hidePasswordLabel : content.website.showPasswordLabel
         }
         onClick={onToggleVisibility}
+        onMouseDown={focusButtonOnMouseDown}
       >
         <PasswordVisibilityIcon revealed={revealed} />
       </button>
@@ -211,6 +213,7 @@ function AutofillList({
           role="option"
           aria-label={`${entry.label}, ${entry.identifier}`}
           onClick={() => onSelect(entry)}
+          onMouseDown={focusButtonOnMouseDown}
         >
           {entry.id === 'my-shop' ? (
             <MyShopAppIcon idSuffix="stored-entry" />
@@ -382,6 +385,7 @@ function AuthBackdrop({
                 type="button"
                 className={styles.passwordSuggestion}
                 onClick={onPasswordSuggestionSelect}
+                onMouseDown={focusButtonOnMouseDown}
               >
                 <PasswordManagerKeyIcon />
                 <span>{content.passwordManager.suggestAction}</span>

@@ -1,6 +1,7 @@
 import { s13PasswordManagerPracticeContent } from '@passwo/training-content';
 import {
   BrowserShell,
+  focusButtonOnMouseDown,
   type BrowserShellSnapshot,
   type DesktopPlatform,
 } from '@passwo/ui';
@@ -148,6 +149,7 @@ function PasswordControl({
         }
         aria-pressed={revealed}
         onClick={onToggle}
+        onMouseDown={focusButtonOnMouseDown}
       >
         <PasswordVisibilityIcon revealed={revealed} />
       </button>
@@ -186,6 +188,7 @@ function BankAutofillList({
           role="option"
           aria-label={`${entry.label}, ${entry.identifier}`}
           onClick={() => onSelect(entry)}
+          onMouseDown={focusButtonOnMouseDown}
         >
           {entry.id === 'muster-bank' ? (
             <MusterBankMark />
@@ -721,6 +724,7 @@ function BankPasswordChange({
               type="button"
               className={`${sharedStyles.passwordSuggestion} ${styles.bankPasswordSuggestion}`}
               onClick={onSuggestionSelect}
+              onMouseDown={focusButtonOnMouseDown}
             >
               <PasswordManagerKeyIcon />
               <span>{content.passwordManager.suggestAction}</span>
@@ -754,6 +758,7 @@ function BankPasswordChange({
               type="button"
               className={`${sharedStyles.passwordSuggestion} ${styles.bankPasswordSuggestion}`}
               onClick={onSuggestionSelect}
+              onMouseDown={focusButtonOnMouseDown}
             >
               <PasswordManagerKeyIcon />
               <span>{content.passwordManager.suggestAction}</span>

@@ -52,6 +52,8 @@ rsync -az --delete --no-owner --no-group \
   --exclude '.git/' \
   --exclude 'node_modules/' \
   --exclude '.pnpm-store/' \
+  --exclude 'playwright-report/' \
+  --exclude 'test-results/' \
   --exclude '.DS_Store' \
   --exclude 'apps/study-desktop/out/' \
   --exclude 'research/private/' \
