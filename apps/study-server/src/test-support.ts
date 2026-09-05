@@ -158,9 +158,7 @@ export async function createSession(
 }
 
 function validValue(item: InstrumentRuntimeItem): InstrumentResponseValue {
-  if (item.type === 'integer') return item.min ?? 1;
   if (item.type === 'scale' || item.type === 'semanticDifferential') return 1;
-  if (item.type === 'text') return null;
   const optionId = item.options?.[0]?.id;
   if (optionId === undefined) throw new Error(`missing-test-option-${item.id}`);
   return item.type === 'multiChoice' ? [optionId] : optionId;

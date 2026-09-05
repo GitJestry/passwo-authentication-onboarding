@@ -40,7 +40,6 @@ function fail(message) {
 }
 
 function validInstrumentValue(item) {
-  if (item.type === 'integer') return item.min ?? 0;
   if (item.type === 'scale') {
     const scale = instrumentRuntimeManifest.scales[item.scale];
     if (scale === undefined) fail(`scale ${String(item.scale)} is missing.`);
@@ -50,7 +49,6 @@ function validInstrumentValue(item) {
     const scale = instrumentRuntimeManifest.scales.ueqSemanticDifferential7;
     return Math.floor((scale.min + scale.max) / 2);
   }
-  if (item.type === 'text') return null;
   const optionId = item.options?.[0]?.id;
   if (optionId === undefined) fail(`option for ${String(item.id)} is missing.`);
   return item.type === 'multiChoice' ? [optionId] : optionId;

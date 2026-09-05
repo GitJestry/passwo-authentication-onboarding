@@ -21,8 +21,6 @@ type SemanticDifferentialItem = Extract<
   QuestionnaireItem,
   { readonly type: 'semanticDifferential' }
 >;
-type IntegerItem = Extract<QuestionnaireItem, { readonly type: 'integer' }>;
-type TextItem = Extract<QuestionnaireItem, { readonly type: 'text' }>;
 type Agreement7Item = ScaleItem & { readonly scale: 'agreement7' };
 type PanasIntensity5Item = ScaleItem & { readonly scale: 'panasIntensity5' };
 type Confidence11Item = ScaleItem & { readonly scale: 'confidence11' };
@@ -726,84 +724,6 @@ function UeqSemanticDifferential7({
   );
 }
 
-function IntegerField({
-  item,
-  value,
-  invalid,
-  onChange,
-}: {
-  readonly item: IntegerItem;
-  readonly value: number | undefined;
-  readonly invalid: boolean;
-  readonly onChange: (value: number | undefined) => void;
-}) {
-  return (
-    <div className={fieldClassName(invalid)}>
-      <label className={styles.fieldLabel} htmlFor={item.id}>
-        {item.prompt}
-      </label>
-      <div className={styles.numberInputGroup}>
-        <input
-          className={styles.numberInput}
-          id={item.id}
-          name={item.id}
-          type="number"
-          inputMode="numeric"
-          min={item.min}
-          max={item.max}
-          step={1}
-          value={value ?? ''}
-          required
-          aria-describedby={invalid ? `${item.id}-error` : undefined}
-          aria-invalid={invalid}
-          onChange={(event) => {
-            const nextValue = event.currentTarget.value;
-            onChange(nextValue === '' ? undefined : event.currentTarget.valueAsNumber);
-          }}
-        />
-        <span>Minuten</span>
-      </div>
-      <p className={styles.fieldHint}>
-        Ganze Zahl von {item.min} bis {item.max}
-      </p>
-      <FieldError invalid={invalid} itemId={item.id} />
-    </div>
-  );
-}
-
-function OptionalTextField({
-  item,
-  value,
-  invalid,
-  onChange,
-}: {
-  readonly item: TextItem;
-  readonly value: string;
-  readonly invalid: boolean;
-  readonly onChange: (value: string) => void;
-}) {
-  return (
-    <div className={fieldClassName(invalid)}>
-      <label className={styles.fieldLabel} htmlFor={item.id}>
-        {item.prompt}
-      </label>
-      <p className={styles.fieldHint}>Optional, maximal {item.maxLength} Zeichen</p>
-      <textarea
-        className={styles.textarea}
-        id={item.id}
-        name={item.id}
-        value={value}
-        maxLength={item.maxLength}
-        rows={5}
-        aria-describedby={invalid ? `${item.id}-error` : undefined}
-        aria-invalid={invalid}
-        onChange={(event) => onChange(event.currentTarget.value)}
-      />
-      <FieldError invalid={invalid} itemId={item.id} />
-    </div>
-  );
-}
-
 function invalidSubmissionItems(submission: InstrumentSubmissionRequest): Set<string> | null {
   const result = instrumentSubmissionRequestSchema.safeParse(submission);
   if (result.success) return null;
@@ -824,19 +744,6 @@ function invalidSubmissionItems(submission: InstrumentSubmissionRequest): Set<st
     for (const response of submission.responses) invalidItemIds.add(response.itemId);
   }
   return invalidItemIds;
-}
-
-function questionnaireValue(
-  item: QuestionnaireItem,
-  draftValue: InstrumentResponseValue | undefined,
-): InstrumentResponseValue {
-  if (item.type === 'text') {
-    return typeof draftValue === 'string' && draftValue.trim().length > 0 ? draftValue : null;
-  }
-  if (item.type === 'singleChoice' && item.participantOptional === true) {
-    return draftValue ?? null;
-  }
-  return draftValue ?? null;
 }
 
 function stringDraftValue(value: InstrumentResponseValue | undefined): string | undefined {
@@ -891,24 +798,6 @@ function QuestionnaireItemField({
       ) : null;
     case 'semanticDifferential':
       return null;
-    case 'integer':
-      return (
-        <IntegerField
-          item={item}
-          value={typeof value === 'number' ? value : undefined}
-          invalid={invalid}
-          onChange={onChange}
-        />
-      );
-    case 'text':
-      return (
-        <OptionalTextField
-          item={item}
-          value={typeof value === 'string' ? value : ''}
-          invalid={invalid}
-          onChange={onChange}
-        />
-      );
   }
 }
 
@@ -1126,7 +1015,7 @@ export function QuestionnaireSectionForm<TInstrumentId extends QuestionnaireInst
       sectionId: section.id,
       responses: section.items.map((item) => ({
         itemId: item.id,
-        value: questionnaireValue(item, draft[item.id]),
+        value: draft[item.id] ?? null,
       })),
     };
   }

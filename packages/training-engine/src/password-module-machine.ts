@@ -793,9 +793,3 @@ export function getRetrievedAccountCount(context: PasswordModuleContext): number
     return result === 'retrievable' || result === 'assisted';
   }).length;
 }
-
-export function getRememberedAccountCount(context: PasswordModuleContext): number {
-  return context.accountIds.filter(
-    (accountId) => context.retrievalResults[accountId] === 'retrievable',
-  ).length;
-}

@@ -19,9 +19,6 @@ import {
 
 export const SELF_CREATED_PASSWORD_LENGTH_ORIENTATION = 15;
 
-/** @deprecated Use the shared MAX_SIMULATION_CANDIDATES boundary. */
-export const MAX_BOUNDED_RESIDUAL_CANDIDATES = MAX_SIMULATION_CANDIDATES;
-
 export interface PasswordSimulationDispositionInput {
   readonly fictionalPassword: string;
   readonly componentAnalysis: PasswordAnalysisResult;

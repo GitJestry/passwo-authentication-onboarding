@@ -45,7 +45,6 @@ const writeHeaders = {
 } as const;
 
 function validValue(item: InstrumentRuntimeItem): InstrumentResponseValue {
-  if (item.type === 'integer') return item.min ?? 0;
   if (item.type === 'scale') {
     const scales: Readonly<Record<string, { readonly min: number; readonly max: number }>> =
       instrumentRuntimeManifest.scales;
@@ -57,7 +56,6 @@ function validValue(item: InstrumentRuntimeItem): InstrumentResponseValue {
     const scale = instrumentRuntimeManifest.scales.ueqSemanticDifferential7;
     return Math.floor((scale.min + scale.max) / 2);
   }
-  if (item.type === 'text') return null;
   const optionId = item.options?.[0]?.id;
   if (optionId === undefined) throw new Error(`qa-option-missing-${item.id}`);
   return item.type === 'multiChoice' ? [optionId] : optionId;

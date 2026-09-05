@@ -66,31 +66,11 @@ const semanticDifferentialItemSchema = z
     right: participantTextSchema,
   })
   .strict();
-const integerItemSchema = z
-  .object({
-    id: stableIdSchema,
-    type: z.literal('integer'),
-    min: z.number().int(),
-    max: z.number().int(),
-    prompt: participantTextSchema,
-  })
-  .strict();
-const textItemSchema = z
-  .object({
-    id: stableIdSchema,
-    type: z.literal('text'),
-    prompt: participantTextSchema,
-    participantOptional: z.literal(true),
-    maxLength: z.number().int().positive().max(10_000),
-  })
-  .strict();
 const typedItemSchema = z.discriminatedUnion('type', [
   singleChoiceItemSchema,
   multiChoiceItemSchema,
   scaleItemSchema,
   semanticDifferentialItemSchema,
-  integerItemSchema,
-  textItemSchema,
 ]);
 
 const sectionSchema = z
@@ -433,9 +413,6 @@ export interface InstrumentRuntimeItem {
   readonly id: string;
   readonly type?: string | undefined;
   readonly scale?: string | undefined;
-  readonly min?: number | undefined;
-  readonly max?: number | undefined;
-  readonly maxLength?: number | undefined;
   readonly participantOptional?: true | undefined;
   readonly options?: readonly { readonly id: string }[] | undefined;
   readonly exclusiveOptions?: readonly string[] | undefined;
@@ -525,19 +502,6 @@ function validateItemValue(
     }
     return;
   }
-  if (item.type === 'integer') {
-    if (
-      typeof value !== 'number' ||
-      !Number.isInteger(value) ||
-      item.min === undefined ||
-      item.max === undefined ||
-      value < item.min ||
-      value > item.max
-    ) {
-      addValueIssue(context, item.id, 'invalid-integer-value');
-    }
-    return;
-  }
   if (item.type === 'semanticDifferential') {
     const scale = instrumentRuntimeManifest.scales.ueqSemanticDifferential7;
     if (
@@ -550,19 +514,6 @@ function validateItemValue(
     }
     return;
   }
-  if (item.type === 'text') {
-    if (value === null) return;
-    if (
-      typeof value !== 'string' ||
-      value.trim().length === 0 ||
-      item.maxLength === undefined ||
-      value.length > item.maxLength
-    ) {
-      addValueIssue(context, item.id, 'invalid-text-value');
-    }
-    return;
-  }
-
   const optionIds = new Set(item.options?.map((option) => option.id) ?? []);
   if (item.type === 'multiChoice') {
     if (

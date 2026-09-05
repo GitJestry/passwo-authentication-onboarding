@@ -17,7 +17,6 @@ import {
   createSystemGeneratedSearchSpaceModel,
   createTheoreticalSearchSpaceModel,
   determinePasswordSimulationDisposition,
-  MAX_EXHAUSTIVE_SEARCH_CANDIDATES,
   MAX_SIMULATION_CANDIDATES,
   projectS07Recommendations,
 } from './index.js';
@@ -84,7 +83,6 @@ describe('exact theoretical search-space demonstrations', () => {
 
   it('uses the displayed twelve-lowercase example as the shared simulation boundary', () => {
     expect(MAX_SIMULATION_CANDIDATES).toBe(95_428_956_661_682_176n);
-    expect(MAX_EXHAUSTIVE_SEARCH_CANDIDATES).toBe(MAX_SIMULATION_CANDIDATES);
     expect(
       createFictionalPasswordExhaustiveSearchModel('kfxqztmpvlbw')?.totalCandidateCount,
     ).toBe(MAX_SIMULATION_CANDIDATES);

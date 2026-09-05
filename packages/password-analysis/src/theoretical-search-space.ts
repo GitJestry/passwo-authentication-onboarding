@@ -13,9 +13,6 @@ export const DEMONSTRATION_ATTEMPTS_PER_SECOND = 1_000_000_000_000n;
  */
 export const MAX_SIMULATION_CANDIDATES = BigInt(LOWERCASE_ALPHABET_SIZE) ** 12n;
 
-/** @deprecated Use MAX_SIMULATION_CANDIDATES for the shared authored boundary. */
-export const MAX_EXHAUSTIVE_SEARCH_CANDIDATES = MAX_SIMULATION_CANDIDATES;
-
 export interface TheoreticalSearchSpaceInput {
   readonly alphabetSize: number;
   readonly length: number;

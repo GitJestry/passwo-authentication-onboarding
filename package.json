@@ -49,7 +49,6 @@
     "deploy:web": "bash ./deploy/scripts/deploy-web.sh"
   },
   "devDependencies": {
-    "@axe-core/playwright": "^4.10.0",
     "@biomejs/biome": "^2.5.0",
     "@passwo/contracts": "workspace:*",
     "@playwright/test": "^1.61.0",
