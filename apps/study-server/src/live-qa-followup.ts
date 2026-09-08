@@ -1,5 +1,6 @@
 import { createHash } from 'node:crypto';
 import {
+  followUpInstrument,
   type LiveQaFollowUpCaseResponse,
   type LiveQaFollowUpCaseScenario,
   type LiveQaFollowUpMessagesResponse,
@@ -69,8 +70,15 @@ export function createLiveQaFollowUpControls(options: {
   return {
     messages() {
       const firstInvitationAtIso = options.nowIso();
-      const reminderAtIso = addHours(firstInvitationAtIso, 48);
-      const closesAtIso = addHours(firstInvitationAtIso, 96);
+      const reminderAtIso = addHours(
+        firstInvitationAtIso,
+        followUpInstrument.schedule.reminderDelayAfterFirstInvitationHours,
+      );
+      const closesAtIso = addHours(
+        firstInvitationAtIso,
+        followUpInstrument.schedule.closeAfterSessionHours -
+          followUpInstrument.schedule.firstInvitationDelayHours,
+      );
       const tokenHash = createHash('sha256').update(syntheticToken, 'utf8').digest('hex');
       return liveQaFollowUpMessagesResponseSchema.parse({
         invitation: previewMessage(

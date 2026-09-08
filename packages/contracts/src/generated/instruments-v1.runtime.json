@@ -215,7 +215,7 @@
       "emailNeverStoredInResearchDatabase": true,
       "firstInvitationDelayHours": 240,
       "reminderDelayAfterFirstInvitationHours": 48,
-      "closeAfterSessionHours": 336,
+      "closeAfterSessionHours": 408,
       "emailSubject": "Freiwillige Nachbefragung zur Studie",
       "emailContainsTrainingAdvice": false
     },

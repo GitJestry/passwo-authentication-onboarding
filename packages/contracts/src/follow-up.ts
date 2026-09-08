@@ -74,7 +74,7 @@ export const followUpInstrumentSchema = z
       .object({
         firstInvitationDelayHours: z.literal(240),
         reminderDelayAfterFirstInvitationHours: z.literal(48),
-        closeAfterSessionHours: z.literal(336),
+        closeAfterSessionHours: z.literal(408),
         estimatedMinutes: z.literal(2),
       })
       .strict(),

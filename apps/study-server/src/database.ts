@@ -504,6 +504,21 @@ const migrations: readonly Migration[] = [
     version: 10,
     apply: (database) => database.exec(recruitmentSourceSchema),
   },
+  {
+    version: 11,
+    // ADR 0011 extends existing windows without changing invitation or delivery history.
+    apply: (database) => database.exec(`
+      UPDATE recontact.registrations AS registration
+      SET closes_at_iso = strftime('%Y-%m-%dT%H:%M:%fZ', session.completed_at_iso, '+408 hours')
+      FROM study_sessions AS session
+      WHERE session.session_id = registration.session_id
+        AND session.follow_up_token_hash = registration.token_hash
+        AND session.follow_up_consent = 1
+        AND session.follow_up_version = 'follow-up-v6-pilot'
+        AND session.completion_status = 'completed'
+        AND julianday(registration.closes_at_iso) < julianday(session.completed_at_iso, '+408 hours');
+    `),
+  },
 ];
 
 function migrate(database: Database.Database, migrationResearchToken: () => string): void {

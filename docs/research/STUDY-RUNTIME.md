@@ -87,7 +87,7 @@ Event vor dem entfernten terminalen Quiz. Es werden keine SCORM-Interaktionen od
 übernommen.
 
 Bei Follow-up-Opt-in gelten Einladung nach 240 Stunden, höchstens eine Erinnerung 48 Stunden nach
-bestätigtem Erstversand und Fensterschluss nach 336 Stunden. Die Nachbefragung ist eine getrennte
+bestätigtem Erstversand und Fensterschluss nach 408 Stunden (17 Tagen). Die Nachbefragung ist eine getrennte
 tokenisierte same-origin Route. Der Versand erfolgt kontrolliert über das Universitätskonto; die
 Runtime enthält keine Mail-Credentials. Kontaktkopien werden gemäß Data Contract gelöscht.
 

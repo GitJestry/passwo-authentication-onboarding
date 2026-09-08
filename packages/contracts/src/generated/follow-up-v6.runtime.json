@@ -12,7 +12,7 @@
   "schedule": {
     "firstInvitationDelayHours": 240,
     "reminderDelayAfterFirstInvitationHours": 48,
-    "closeAfterSessionHours": 336,
+    "closeAfterSessionHours": 408,
     "estimatedMinutes": 2
   },
   "email": {

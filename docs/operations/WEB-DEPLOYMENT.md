@@ -188,6 +188,14 @@ systemctl restart passwo-study passwo-study-qa
 
 ## Follow-up
 
+Die ADR-0011-Revision vom 2026-09-07 verlängert den Fensterschluss auf 17 Tage nach Abschluss.
+Beim ersten Start des aktualisierten Servers passt Migration 11 auch bereits terminierte
+Follow-ups an. Einladung, Erinnerung und Versandbestätigungen bleiben erhalten. Vorbereitete
+Schedule-Exporte und noch nicht versandte Nachrichten können weiterhin das alte Schließdatum
+enthalten und müssen vor dem Versand entsprechend aktualisiert werden. Der Kontaktlöschtermin
+richtet sich nach dem neuen letzten Fensterschluss. Bis zum Deployment gelten produktiv die
+bisherigen gespeicherten Termine und die bisherige Frist für neue Abschlüsse.
+
 Der Timer erzeugt ab Fälligkeit je stabiler Operations-ID höchstens eine geschützte
 Nachrichtendatei. Vor dem Einzelversand wird die Operation read-only geprüft; unmittelbar nach
 erfolgreichem Versand wird sie einmalig bestätigt:

@@ -342,7 +342,7 @@ describe('follow-up operations and research linkage', () => {
     ).toEqual({
       status: 'available',
       reportingCutoffAtIso: nowIso,
-      closesAtIso: '2026-08-07T12:00:00.000Z',
+      closesAtIso: '2026-08-10T12:00:00.000Z',
     });
 
     const conditionalReason = followUpInstrument.questionnaire.items.find(
@@ -531,14 +531,14 @@ describe('follow-up operations and research linkage', () => {
       runFollowUpContactDeletion({
         databasePath: paths.recontact,
         mode: 'delete',
-        nowIso: '2026-08-07T12:00:00.000Z',
+        nowIso: '2026-08-10T12:00:00.000Z',
       }),
     ).toMatchObject({ contactCountBefore: 1, contactCountAfter: 0 });
     const exportAfterDeletion = join(paths.directory, 'analysis-after-contact-deletion');
     await exportResearchData({
       databasePath: paths.study,
       outputDirectory: exportAfterDeletion,
-      exportedAtIso: '2026-08-07T12:00:00.000Z',
+      exportedAtIso: '2026-08-10T12:00:00.000Z',
       profile: 'analysis',
     });
     expect(readFileSync(join(exportAfterDeletion, 'sessions.json'), 'utf8')).toBe(
@@ -625,7 +625,7 @@ describe('follow-up operations and research linkage', () => {
     });
     recontactDatabase.close();
 
-    nowIso = '2026-08-07T12:00:00.000Z';
+    nowIso = '2026-08-10T12:00:00.000Z';
     expect(
       (await webPost(server, null, '/api/follow-up/access', { token: rawToken })).json(),
     ).toEqual({

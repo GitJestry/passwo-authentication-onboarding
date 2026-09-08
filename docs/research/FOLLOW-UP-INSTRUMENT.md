@@ -18,7 +18,7 @@ Forschungsdatenbank enthält weder E-Mail-Adresse noch Raw Token.
 
 - erste Einladung: `completedAt + 240h`;
 - höchstens eine Erinnerung: 48 Stunden nach der ersten Einladung;
-- Schließung: `completedAt + 336h`;
+- Schließung: `completedAt + 408h` (17 Tage);
 - geschätzte Bearbeitungszeit: etwa zwei Minuten;
 - der berichtete Handlungszeitraum endet vor dem Zeitpunkt der ersten Einladung.
 
@@ -92,6 +92,12 @@ Datensatz-Freeze gemäß `DATA-CONTRACT.md`.
 `follow_up_version` wird beim Session-Create als `follow-up-v6-pilot` gespeichert und ist derzeit
 ein harter Gate-Wert für Zugriff und Scheduler. Ein Versionssprung benötigt deshalb eine
 produktive Datenmigration; der laufende Release behält diesen Wert unverändert.
+
+Die ADR-0011-Revision vom 2026-09-07 verlängert das Antwortfenster auch für bereits terminierte
+Sitzungen auf 17 Tage nach Abschluss. Datenbankmigration 11 hebt kürzere gespeicherte
+Schließzeitpunkte auf diese Grenze an; Einladung, Erinnerung, Versandbestätigungen und Antworten
+bleiben erhalten. Die Instrumentversion bleibt `follow-up-v6-pilot`, da Wortlaut und Antwortschema
+unverändert sind. Bereits beantwortete Follow-ups bleiben für weitere Antworten gesperrt.
 
 Es gibt keine Hervorhebung und keinen Eingriff in Training, Trainingsdramaturgie, Hauptfragebogen
 oder geschützten PassWo-Wortlaut.

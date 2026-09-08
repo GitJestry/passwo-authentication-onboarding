@@ -12,14 +12,14 @@ usage() {
 Verwendung:
   show-current-stats.sh [--identity-file PFAD] [--host USER@HOST] [--database PFAD]
   show-current-stats.sh --show-emails [--identity-file PFAD] [--host USER@HOST]
-                        [--recontact-database PFAD]
+                        [--database PFAD] [--recontact-database PFAD]
 
 Optionen:
   -i, --identity-file PFAD  Privater SSH-Key; andernfalls gelten SSH-Agent und SSH-Konfiguration.
       --host USER@HOST      SSH-Ziel (Standard: root@193.23.254.118).
       --database PFAD       Datenbank auf dem Server
                             (Standard: /var/lib/passwo-study/study.sqlite).
-      --show-emails         E-Mail-Adressen und Follow-up-Zeitraum anzeigen.
+      --show-emails         E-Mail-Adressen, Follow-up-Abschluss und Erinnerungsfenster anzeigen.
       --recontact-database PFAD
                             Getrenntes Kontaktregister auf dem Server
                             (Standard: /var/lib/passwo-study/recontact.sqlite).
@@ -100,24 +100,93 @@ if [[ -n "$identity_file" ]]; then
 fi
 
 if [[ "$show_emails" == true ]]; then
+  email_colors=0
+  if [[ -t 1 && "${TERM:-dumb}" != dumb && -z "${NO_COLOR:-}" ]]; then
+    email_colors=1
+  fi
+
   echo "Verbinde mit ${remote_host}. SSH fragt bei Bedarf nach deiner Key-Passphrase."
-  echo "Lese das getrennte Kontaktregister read-only; die Ausgabe enthält personenbezogene Daten."
+  echo "Lese Kontaktregister und Follow-up-Abschlussstatus read-only; die Ausgabe enthält personenbezogene Daten."
   echo
 
   "${ssh_command[@]}" -- "$remote_host" \
-    "sqlite3 -readonly -header -column ${recontact_database_path}" <<'SQL'
+    "sqlite3 -readonly -bail -header -column -cmd \"ATTACH DATABASE 'file:${database_path}?mode=ro' AS study;\" ${recontact_database_path}" <<'SQL' | awk -v colors="$email_colors" '
+    /^FOLLOW-UP-FENSTER$/ { invitations = 1 }
+    /^ERINNERUNGSFENSTER/ { invitations = 0 }
+    {
+      color = ""
+      if (colors && invitations) {
+        if ($0 ~ /[[:space:]]versendet[[:space:]]*$/) color = "\033[32m"
+        else if ($0 ~ /[[:space:]]fällig[[:space:]]*$/) color = "\033[33m"
+      }
+      if (color != "") printf "%s%s\033[0m\n", color, $0
+      else print
+    }
+  '
 PRAGMA query_only = ON;
 BEGIN;
 
+.print 'FOLLOW-UP-FENSTER'
 SELECT
   email AS E_Mail,
   COALESCE(first_invitation_at_iso, 'noch nicht terminiert') AS Follow_up_ab_UTC,
-  COALESCE(closes_at_iso, 'noch nicht terminiert') AS Follow_up_bis_UTC
-FROM registrations
+  COALESCE(closes_at_iso, 'noch nicht terminiert') AS Follow_up_bis_UTC,
+  CASE
+    WHEN follow_up.session_id IS NOT NULL THEN 'abgeschlossen'
+    ELSE 'noch nicht abgegeben'
+  END AS Nachbefragung,
+  CASE
+    WHEN first_invitation_sent_at_iso IS NOT NULL THEN 'versendet'
+    WHEN first_invitation_at_iso IS NULL OR closes_at_iso IS NULL THEN 'noch nicht terminiert'
+    WHEN julianday('now') >= julianday(closes_at_iso) THEN 'Fenster geschlossen'
+    WHEN julianday('now') >= julianday(first_invitation_at_iso) THEN 'fällig'
+    ELSE 'geplant'
+  END AS Einladungsstatus
+FROM registrations AS registration
+LEFT JOIN study.instrument_submissions AS follow_up
+  ON follow_up.session_id = registration.session_id
+  AND follow_up.instrument_id = 'follow-up-v1'
+  AND follow_up.section_id = 'actions'
 ORDER BY
   closes_at_iso IS NULL,
   closes_at_iso,
   email;
+
+.print ''
+.print 'ERINNERUNGSFENSTER (nach bestätigtem Erstversand)'
+.print 'Bereits abgeschlossene Nachbefragungen sind aus dieser Liste ausgeschlossen.'
+.print 'Vor einem Versand die Operation mit followup:confirm-delivery ohne --confirm prüfen.'
+WITH reminder_windows AS (
+  SELECT
+    email,
+    first_invitation_sent_at_iso,
+    closes_at_iso,
+    reminder_sent_at_iso,
+    -- Match the scheduler: a late first delivery shifts the earliest reminder.
+    MAX(
+      julianday(reminder_at_iso),
+      julianday(first_invitation_sent_at_iso, '+48 hours')
+    ) AS reminder_due_julian
+  FROM registrations AS registration
+  LEFT JOIN study.instrument_submissions AS follow_up
+    ON follow_up.session_id = registration.session_id
+    AND follow_up.instrument_id = 'follow-up-v1'
+    AND follow_up.section_id = 'actions'
+  WHERE first_invitation_sent_at_iso IS NOT NULL
+    AND follow_up.session_id IS NULL
+)
+SELECT
+  email AS E_Mail,
+  first_invitation_sent_at_iso AS Einladung_versendet_UTC,
+  CASE
+    WHEN reminder_due_julian IS NULL THEN 'noch nicht terminiert'
+    WHEN reminder_due_julian >= julianday(closes_at_iso) THEN 'kein Zeitfenster mehr'
+    ELSE strftime('%Y-%m-%dT%H:%M:%fZ', reminder_due_julian)
+  END AS Erinnerung_fruehestens_UTC,
+  COALESCE(closes_at_iso, 'noch nicht terminiert') AS Erinnerung_bis_UTC,
+  COALESCE(reminder_sent_at_iso, 'nicht bestätigt') AS Erinnerung_versendet_UTC
+FROM reminder_windows
+ORDER BY reminder_due_julian IS NULL, reminder_due_julian, email;
 
 COMMIT;
 SQL
@@ -318,6 +387,68 @@ GROUP BY condition
 ORDER BY
   CASE condition WHEN 'supportive' THEN 1 WHEN 'reference' THEN 2 ELSE 3 END,
   condition;
+
+.print ''
+.print 'NACHBEFRAGUNG NACH CA. 10 TAGEN (Selbstberichte)'
+.print 'n = vollständige Nachbefragungen; je Antwort: Anzahl (Anteil an n). PM = Passwortmanager.'
+.print 'Nur Antwortende; fehlende Nachbefragungen zählen nicht als Nein. Explorativ, kein Wirkungsnachweis.'
+WITH learning_offers (condition, label, sort_order) AS (
+  VALUES ('supportive', 'PassWo', 1), ('reference', 'SecAware', 2)
+),
+focal_actions (item_id, label, sort_order) AS (
+  VALUES
+    ('FU_REUSE_REPLACED', 'Wiederverwendung ersetzt', 1),
+    ('FU_PM_ACCOUNT_SPECIFIC', 'PM-Passwort erzeugt + gespeichert', 2),
+    ('FU_MFA_ENABLED', 'MFA/2FA aktiviert', 3)
+),
+followup_submissions AS (
+  SELECT session.session_id, session.condition, submission.instrument_version
+  FROM study_sessions AS session
+  JOIN instrument_submissions AS submission
+    ON submission.session_id = session.session_id
+    AND submission.instrument_id = 'follow-up-v1'
+    AND submission.section_id = 'actions'
+    AND submission.instrument_version = session.follow_up_version
+  WHERE session.completion_status = 'completed'
+    AND session.follow_up_consent = 1
+    AND session.follow_up_version = 'follow-up-v6-pilot'
+),
+action_counts AS (
+  SELECT
+    offer.label AS learning_offer,
+    offer.sort_order AS offer_order,
+    action.label AS action,
+    action.sort_order AS action_order,
+    COUNT(submission.session_id) AS respondent_count,
+    SUM(CASE WHEN json_extract(response.json_value, '$') = 'yes' THEN 1 ELSE 0 END) AS yes_count,
+    SUM(CASE WHEN json_extract(response.json_value, '$') = 'no' THEN 1 ELSE 0 END) AS no_count,
+    SUM(CASE WHEN json_extract(response.json_value, '$') = 'unsure' THEN 1 ELSE 0 END) AS unsure_count
+  FROM learning_offers AS offer
+  CROSS JOIN focal_actions AS action
+  LEFT JOIN followup_submissions AS submission ON submission.condition = offer.condition
+  LEFT JOIN responses AS response
+    ON response.session_id = submission.session_id
+    AND response.instrument_id = 'follow-up-v1'
+    AND response.instrument_version = submission.instrument_version
+    AND response.section_id = 'actions'
+    AND response.item_id = action.item_id
+  GROUP BY offer.condition, action.item_id
+)
+SELECT
+  learning_offer AS Lernangebot,
+  action AS Handlung,
+  respondent_count AS n,
+  CASE WHEN respondent_count = 0 THEN '—'
+    ELSE printf('%d (%.0f %%)', yes_count, 100.0 * yes_count / respondent_count)
+  END AS Ja,
+  CASE WHEN respondent_count = 0 THEN '—'
+    ELSE printf('%d (%.0f %%)', no_count, 100.0 * no_count / respondent_count)
+  END AS Nein,
+  CASE WHEN respondent_count = 0 THEN '—'
+    ELSE printf('%d (%.0f %%)', unsure_count, 100.0 * unsure_count / respondent_count)
+  END AS Unsicher
+FROM action_counts
+ORDER BY offer_order, action_order;
 
 COMMIT;
 SQL

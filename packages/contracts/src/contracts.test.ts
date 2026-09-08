@@ -55,6 +55,8 @@ describe('research-safe contracts', () => {
   it('keeps the reviewed follow-up runtime projection exact and token responses identity-free', () => {
     expect(followUpInstrument).toEqual(reviewedFollowUpInstrument);
     expect(followUpInstrument.version).toBe('follow-up-v6-pilot');
+    expect(followUpInstrument.schedule.closeAfterSessionHours).toBe(408);
+    expect(instrumentRuntimeManifest.procedures.followUpRecontact.closeAfterSessionHours).toBe(408);
     expect(followUpInstrument.questionnaire.items).toHaveLength(6);
     const focalItems = followUpInstrument.questionnaire.items.filter(
       (item) => item.type === 'singleChoice',

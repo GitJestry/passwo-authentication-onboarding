@@ -10,7 +10,9 @@ import {
 import Database from 'better-sqlite3';
 import type { FastifyInstance } from 'fastify';
 import { afterEach, describe, expect, it } from 'vitest';
+import { z } from 'zod';
 import { buildStudyServer } from './app.js';
+import { openStudyDatabase } from './database.js';
 import { runFollowUpContactDeletion } from './followup-contact-deletion.js';
 import { exportFollowUpSchedule } from './followup-schedule-export.js';
 import { exportResearchData } from './research-export.js';
@@ -268,7 +270,7 @@ describe('follow-up recontact boundary', () => {
     ).toEqual({
       firstInvitationAtIso: '2026-08-03T12:00:00.000Z',
       reminderAtIso: '2026-08-05T12:00:00.000Z',
-      closesAtIso: '2026-08-07T12:00:00.000Z',
+      closesAtIso: '2026-08-10T12:00:00.000Z',
     });
     recontactDatabase.close();
 
@@ -287,7 +289,7 @@ describe('follow-up recontact boundary', () => {
         tokenLink: `https://survey.example.org/follow-up?token=${token}`,
         firstInvitationAtIso: '2026-08-03T12:00:00.000Z',
         reminderAtIso: '2026-08-05T12:00:00.000Z',
-        closesAtIso: '2026-08-07T12:00:00.000Z',
+        closesAtIso: '2026-08-10T12:00:00.000Z',
       },
     ]);
     expect(JSON.stringify(exported)).toContain(followUpInstrument.email.subject);
@@ -316,7 +318,7 @@ describe('follow-up recontact boundary', () => {
       runFollowUpContactDeletion({
         databasePath: paths.recontact,
         mode: 'dry-run',
-        nowIso: '2026-08-07T11:59:59.999Z',
+        nowIso: '2026-08-10T11:59:59.999Z',
       }),
     ).toMatchObject({
       eligible: false,
@@ -327,25 +329,106 @@ describe('follow-up recontact boundary', () => {
       runFollowUpContactDeletion({
         databasePath: paths.recontact,
         mode: 'dry-run',
-        nowIso: '2026-08-07T12:00:00.000Z',
+        nowIso: '2026-08-10T12:00:00.000Z',
       }),
     ).toMatchObject({
       eligible: true,
       contactCountBefore: 1,
       contactCountAfter: 1,
-      deletionDeadlineAtIso: '2026-08-14T12:00:00.000Z',
+      deletionDeadlineAtIso: '2026-08-17T12:00:00.000Z',
     });
     await resources.close(server);
     expect(
       runFollowUpContactDeletion({
         databasePath: paths.recontact,
         mode: 'delete',
-        nowIso: '2026-08-07T12:00:00.000Z',
+        nowIso: '2026-08-10T12:00:00.000Z',
       }),
     ).toMatchObject({
       contactCountBefore: 1,
       contactCountAfter: 0,
     });
+  });
+
+  it('extends existing follow-up windows once while preserving delivery history and longer deadlines', async () => {
+    const paths = temporaryDatabasePaths();
+    const server = resources.track(
+      buildStudyServer({
+        version: '0.1.2',
+        assignmentMode: 'forced-supportive',
+        databasePath: paths.study,
+        recontactDatabasePath: paths.recontact,
+        nowIso: () => '2026-07-24T12:00:00.123Z',
+        webRuntime: {
+          resumeCloseAtIso: '2026-08-01T12:00:00.000Z',
+          secureCookies: false,
+        },
+      }),
+    );
+    const first = await createWebTestSession(server, 81);
+    const second = await createWebTestSession(server, 82);
+    const unfinished = await createWebTestSession(server, 83);
+    await completeWebTestStudy(server, first, '81000000-0000-4000-8000-000000000081');
+    await completeWebTestStudy(server, second, '81000000-0000-4000-8000-000000000082', 100);
+    await resources.close(server);
+
+    const legacyDatabase = new Database(paths.study);
+    legacyDatabase.prepare('ATTACH DATABASE ? AS recontact').run(paths.recontact);
+    legacyDatabase
+      .prepare(
+        `UPDATE recontact.registrations
+         SET closes_at_iso = ?, first_invitation_sent_at_iso = ?, reminder_sent_at_iso = ?
+         WHERE session_id = ?`,
+      )
+      .run(
+        '2026-08-07T12:00:00.123Z',
+        '2026-08-03T13:00:00.000Z',
+        '2026-08-05T13:00:00.000Z',
+        first.session.sessionId,
+      );
+    legacyDatabase
+      .prepare('UPDATE recontact.registrations SET closes_at_iso = ? WHERE session_id = ?')
+      .run('2026-08-11T12:00:00.123Z', second.session.sessionId);
+    const firstBefore = z.record(z.string(), z.unknown()).parse(
+      legacyDatabase
+        .prepare('SELECT * FROM recontact.registrations WHERE session_id = ?')
+        .get(first.session.sessionId),
+    );
+    const secondBefore = legacyDatabase
+      .prepare('SELECT * FROM recontact.registrations WHERE session_id = ?')
+      .get(second.session.sessionId);
+    legacyDatabase.exec('DELETE FROM schema_migrations WHERE version = 11');
+    legacyDatabase.close();
+
+    for (let restart = 0; restart < 2; restart += 1) {
+      const migrated = openStudyDatabase(paths.study, paths.recontact);
+      expect(
+        migrated
+          .prepare('SELECT * FROM recontact.registrations WHERE session_id = ?')
+          .get(first.session.sessionId),
+      ).toEqual({
+        ...firstBefore,
+        closes_at_iso: '2026-08-10T12:00:00.123Z',
+      });
+      expect(
+        migrated
+          .prepare('SELECT * FROM recontact.registrations WHERE session_id = ?')
+          .get(second.session.sessionId),
+      ).toEqual(secondBefore);
+      expect(
+        migrated
+          .prepare(
+            `SELECT first_invitation_at_iso, reminder_at_iso, closes_at_iso
+             FROM recontact.registrations WHERE session_id = ?`,
+          )
+          .get(unfinished.session.sessionId),
+      ).toEqual({
+        first_invitation_at_iso: null,
+        reminder_at_iso: null,
+        closes_at_iso: null,
+      });
+      migrated.close();
+    }
   });
 
   it('accepts a token only in its window and stores one idempotent follow-up submission', async () => {
@@ -396,9 +479,10 @@ describe('follow-up recontact boundary', () => {
     ).toEqual({
       status: 'available',
       reportingCutoffAtIso: '2026-08-03T12:00:00.000Z',
-      closesAtIso: '2026-08-07T12:00:00.000Z',
+      closesAtIso: '2026-08-10T12:00:00.000Z',
     });
 
+    nowIso = '2026-08-09T12:00:00.000Z';
     const submission = {
       token: 'A'.repeat(43),
       voluntaryConfirmation: true,
@@ -433,7 +517,7 @@ describe('follow-up recontact boundary', () => {
       (await webPost(server, null, '/api/follow-up/access', { token: 'A'.repeat(43) })).json(),
     ).toEqual({ status: 'submitted' });
 
-    nowIso = '2026-08-07T12:00:00.000Z';
+    nowIso = '2026-08-10T12:00:00.000Z';
     expect(
       (await webPost(server, null, '/api/follow-up/access', { token: 'B'.repeat(43) })).json(),
     ).toEqual({ status: 'expired' });
