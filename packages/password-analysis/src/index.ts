@@ -34,7 +34,10 @@ const maximumGeneralDistance = 3;
 const maximumNormalizedDistance = 0.25;
 const maximumAccountResidualDistance = 2;
 const minimumAccountCommonCoreLength = 4;
-const comparisonSegmenter = new Intl.Segmenter('de-DE', { granularity: 'grapheme' });
+const comparisonSegmenter =
+  typeof Intl.Segmenter === 'function'
+    ? new Intl.Segmenter('de-DE', { granularity: 'grapheme' })
+    : null;
 
 interface IndexedCharacter {
   readonly value: string;
@@ -109,12 +112,38 @@ interface DerivedRelationInput {
 }
 
 function indexedCharacters(input: string): readonly IndexedCharacter[] {
-  return [...comparisonSegmenter.segment(input)].map(({ segment, index }) => ({
-    value: segment,
-    comparisonValue: segment.normalize('NFC'),
-    start: index,
-    end: index + segment.length,
-  }));
+  if (comparisonSegmenter !== null) {
+    return [...comparisonSegmenter.segment(input)].map(({ segment, index }) => ({
+      value: segment,
+      comparisonValue: segment.normalize('NFC'),
+      start: index,
+      end: index + segment.length,
+    }));
+  }
+
+  const characters: IndexedCharacter[] = [];
+  let offset = 0;
+  for (const value of input) {
+    const previous = characters[characters.length - 1];
+    if (/^\p{M}$/u.test(value) && previous !== undefined) {
+      const combinedValue = previous.value + value;
+      characters[characters.length - 1] = {
+        value: combinedValue,
+        comparisonValue: combinedValue.normalize('NFC'),
+        start: previous.start,
+        end: offset + value.length,
+      };
+    } else {
+      characters.push({
+        value,
+        comparisonValue: value.normalize('NFC'),
+        start: offset,
+        end: offset + value.length,
+      });
+    }
+    offset += value.length;
+  }
+  return characters;
 }
 
 function matrixValue(matrix: readonly (readonly number[])[], row: number, column: number): number {
