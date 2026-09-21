@@ -569,6 +569,17 @@ function ResearchDataError({
   );
 }
 
+function StudyClosedNotice() {
+  return (
+    <section aria-labelledby="study-closed-title" role="status">
+      <h1 id="study-closed-title" tabIndex={-1} autoFocus>
+        Die Studie wurde geschlossen
+      </h1>
+      <p>Vielen Dank für dein Interesse und deine Unterstützung.</p>
+    </section>
+  );
+}
+
 function ConfigurationError({ errorCode }: { readonly errorCode: string }) {
   return (
     <section aria-labelledby="configuration-error-title" role="alert">
@@ -1068,14 +1079,18 @@ export function StudyFlow(
       <main className={styles.studyPage} data-study-surface="">
         <div className={styles.studyShell}>
           <div className={styles.studyContent}>
-            <ResearchDataError
-              titleId="resume-error-title"
-              errorCode={resumeError}
-              onRetry={() => {
-                setResumeSession(undefined);
-                setResumeAttempt((current) => current + 1);
-              }}
-            />
+            {resumeError === 'study-data-collection-closed' ? (
+              <StudyClosedNotice />
+            ) : (
+              <ResearchDataError
+                titleId="resume-error-title"
+                errorCode={resumeError}
+                onRetry={() => {
+                  setResumeSession(undefined);
+                  setResumeAttempt((current) => current + 1);
+                }}
+              />
+            )}
           </div>
         </div>
       </main>
