@@ -2,7 +2,7 @@
 
 Vollständiges Leseskript der PassWo-Figur vom Einstieg bis zum letzten Satz des Trainings. Die kurzen Szenenbeschreibungen erklären, was die teilnehmende Person gerade sieht oder tut; die Zitate geben den Wortlaut des fertigen Trainings wieder.
 
-**So liest du das Skript:** Die Segmente folgen dem tatsächlichen Trainingsablauf. Jeder zitierte Absatz steht für einen Sprechschritt; mehrere Absätze innerhalb derselben Sprechblase sind ausdrücklich zusammengefasst. **Varianten** stehen als Alternativen an ihrer jeweiligen Stelle. **Optionale Hilfe über (?)** erscheint ausschließlich nach einem Klick auf den Fragezeichen-Button und gehört nicht zum automatisch gezeigten Dialog. Rückmeldungen nach bestimmten Aktionen sind mit ihrem Auslöser gekennzeichnet. Die Szenen-IDs wie `S05-03` dienen der Orientierung in diesem Dokument. Bei frei wählbarer Kontoreihenfolge wird eine mögliche Reihenfolge gezeigt. Wiederholbare Hinweise sind einmal ausgeschrieben.
+**So liest du das Skript:** Die Segmente folgen dem tatsächlichen Trainingsablauf. Jeder zitierte Dialogabsatz steht für einen Sprechschritt; mehrere Absätze innerhalb derselben Sprechblase sind ausdrücklich zusammengefasst. Ergänzende Infotexte sind gesondert als **optionale Information** gekennzeichnet. **Varianten** stehen als Alternativen an ihrer jeweiligen Stelle. **Optionale Hilfe über (?)** erscheint ausschließlich nach einem Klick auf den Fragezeichen-Button und gehört nicht zum automatisch gezeigten Dialog. Rückmeldungen nach bestimmten Aktionen sind mit ihrem Auslöser gekennzeichnet. Die Szenen-IDs wie `S05-03` dienen der Orientierung in diesem Dokument. Bei frei wählbarer Kontoreihenfolge wird eine mögliche Reihenfolge gezeigt. Wiederholbare Hinweise sind einmal ausgeschrieben.
 
 Platzhalter wie `[Teile]`, `[Angaben]`, `[Begriffe]`, `[Anzahl]`, `[Konto]` und `[offene Bereiche]` stehen für die im jeweiligen Durchlauf eingesetzten lokalen Werte. Es werden keine tatsächlichen Eingaben übernommen. Das Leseskript umfasst den Lerndialog einschließlich seiner Hilfen und Varianten. Technische Speicher-/Fehlermeldungen bei Unterbrechungen sind nicht enthalten. Reine Oberflächenbeschriftungen und Website-Inhalte werden nur dort als Szenenkontext ergänzt, wo sie den Ablauf erklären.
 
@@ -437,11 +437,19 @@ Die Person schätzt eine Mindestlänge. Danach verändert sie in der Kugel-/Mess
 
 ### S05-12 — Zeichenvorrat vergleichen und Längenorientierung ableiten
 
-Eine gelbe Vergleichskugel steht für zwölf zufällige Zeichen aus mehreren Zeichentypen. Danach folgt die Orientierung für selbst gewählte Passwörter. Die zusätzlichen Informationsfelder zur Herkunft der Empfehlung sind Oberflächentexte, kein weiterer PassWo-Dialog.
+Eine gelbe Vergleichskugel steht für zwölf zufällige Zeichen aus mehreren Zeichentypen. Danach folgt die Orientierung für selbst gewählte Passwörter. Die beiden ergänzenden Infotexte unten erscheinen nur, wenn die Person die jeweilige Frage über den Info-Button aufklappt; sie gehören nicht zum automatisch gezeigten PassWo-Dialog.
 
 > Die gelbe Kugel zeigt, warum zwölf zufällige Zeichen aus mehreren Zeichentypen wie „k7#M!9p$2Lq&“ so aufwendig durchzuprobieren sind.“
 
 > Da sich diese Zufälligkeit bei selbst gewählten Passwörtern jedoch nicht voraussetzen lässt, sollten sie mindestens 15 Zeichen lang sein.
+
+**Optionale Information — nur nach Klick auf „Warum hört man oft noch von 12 Zeichen und verschiedenen Zeichentypen?“:**
+
+> Das US-amerikanische NIST rät schon seit 2017 davon ab, bestimmte Zeichentypen vorzuschreiben. Die Empfehlung von mindestens 15 Zeichen ist dagegen neuer und wurde 2025 in der aktuellen NIST-Richtlinie finalisiert. Bis Trainings und Passwortregeln angepasst werden, können ältere Vorgaben noch länger begegnen.
+
+**Optionale Information — nur nach Klick auf „Was ist das NIST?“:**
+
+> Das NIST ist eine US-amerikanische Bundesbehörde für Standards und Technologie. Seine Empfehlungen zur IT-Sicherheit werden international genutzt. Auch das deutsche Bundesamt für Sicherheit in der Informationstechnik beschreibt die NIST-SP-800-Reihe als international einflussreich.
 
 ### S05-13 — Warum Wörter oft mehr Platz brauchen
 
