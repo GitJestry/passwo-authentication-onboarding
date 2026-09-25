@@ -1,10 +1,8 @@
 # PassWo Complete Script
 
-Vollständiges Leseskript der PassWo-Figur vom Einstieg bis zum letzten Satz des Trainings. Die kurzen Szenenbeschreibungen erklären, was die teilnehmende Person gerade sieht oder tut; die Zitate geben den implementierten Wortlaut wieder.
+Vollständiges Leseskript der PassWo-Figur vom Einstieg bis zum letzten Satz des Trainings. Die kurzen Szenenbeschreibungen erklären, was die teilnehmende Person gerade sieht oder tut; die Zitate geben den Wortlaut des fertigen Trainings wieder.
 
-**Stand:** 25. September 2026 · Quellenstand `bbe00215914dfd0fc39185bd238e4b10348f4c75`. Diese Datei ist eine redaktionelle Momentaufnahme. Maßgeblich bleiben die [versionierten Trainingsinhalte](packages/training-content/src/) und die [Copy-Regeln](docs/design/TRAINING-COPY.md). Änderungen am Training werden dort gepflegt; dieses Leseskript muss anschließend nachgezogen werden.
-
-**So liest du das Skript:** Die Segmente folgen dem tatsächlichen Trainingsablauf. Jeder zitierte Absatz steht für einen Sprechschritt; mehrere Absätze innerhalb derselben Sprechblase sind ausdrücklich zusammengefasst. **Varianten** stehen als Alternativen an ihrer jeweiligen Stelle, **optionale Hinweise** erscheinen bei Bedarf. Die Szenen-IDs wie `S05-03` dienen der Orientierung in diesem Dokument. Bei frei wählbarer Kontoreihenfolge wird eine mögliche Reihenfolge gezeigt. Wiederholbare Hinweise sind einmal ausgeschrieben.
+**So liest du das Skript:** Die Segmente folgen dem tatsächlichen Trainingsablauf. Jeder zitierte Absatz steht für einen Sprechschritt; mehrere Absätze innerhalb derselben Sprechblase sind ausdrücklich zusammengefasst. **Varianten** stehen als Alternativen an ihrer jeweiligen Stelle. **Optionale Hilfe über (?)** erscheint ausschließlich nach einem Klick auf den Fragezeichen-Button und gehört nicht zum automatisch gezeigten Dialog. Rückmeldungen nach bestimmten Aktionen sind mit ihrem Auslöser gekennzeichnet. Die Szenen-IDs wie `S05-03` dienen der Orientierung in diesem Dokument. Bei frei wählbarer Kontoreihenfolge wird eine mögliche Reihenfolge gezeigt. Wiederholbare Hinweise sind einmal ausgeschrieben.
 
 Platzhalter wie `[Teile]`, `[Angaben]`, `[Begriffe]`, `[Anzahl]`, `[Konto]` und `[offene Bereiche]` stehen für die im jeweiligen Durchlauf eingesetzten lokalen Werte. Es werden keine tatsächlichen Eingaben übernommen. Das Leseskript umfasst den Lerndialog einschließlich seiner Hilfen und Varianten. Technische Speicher-/Fehlermeldungen bei Unterbrechungen sind nicht enthalten. Reine Oberflächenbeschriftungen und Website-Inhalte werden nur dort als Szenenkontext ergänzt, wo sie den Ablauf erklären.
 
@@ -43,7 +41,7 @@ Platzhalter wie `[Teile]`, `[Angaben]`, `[Begriffe]`, `[Anzahl]`, `[Konto]` und 
 
 PassWo begrüßt die teilnehmende Person. Sie wählt einen fiktiven Benutzernamen und ein Betriebssystem für den virtuellen PC. Danach beginnt Sektion 1 „Starke Passwörter“.
 
-Quelle: [s00.ts](packages/training-content/src/s00.ts), Content-Version 1.25.1.
+Quelle: [s00.ts](packages/training-content/src/s00.ts).
 
 ### S00-01 — Willkommen und Ausgangssituation
 
@@ -73,17 +71,17 @@ Im Browser sind die drei Übungskonten Master Campus, Campus E-Mail und Campusgr
 
 Die Person registriert alle drei offenen Übungskonten mit selbst gewählten fiktiven Passwörtern. Die Tabreihenfolge ist frei.
 
-Quelle: [s01.ts](packages/training-content/src/s01.ts), Content-Version 2.16.5.
+Quelle: [s01.ts](packages/training-content/src/s01.ts).
 
 ### S01-01 — Passwörter für die spätere Anmeldung wählen
 
-PassWo kann während der Einrichtung als Hinweis geöffnet werden.
+**Optionale Hilfe über (?) — während der Einrichtung, nur nach Klick:**
 
 > Erstelle für jedes der drei Konten ein starkes Passwort, das du dir für die spätere erneute Anmeldung merken kannst.
 
 ### S01-02 — Einrichtung abgeschlossen
 
-Sobald alle drei Konten eingerichtet sind, führt das Schließen des simulierten Browserfensters zur Netzwerkansicht.
+Sobald alle drei Konten eingerichtet sind, erscheint diese Sprechblase automatisch. Das Schließen des simulierten Browserfensters führt zur Netzwerkansicht.
 
 > Die drei Konten sind eingerichtet. Schließe jetzt das simulierte Browserfenster. Bevor du dich wieder anmeldest, schauen wir uns kurz an, was hinter den Konten steckt.
 
@@ -93,7 +91,7 @@ Sobald alle drei Konten eingerichtet sind, führt das Schließen des simulierten
 
 Die Konten werden als Knoten mit verbundenen Diensten und Inhalten sichtbar. Die Person erkundet alle drei Konten in frei gewählter Reihenfolge.
 
-Quelle: [s02.ts](packages/training-content/src/s02.ts), Content-Version 5.4.1.
+Quelle: [s02.ts](packages/training-content/src/s02.ts).
 
 ### S02-01 — Das Kontonetzwerk verstehen
 
@@ -109,23 +107,17 @@ PassWo erklärt das Modell und entlastet die Person: Die Einzelheiten müssen ni
 
 Vorschauen zeigen Campus Workspace, Campus Services und Campus Cloud.
 
-> Sieh dir nacheinander an, welche Campusdienste du mit Master Campus öffnest.
-
 ### S02-03 — Campus E-Mail erkunden
 
 Vorschauen zeigen Benachrichtigungen, Bestätigungen, Zurücksetzungslinks und Kommunikation im eigenen Namen.
-
-> Sieh dir nacheinander typische Nachrichten und Kontovorgänge im Postfach an.
 
 ### S02-04 — Campusgram erkunden
 
 Vorschauen zeigen Direktnachrichten, Gruppen und Kontakte sowie Beiträge und Reaktionen.
 
-> Sieh dir nacheinander persönliche Nachrichten, Kontakte und Beiträge an.
-
 ### S02-05 — Hinweise innerhalb der freien Erkundung
 
-Diese Hinweise erscheinen passend zum Fortschritt innerhalb eines Kontos und nach dessen Abschluss. Die Listen nennen jeweils die noch offenen Bereiche oder Konten.
+**Optionale Hilfe über (?) — während der Erkundung, nur nach Klick:** Je nach Fortschritt erscheint eine der folgenden Varianten. Die Listen nennen die noch offenen Bereiche oder Konten. Diese Hinweise werden nicht bei jedem Erkundungsschritt automatisch gesprochen.
 
 > Sieh dir noch [offene Bereiche] an.
 
@@ -135,7 +127,7 @@ Diese Hinweise erscheinen passend zum Fortschritt innerhalb eines Kontos und nac
 
 ### S02-06 — Zum Browser zurückkehren
 
-Nach allen drei Konten wird der Browser wieder freigegeben. Die Formulierung richtet sich nach dem gewählten Betriebssystem.
+Nach allen drei Konten wird der Browser wieder freigegeben und PassWos Sprechblase automatisch geöffnet. Die Formulierung richtet sich nach dem gewählten Betriebssystem.
 
 **macOS:**
 
@@ -155,25 +147,31 @@ Nach allen drei Konten wird der Browser wieder freigegeben. Die Formulierung ric
 
 Die Person meldet sich mit ihren eben gewählten Passwörtern bei den drei Konten an. Bei Bedarf gibt es eine Erinnerungshilfe beziehungsweise eine unterstützte Anmeldung.
 
-Quelle: [s03.ts](packages/training-content/src/s03.ts), Content-Version 1.19.4.
+Quelle: [s03.ts](packages/training-content/src/s03.ts).
 
 ### S03-01 — Erneute Anmeldung
 
-Die drei Konten werden erneut geöffnet.
+Die Person meldet sich erneut bei den drei Konten an. PassWo zeigt zu Beginn keine automatische Sprechblase.
+
+**Optionale Hilfe über (?) — solange die Anmeldung noch offen ist, nur nach Klick. Eine Sprechblase mit zwei Absätzen:**
 
 > Melde dich jetzt mit den eben gewählten Passwörtern erneut an.
+>
+> Wenn du das Passwort nicht mehr sicher weißt, kannst du unten „Passwort vergessen?“ nutzen.
 
-### S03-02 — Optionale Unterstützung
+### S03-02 — Unterstützung nach Fehlversuchen oder auf Wunsch
 
-Nach dem dritten Fehlversuch weist PassWo auf „Passwort vergessen?“ hin. Beim Aufruf der Hilfe bietet er Unterstützung an. Der erste Hinweis kann später zusammen mit dem Anmeldeauftrag in einer Sprechblase wieder erscheinen.
+**Automatisch nach dem dritten Fehlversuch — einmaliger Hinweis:**
 
 > Wenn du das Passwort nicht mehr sicher weißt, kannst du unten „Passwort vergessen?“ nutzen.
+
+**Nach Auswahl von „Passwort vergessen?“:** PassWo bietet die unterstützte Anmeldung an. Dieser Dialog erscheint nur, wenn die Person diese Funktion nutzt.
 
 > Kein Problem. Ein starkes Passwort sollte sich für dieses Konto auch später wieder abrufen lassen. Ich unterstütze dich jetzt bei der Anmeldung.
 
 ### S03-03 — Rückmeldung je geöffnetem Konto
 
-Je nach Konto erscheint eine dieser Rückmeldungen; ihre Reihenfolge hängt von der Kontowahl ab.
+Die erfolgreiche Anmeldung wird als kurze Einblendung bestätigt. Die folgenden Texte sind außerdem **optionale Hilfe über (?)** beim bereits geöffneten Konto; sie werden nicht zusätzlich als automatische PassWo-Sprechblase gezeigt. Je nach Konto erscheint eine Variante:
 
 > Master Campus ist wieder geöffnet.
 
@@ -183,11 +181,11 @@ Je nach Konto erscheint eine dieser Rückmeldungen; ihre Reihenfolge hängt von 
 
 ### S03-04 — Campusalltag fortsetzen und Warnung entdecken
 
-Nach allen drei Anmeldungen wird der Campusalltag fortgesetzt. Danach erscheint im Campusgram-Tab eine Sicherheitsmeldung.
+**Automatisch nach allen drei Anmeldungen:**
 
 > Alle drei Konten sind wieder geöffnet. Wir können unseren Campusalltag jetzt fortsetzen.
 
-> Bei Campusgram ist eine Sicherheitsmeldung erschienen. Schau bitte nach.
+Danach wird der Campusalltag fortgesetzt und im Campusgram-Tab erscheint eine Sicherheitsmeldung. In dieser Warnphase gibt es keine zusätzliche PassWo-Sprechblase; die Person öffnet den markierten Tab.
 
 <a id="s04"></a>
 
@@ -195,7 +193,7 @@ Nach allen drei Anmeldungen wird der Campusalltag fortgesetzt. Danach erscheint 
 
 Die Person öffnet die Campusgram-Warnung. Die Oberfläche fordert zum Passwortwechsel auf; der Lernpfad führt zunächst in die Angreiferperspektive.
 
-Quelle: [s04.ts](packages/training-content/src/s04.ts), Content-Version 1.12.0.
+Quelle: [s04.ts](packages/training-content/src/s04.ts).
 
 ### S04-01 — Den fiktiven Vorfall einordnen
 
@@ -213,7 +211,7 @@ PassWo erklärt, was abgeflossen ist, und eröffnet die Frage nach dem Vorgehen 
 
 Ausgehend vom fiktiven Campusgram-Passwort zeigt das Training frühe Passwortkandidaten, persönliche und dienstbezogene Bestandteile, Strukturmuster und vollständiges Durchprobieren. Anschließend veranschaulichen Kugeln den Einfluss von Länge und Zufälligkeit. Rückmeldungen beziehen sich ausschließlich auf die begrenzte Übung.
 
-Quelle: [s05.ts](packages/training-content/src/s05.ts), Content-Version 2.136.1.
+Quelle: [s05.ts](packages/training-content/src/s05.ts).
 
 ### S05-01 — Vom Zeichenraten zu merkbaren Bausteinen
 
@@ -537,7 +535,7 @@ Das Kontonetzwerk wird wieder sichtbar. Gleiche und leicht abgewandelte Passwör
 
 Die Übung prüft Wege zwischen den drei Konten und betrachtet Master Campus und Campus E-Mail zusätzlich für sich. Je nach Campusgram-Ergebnis wird ein tatsächlicher oder ein ausdrücklich hypothetischer Verlauf gezeigt.
 
-Quelle: [s06.ts](packages/training-content/src/s06.ts), Content-Version 2.51.0.
+Quelle: [s06.ts](packages/training-content/src/s06.ts).
 
 ### S06-01 — Ausgangspunkt Campusgram
 
@@ -665,7 +663,7 @@ Der nächste praktische Schritt ist unabhängig davon nötig, ob die begrenzte �
 
 Die Person öffnet die simulierte Suche, nutzt den lokalen Passphrasen-Generator und ersetzt das Campusgram-Passwort.
 
-Quelle: [s07.ts](packages/training-content/src/s07.ts), Content-Version 4.23.0.
+Quelle: [s07.ts](packages/training-content/src/s07.ts).
 
 ### S07-01 — Die Methode praktisch anwenden
 
@@ -725,11 +723,11 @@ Nach dem Einsetzen und Bestätigen erklärt PassWo die Wirkung des Wechsels.
 
 Die Person verwendet bei noch markierten Konten jeweils eine eigene vorgegebene Passphrase. Danach lässt sie den Angriff erneut ablaufen und geht zur Zusammenfassung. Der Auftrag dazu wurde bereits am Ende von S07 gesprochen.
 
-Quelle: [s08.ts](packages/training-content/src/s08.ts), Content-Version 3.8.0.
+Quelle: [s08.ts](packages/training-content/src/s08.ts).
 
 ### S08-01 — Konten überarbeiten und Angriff erneut ansehen
 
-Im aktuellen Trainingslauf erscheint hier keine zusätzliche PassWo-Sprechblase. Die Person bearbeitet offene Konten über „Eigene Passphrase verwenden“, startet den erneuten Angriff und wechselt mit „Zur Zusammenfassung“ weiter. Wenn keine weiteren Punkte offen sind, entfällt die Nacharbeit.
+Hier erscheint keine zusätzliche PassWo-Sprechblase. Die Person bearbeitet offene Konten über „Eigene Passphrase verwenden“, startet den erneuten Angriff und wechselt mit „Zur Zusammenfassung“ weiter. Wenn keine weiteren Punkte offen sind, entfällt die Nacharbeit.
 
 <a id="s09"></a>
 
@@ -737,7 +735,7 @@ Im aktuellen Trainingslauf erscheint hier keine zusätzliche PassWo-Sprechblase.
 
 Eine Übersicht bündelt die Passwortprinzipien. S09, S10 und S11 verwenden dieselbe Inhaltsdatei, sind im integrierten Lauf aber getrennte Fortschrittsmarken.
 
-Quelle: [s09.ts](packages/training-content/src/s09.ts), Content-Version 4.9.0.
+Quelle: [s09.ts](packages/training-content/src/s09.ts).
 
 ### S09-01 — Die Übersicht lesen
 
@@ -756,7 +754,7 @@ Hier spricht PassWo keinen zusätzlichen Dialog. Zur szenischen Vollständigkeit
 
 Nach dem Abschließen der Übersicht ist wieder das Netz der drei Trainingskonten zu sehen. PassWo hält das erreichte Ergebnis fest.
 
-Quelle: [s09.ts](packages/training-content/src/s09.ts), Content-Version 4.9.0.
+Quelle: [s09.ts](packages/training-content/src/s09.ts).
 
 ### S10-01 — Ergebnis der Passwortüberarbeitung
 
@@ -770,7 +768,7 @@ Diese Sprechblase gehört zur Fortschrittsmarke S10.
 
 Das Netzwerk wächst zunächst auf die veranschaulichte Größenordnung von 134 Konten und reduziert sich für die persönliche Einschätzung auf 80. Danach werden problematische Passwortbeziehungen sichtbar und der Passwortmanager angekündigt.
 
-Quelle: [s09.ts](packages/training-content/src/s09.ts), Content-Version 4.9.0.
+Quelle: [s09.ts](packages/training-content/src/s09.ts).
 
 ### S11-01 — Viele Konten im Alltag
 
@@ -802,7 +800,7 @@ Nach der letzten Sprechblase führt „Passwortmanager kennenlernen“ zur zweit
 
 PassWo demonstriert die drei Grundfunktionen, den geschützten Tresorzugang und die Unterschiede zwischen eigenständigen und integrierten Passwortmanagern.
 
-Quelle: [s12.ts](packages/training-content/src/s12.ts), Content-Version 1.11.0.
+Quelle: [s12.ts](packages/training-content/src/s12.ts).
 
 ### S12-01 — Die drei Funktionen kennenlernen
 
@@ -844,21 +842,21 @@ Für die folgende Praxis wird der in den simulierten Browser integrierte Passwor
 
 Die Person registriert MyShop, ändert ein bestehendes Passwort bei Muster Bank und meldet sich bei Campusgram ohne Autofill an. Danach folgen schrittweise Umstellung, Systemwahl, Wiederherstellung und der Übergang zu MFA.
 
-Quelle: [s13.ts](packages/training-content/src/s13.ts), Content-Version 4.8.0.
+Quelle: [s13.ts](packages/training-content/src/s13.ts).
 
 ### S13-01 — MyShop: ein Passwort erzeugen
 
-Optionaler PassWo-Hinweis während der Registrierung.
+**Optionale Hilfe über (?) — während der Registrierung, nur nach Klick:**
 
 > Klicke in das Passwortfeld und wähle den Vorschlag des integrierten Passwortmanagers.
 
 ### S13-02 — MyShop: registrieren und speichern
 
-Optionaler Handlungshinweis, dann gegebenenfalls die Reaktion auf einen abgelehnten Speicherhinweis.
+**Optionale Hilfe über (?) — nach der Passworterzeugung, nur nach Klick:**
 
 > Registriere das Konto und bestätige danach den Speichern-Hinweis des Browsers.
 
-**Nur wenn „Speichern“ abgelehnt wurde — zwei aufeinanderfolgende Sprechschritte:**
+**Automatisch nach dem Ablehnen von „Speichern“ — zwei aufeinanderfolgende Sprechschritte:**
 
 > Das Passwort ist damit noch nicht im Passwortmanager gespeichert.
 
@@ -866,11 +864,17 @@ Optionaler Handlungshinweis, dann gegebenenfalls die Reaktion auf einen abgelehn
 
 ### S13-03 — MyShop: den gespeicherten Eintrag verwenden
 
-Nach dem Speichern wird die Anmeldung erneut ausprobiert. Der mittlere Absatz ist der optionale Ausfüllhinweis; zum Schluss wird der Browser geschlossen.
+Nach dem Speichern wird die Anmeldung erneut ausprobiert.
+
+**Automatisch nach dem Speichern:**
 
 > Der Eintrag ist im Tresor gespeichert. Melde dich noch einmal an.
 
+**Optionale Hilfe über (?) — bei der erneuten Anmeldung, nur nach Klick:**
+
 > Wähle den gespeicherten Eintrag aus und klicke nach dem Ausfüllen selbst auf Anmelden.
+
+**Automatisch nach erfolgreicher Anmeldung:**
 
 > Geschafft! Schließe den Browser und schau, was sich im Netzwerk verändert hat.
 
@@ -890,25 +894,35 @@ MyShop erscheint mit eigenem Passwort. Ein Tresor mit vorhandenen Konten wird ge
 
 ### S13-05 — Muster Bank: anmelden und den Passwortwechsel finden
 
-Optionale Hinweise führen zur Anmeldung mit dem gespeicherten Eintrag und über die Einstellungen zur Passwortänderung.
+Die Person meldet sich an und öffnet die Passwortänderung in den Einstellungen. Die folgenden Hinweise erscheinen ausschließlich über den Fragezeichen-Button, passend zum jeweiligen Schritt.
+
+**Optionale Hilfe über (?) — bei der Anmeldung:**
 
 > Öffne das Passwortfeld und wähle den gespeicherten Eintrag für Muster Bank.
 
+**Optionale Hilfe über (?) — beim Suchen der Passwortänderung:**
+
 > Öffne Einstellungen, dann Sicherheit und anschließend Passwort.
+
+**Optionale Hilfe über (?) — im Formular zur Passwortänderung:**
 
 > Verwende für beide neuen Passwortfelder den Vorschlag des Passwortmanagers und bestätige mit „Passwort ändern“.
 
 ### S13-06 — Muster Bank: den Tresoreintrag aktualisieren
 
-Nach dem Passwortwechsel beim Dienst muss auch der gespeicherte Eintrag aktualisiert werden. Die folgenden drei Hinweise erscheinen nur bei abgelehnter Aktualisierung; der letzte ist der erneut aufrufbare Hinweis.
+Nach dem Passwortwechsel beim Dienst muss auch der gespeicherte Eintrag aktualisiert werden.
+
+**Automatisch nach dem Ablehnen der Aktualisierung — zwei aufeinanderfolgende Sprechschritte:**
 
 > Im Passwortmanager ist damit noch das alte Passwort gespeichert.
 
 > Damit er beim nächsten Anmelden das neue verwendet, öffne den Hinweis noch einmal und aktualisiere den Eintrag.
 
+**Optionale Hilfe über (?) — solange die Aktualisierung noch offen ist, nur nach Klick:**
+
 > Aktualisiere den Eintrag, damit der Passwortmanager das neue Passwort verwendet.
 
-**Sobald der Eintrag aktualisiert ist:**
+**Automatisch nach der Aktualisierung des Eintrags:**
 
 > Jetzt ist auch im Passwortmanager das neue Passwort gespeichert. Melde dich ab und anschließend mit dem neuen Passwort wieder an.
 
@@ -982,7 +996,7 @@ Ein Angreifer kennt in der Szene das korrekte Master-Campus-Passwort. PassWo erk
 
 PassWo unterscheidet Wissen, Besitz und Biometrie. Die Person recherchiert die Aktivierung im simulierten Browser, richtet 2FA mit einer Authenticator-App ein und probiert die Anmeldung aus.
 
-Quelle: [s14.ts](packages/training-content/src/s14.ts), Content-Version 1.7.0.
+Quelle: [s14.ts](packages/training-content/src/s14.ts).
 
 ### S14-01 — MFA und 2FA unterscheiden
 
@@ -1040,7 +1054,7 @@ Nach der Anmeldung mit dem zusätzlichen Faktor wird der Browser geschlossen.
 
 Master Campus trägt im Netzwerk die zusätzliche Schutzmarkierung. PassWo erklärt, welche weitere Hürde ein Angreifer überwinden müsste.
 
-Quelle: [s15-s17.ts](packages/training-content/src/s15-s17.ts), Content-Version 1.2.0.
+Quelle: [s15-s17.ts](packages/training-content/src/s15-s17.ts).
 
 ### S15-01 — Das Passwort allein reicht nicht mehr
 
@@ -1056,7 +1070,7 @@ Die Wirkung der zuvor eingerichteten 2FA wird in zwei Sprechschritten eingeordne
 
 PassWo macht die Ausweitung handhabbar: zuerst wichtige Konten, danach weitere.
 
-Quelle: [s15-s17.ts](packages/training-content/src/s15-s17.ts), Content-Version 1.2.0.
+Quelle: [s15-s17.ts](packages/training-content/src/s15-s17.ts).
 
 ### S16-01 — Priorisieren und den Schutz ausweiten
 
@@ -1072,7 +1086,7 @@ Nach diesen beiden Sprechschritten löst „Schutz auf weitere Konten ausweiten�
 
 Die zusätzliche Schutzmarkierung erscheint bei weiteren Beispielkonten. PassWo verbindet die eigenen starken Passwörter mit der Wirkung des zusätzlichen Faktors.
 
-Quelle: [s15-s17.ts](packages/training-content/src/s15-s17.ts), Content-Version 1.2.0.
+Quelle: [s15-s17.ts](packages/training-content/src/s15-s17.ts).
 
 ### S17-01 — Das Vorgehen auf andere Konten übertragen
 
@@ -1088,10 +1102,8 @@ Dies ist der letzte gesprochene Text der PassWo-Figur. Danach beendet die Person
 
 ---
 
-### Quellen und Pflegehinweise
+### Quellen
 
-Die Segmentüberschriften und Szenenbeschreibungen sind redaktionelle Orientierung; der zitierte Wortlaut wurde aus den versionierten Inhalten übernommen. Inhaltlich auffällige Formulierungen und vorhandene Schreibweisen wurden dabei nicht korrigiert. Die Content-Dateien und ihre Versionen stehen jeweils am Segmentanfang.
+Der Wortlaut stammt aus den [Trainingsinhalten](packages/training-content/src/). Die jeweilige Quelldatei ist am Segmentanfang verlinkt. Die Szenenbeschreibungen ergänzen die Dialoge um Handlung und Auslöser der Anzeige.
 
-Die Zuordnung sichtbarer Sprechblasen und ihrer Reihenfolge folgt den aktuellen Trainingsansichten, insbesondere [S05](apps/study-web/src/features/training/segments/S05/S05AnalysisTraining.tsx), [S06](apps/study-web/src/features/training/segments/S06/S06ConsequenceController.ts) und dem [integrierten Ablauf ab S08](apps/study-web/src/features/training/segments/S08/S08NetworkRewindStage.tsx). In den Inhaltsdateien vorhandene, aber nicht als Dialog verwendete Texte wurden nicht als zusätzliche Sprechblasen eingefügt. Dazu gehören beispielsweise die separate Passphrasen-Vorschau und die Schild-Erklärung in S05, die allgemeine `s06.summary` sowie die Statuszusammenfassungen in S08.
-
-Fachlicher Rahmen: [Segmentindex](research/derived/segment-index.md), [Training Copy](docs/design/TRAINING-COPY.md) und die Copy-Audits für [S00–S05](docs/design/S00-S05-COPY-AUDIT.md), [S06–S07](docs/design/S06-S07-COPY-AUDIT.md), [S08–S09](docs/design/S08-S09-COPY-AUDIT.md), [S12](docs/design/S12-COPY-AUDIT.md), [S13](docs/design/S13-COPY-AUDIT.md), [S14](docs/design/S14-COPY-AUDIT.md) und [S15–S17](docs/design/S15-S17-COPY-AUDIT.md).
+Die Reihenfolge und die Unterscheidung zwischen automatischem Dialog und optionaler Hilfe folgen den [Trainingsansichten](apps/study-web/src/features/training/). Einen Überblick über die Segmente bietet der [Segmentindex](research/derived/segment-index.md).
